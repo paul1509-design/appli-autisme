@@ -14,7 +14,7 @@ enum AppScreen {
 class AppState: ObservableObject {
     @Published var currentScreen: AppScreen = .home
     @Published var selectedChild: ChildProfile?
-    @Published var currentLanguage: String = "fr"
+    @Published var currentLanguage: AppLanguage = .french
     @Published var isOnboardingComplete: Bool = false
     @Published var selectedModule: ModuleType = .vocabulary
 

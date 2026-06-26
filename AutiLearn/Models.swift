@@ -288,3 +288,23 @@ class WeeklyReport {
         self.parentNote = ""
     }
 }
+
+// MARK: - Langue de l'application
+enum AppLanguage: String, Codable, CaseIterable {
+    case french = "fr"
+    case english = "en"
+
+    var displayName: String {
+        switch self {
+        case .french:  return "Français"
+        case .english: return "English"
+        }
+    }
+
+    var flag: String {
+        switch self {
+        case .french:  return "🇫🇷"
+        case .english: return "🇬🇧"
+        }
+    }
+}
