@@ -14,7 +14,7 @@ struct HomeView: View {
         let hour = Calendar.current.component(.hour, from: currentTime)
         switch hour {
         case 6..<12:  return "Bonjour"
-        case 12..< 18: return "Bon après-midi"
+        case 12..<18:  return "Bon après-midi"
         default:       return "Bonsoir"
         }
     }
