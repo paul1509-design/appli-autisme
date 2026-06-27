@@ -1,5 +1,6 @@
 import AVFoundation
 import SwiftUI
+import SwiftData
 import Combine
 
 // MARK: - Service synthèse vocale (orthophoniste)
