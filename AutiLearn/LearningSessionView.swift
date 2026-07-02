@@ -9,15 +9,12 @@ struct LearningSessionView: View {
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var vm: LearningSessionVM
-    @State private var showTeacherHint = false
-    @State private var showReward = false
     @State private var sessionComplete = false
 
     init(child: ChildProfile, moduleType: ModuleType) {
         self.child = child
         self.moduleType = moduleType
-        _vm = StateObject(wrappedValue: LearningSessionVM(
-            child: child, moduleType: moduleType))
+        _vm = StateObject(wrappedValue: LearningSessionVM(child: child, moduleType: moduleType))
     }
 
     var body: some View {
@@ -31,90 +28,75 @@ struct LearningSessionView: View {
                     total: vm.totalAnswers,
                     onContinue: { dismiss() }
                 )
-            } else {
+            } else if let exercise = vm.currentExercise {
                 VStack(spacing: 0) {
-                    // Header session
-                    SessionHeader(
-                        moduleType: moduleType,
-                        progress: vm.progress,
-                        starsEarned: vm.starsEarned,
-                        onClose: { dismiss() }
-                    )
+                    ProgressBar(value: vm.progress)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+
+                    HStack {
+                        HStack(spacing: 4) {
+                            Text("⭐️")
+                            Text("\(vm.starsEarned)")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color("textPrimary"))
+                        }
+                        Spacer()
+                        Button {
+                            vm.saveSession(modelContext: modelContext)
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 26))
+                                .foregroundColor(Color("textSecondary"))
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
 
                     ScrollView {
                         VStack(spacing: 24) {
-                            // Timer visuel
-                            if vm.timerActive {
-                                CircularTimer(
-                                    progress: vm.timerProgress,
-                                    secondsLeft: vm.secondsLeft
-                                )
-                                .padding(.top, 16)
+                            CharacterBubble(exercise: exercise,
+                                            isSpeaking: vm.isSpeaking,
+                                            onReplay: { vm.speakCurrentExercise() })
+                            .padding(.top, 20)
+
+                            if !vm.hasAnswered {
+                                switch exercise.type {
+                                case .repeatAfterMe:
+                                    RepeatResponseView(vm: vm)
+                                case .answerQuestion, .writeResponse:
+                                    WriteResponseView(vm: vm)
+                                }
                             }
 
-                            // Carte question / mot
-                            if let question = vm.currentQuestion {
-                                QuestionCard(question: question,
-                                             childName: child.firstName)
-                                    .transition(.asymmetric(
-                                        insertion: .move(edge: .trailing),
-                                        removal: .move(edge: .leading)
-                                    ))
-                            }
-
-                            // Réponses
-                            if let question = vm.currentQuestion {
-                                AnswerGrid(
-                                    choices: question.choices,
-                                    selectedAnswer: vm.selectedAnswer,
-                                    correctAnswer: question.correctAnswer,
-                                    hasAnswered: vm.hasAnswered,
-                                    onSelect: { answer in
-                                        vm.submitAnswer(answer)
-                                        if vm.shouldShowTeacherHint {
-                                            withAnimation { showTeacherHint = true }
-                                        }
-                                    }
-                                )
-                            }
-
-                            // Aide syllabique (si 2e erreur)
-                            if vm.showSyllableHint, let hint = vm.syllableHint {
-                                SyllableHintBanner(hint: hint)
-                                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                            }
-
-                            // Bouton suivant
                             if vm.hasAnswered {
-                                NextButton(
-                                    isCorrect: vm.lastAnswerCorrect,
-                                    onNext: {
-                                        showTeacherHint = false
-                                        if vm.isSessionComplete {
-                                            withAnimation { sessionComplete = true }
-                                        } else {
-                                            vm.nextQuestion()
-                                        }
-                                    }
-                                )
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 32)
-                        .animation(.spring(), value: vm.hasAnswered)
-                        .animation(.spring(), value: vm.showSyllableHint)
-                    }
-                }
+                                FeedbackCard(correct: vm.lastAnswerCorrect,
+                                             expected: exercise.expectedAnswer)
 
-                // Overlay professeur ABA
-                if showTeacherHint {
-                    TeacherOverlay(
-                        teacherName: child.teacherAvatarName,
-                        message: vm.teacherMessage,
-                        isCorrect: vm.lastAnswerCorrect,
-                        onDismiss: { showTeacherHint = false }
-                    )
+                                Button {
+                                    if vm.currentIndex + 1 >= vm.exercises.count {
+                                        vm.saveSession(modelContext: modelContext)
+                                        sessionComplete = true
+                                    } else {
+                                        vm.nextExercise()
+                                    }
+                                } label: {
+                                    Text(vm.currentIndex + 1 >= vm.exercises.count
+                                         ? "Voir mon résultat !" : "Exercice suivant →")
+                                        .font(.system(size: 17, weight: .medium))
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
+                                        .background(Color("accentPurple"))
+                                        .cornerRadius(16)
+                                }
+                                .padding(.horizontal, 20)
+                            }
+
+                            Spacer(minLength: 40)
+                        }
+                    }
                 }
             }
         }
@@ -124,351 +106,228 @@ struct LearningSessionView: View {
     }
 }
 
-// MARK: - Header Session
-struct SessionHeader: View {
-    let moduleType: ModuleType
-    let progress: Double
-    let starsEarned: Int
-    let onClose: () -> Void
+// MARK: - Personnage + bulle de dialogue
+struct CharacterBubble: View {
+    let exercise: CurriculumExercise
+    let isSpeaking: Bool
+    let onReplay: () -> Void
 
-    var moduleName: String {
-        switch moduleType {
-        case .vocabulary: return "Vocabulaire"
-        case .reading:    return "Lecture"
-        case .numbers:    return "Chiffres"
-        case .diction:    return "Diction"
-        case .story:      return "Histoire"
-        case .karaoke:    return "Karaoké"
-        case .drawing:    return "Dessin"
-        default:          return "Apprentissage"
-        }
-    }
-
-    var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(Color("textSecondary"))
-                        .frame(width: 36, height: 36)
-                        .background(Color("cardBackground"))
-                        .cornerRadius(10)
-                }
-
-                Spacer()
-
-                Text(moduleName)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Color("textPrimary"))
-
-                Spacer()
-
-                // Étoiles gagnées
-                HStack(spacing: 4) {
-                    Text("⭐️")
-                        .font(.system(size: 14))
-                    Text("\(starsEarned)")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color("accentOrange"))
-                }
-            }
-
-            // Barre de progression
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color("borderLight"))
-                        .frame(height: 6)
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color("accentPurple"))
-                        .frame(width: geo.size.width * progress, height: 6)
-                        .animation(.spring(), value: progress)
-                }
-            }
-            .frame(height: 6)
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 12)
-        .background(Color("backgroundSoft"))
-    }
-}
-
-// MARK: - Timer circulaire
-struct CircularTimer: View {
-    let progress: Double  // 0..1 (1 = temps plein)
-    let secondsLeft: Int
-
-    var timerColor: Color {
-        if progress > 0.5 { return Color("accentGreen") }
-        if progress > 0.25 { return Color("accentOrange") }
-        return Color("accentRed")
-    }
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(Color("borderLight"), lineWidth: 5)
-                .frame(width: 60, height: 60)
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(timerColor, style: StrokeStyle(lineWidth: 5, lineCap: .round))
-                .frame(width: 60, height: 60)
-                .rotationEffect(.degrees(-90))
-                .animation(.linear(duration: 1), value: progress)
-            Text("\(secondsLeft)")
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(Color("textPrimary"))
-        }
-    }
-}
-
-// MARK: - Carte question
-struct QuestionCard: View {
-    let question: Question
-    let childName: String
-    @StateObject private var speechService = SpeechService()
+    var characterEmoji: String { exercise.useGirl ? "👧" : "🧒" }
+    var characterName: String  { exercise.useGirl ? "Léa" : "Léo" }
 
     var body: some View {
         VStack(spacing: 16) {
-            // Instruction
-            Text(question.instruction)
-                .font(.system(size: 16))
-                .foregroundColor(Color("textSecondary"))
-                .multilineTextAlignment(.center)
-
-            // Mot / image principale
-            VStack(spacing: 12) {
-                if !question.imageEmoji.isEmpty {
-                    Text(question.imageEmoji)
-                        .font(.system(size: 64))
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 6) {
+                    Text(characterName)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Color("accentPurple"))
+                    Text("dit :")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color("textSecondary"))
                 }
-                Text(question.word)
-                    .font(.system(size: 32, weight: .medium))
+                Text(exercise.characterSays)
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundColor(Color("textPrimary"))
-                    .multilineTextAlignment(.center)
-
-                // Bouton écouter
-                Button {
-                    speechService.speak(question.word)
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "speaker.wave.2.fill")
-                        Text("Écouter")
-                    }
-                    .font(.system(size: 14))
-                    .foregroundColor(Color("accentPurple"))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Color("accentPurple").opacity(0.08))
-                    .cornerRadius(20)
-                }
+                    .lineSpacing(5)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(exercise.emoji)
+                    .font(.system(size: 32))
             }
-            .padding(24)
-            .frame(maxWidth: .infinity)
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 20)
                     .fill(Color("cardBackground"))
                     .overlay(RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color("borderLight"), lineWidth: 0.5))
+                        .stroke(Color("accentPurple").opacity(0.2), lineWidth: 1))
             )
-        }
-    }
-}
 
-// MARK: - Grille de réponses
-struct AnswerGrid: View {
-    let choices: [String]
-    let selectedAnswer: String?
-    let correctAnswer: String
-    let hasAnswered: Bool
-    let onSelect: (String) -> Void
-
-    var body: some View {
-        VStack(spacing: 10) {
-            ForEach(choices, id: \.self) { choice in
-                AnswerButton(
-                    text: choice,
-                    state: buttonState(for: choice),
-                    onTap: {
-                        if !hasAnswered { onSelect(choice) }
-                    }
-                )
-            }
-        }
-    }
-
-    private func buttonState(for choice: String) -> AnswerButtonState {
-        guard hasAnswered else { return .idle }
-        if choice == correctAnswer { return .correct }
-        if choice == selectedAnswer { return .incorrect }
-        return .idle
-    }
-}
-
-enum AnswerButtonState {
-    case idle, correct, incorrect
-}
-
-struct AnswerButton: View {
-    let text: String
-    let state: AnswerButtonState
-    let onTap: () -> Void
-
-    var backgroundColor: Color {
-        switch state {
-        case .idle:      return Color("cardBackground")
-        case .correct:   return Color("accentGreen").opacity(0.12)
-        case .incorrect: return Color("accentRed").opacity(0.12)
-        }
-    }
-
-    var borderColor: Color {
-        switch state {
-        case .idle:      return Color("borderLight")
-        case .correct:   return Color("accentGreen")
-        case .incorrect: return Color("accentRed")
-        }
-    }
-
-    var icon: String? {
-        switch state {
-        case .correct:   return "checkmark.circle.fill"
-        case .incorrect: return "xmark.circle.fill"
-        case .idle:      return nil
-        }
-    }
-
-    var body: some View {
-        Button(action: onTap) {
-            HStack {
-                Text(text)
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundColor(Color("textPrimary"))
-                Spacer()
-                if let iconName = icon {
-                    Image(systemName: iconName)
-                        .foregroundColor(state == .correct ?
-                                         Color("accentGreen") : Color("accentRed"))
-                        .font(.system(size: 20))
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(Color("accentPurple").opacity(0.1))
+                        .frame(width: 70, height: 70)
+                    Text(characterEmoji)
+                        .font(.system(size: 40))
+                        .scaleEffect(isSpeaking ? 1.15 : 1.0)
+                        .animation(isSpeaking
+                            ? .easeInOut(duration: 0.4).repeatForever(autoreverses: true)
+                            : .default, value: isSpeaking)
                 }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(characterName)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Color("textPrimary"))
+                    Button(action: onReplay) {
+                        HStack(spacing: 6) {
+                            Image(systemName: isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2")
+                                .font(.system(size: 14))
+                            Text(isSpeaking ? "En train de parler..." : "Réécouter")
+                                .font(.system(size: 14))
+                        }
+                        .foregroundColor(Color("accentPurple"))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Color("accentPurple").opacity(0.1))
+                        .cornerRadius(10)
+                    }
+                    .disabled(isSpeaking)
+                }
+                Spacer()
             }
-            .padding(18)
-            .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(backgroundColor)
-                    .overlay(RoundedRectangle(cornerRadius: 14)
-                        .stroke(borderColor,
-                                lineWidth: state == .idle ? 0.5 : 1.5))
-            )
         }
-        .disabled(state != .idle)
-        .animation(.spring(response: 0.3), value: state)
+        .padding(.horizontal, 20)
     }
 }
 
-// MARK: - Aide syllabique
-struct SyllableHintBanner: View {
-    let hint: String
+// MARK: - Mode répétition orale
+struct RepeatResponseView: View {
+    @ObservedObject var vm: LearningSessionVM
+    @State private var hasPressed = false
 
     var body: some View {
-        HStack(spacing: 10) {
-            Text("💡")
-                .font(.system(size: 20))
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Indice")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Color("accentOrange"))
-                Text("Le mot commence par : \(hint)...")
-                    .font(.system(size: 15))
-                    .foregroundColor(Color("textPrimary"))
+        VStack(spacing: 16) {
+            Text("Répète à voix haute !")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(Color("textPrimary"))
+            Text("Écoute bien, puis dis la phrase.")
+                .font(.system(size: 14))
+                .foregroundColor(Color("textSecondary"))
+                .multilineTextAlignment(.center)
+
+            Button {
+                hasPressed = true
+                vm.confirmRepeated()
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: hasPressed ? "checkmark.circle.fill" : "mic.circle.fill")
+                        .font(.system(size: 28))
+                    Text(hasPressed ? "Bien dit !" : "J'ai répété à voix haute ✓")
+                        .font(.system(size: 17, weight: .medium))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+                .background(hasPressed ? Color("accentGreen") : Color("accentOrange"))
+                .cornerRadius(16)
+                .animation(.spring(response: 0.3), value: hasPressed)
             }
-            Spacer()
+            .padding(.horizontal, 20)
+            .disabled(hasPressed)
+
+            Text("Si tu n'y arrives pas, réécoute et réessaie !")
+                .font(.system(size: 12))
+                .foregroundColor(Color("textSecondary"))
+                .multilineTextAlignment(.center)
         }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color("accentOrange").opacity(0.08))
-                .overlay(RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color("accentOrange").opacity(0.3), lineWidth: 0.5))
-        )
+        .padding(.vertical, 8)
     }
 }
 
-// MARK: - Bouton suivant
-struct NextButton: View {
-    let isCorrect: Bool
-    let onNext: () -> Void
+// MARK: - Mode réponse écrite
+struct WriteResponseView: View {
+    @ObservedObject var vm: LearningSessionVM
+    @FocusState private var isFocused: Bool
 
     var body: some View {
-        Button(action: onNext) {
-            HStack(spacing: 8) {
-                Text(isCorrect ? "Super ! Continuer" : "Continuer")
+        VStack(spacing: 16) {
+            if let ex = vm.currentExercise {
+                Text(ex.prompt)
                     .font(.system(size: 17, weight: .medium))
-                Image(systemName: "arrow.right")
-            }
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
-            .background(isCorrect ? Color("accentGreen") : Color("accentPurple"))
-            .cornerRadius(14)
-        }
-    }
-}
-
-// MARK: - Overlay professeur ABA
-struct TeacherOverlay: View {
-    let teacherName: String
-    let message: String
-    let isCorrect: Bool
-    let onDismiss: () -> Void
-
-    var teacherEmoji: String {
-        let map = ["teacher_luna": "👩‍🏫", "teacher_leo": "👨‍🏫",
-                   "teacher_maya": "🧑‍🎓", "teacher_sam": "🧑‍🏫"]
-        return map[teacherName] ?? "👩‍🏫"
-    }
-
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.2)
-                .ignoresSafeArea()
-                .onTapGesture { onDismiss() }
-
-            VStack(spacing: 16) {
-                Text(teacherEmoji)
-                    .font(.system(size: 56))
-
-                Text(message)
-                    .font(.system(size: 17))
                     .foregroundColor(Color("textPrimary"))
                     .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-
-                Button(action: onDismiss) {
-                    Text("OK !")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(width: 120, height: 44)
-                        .background(isCorrect ? Color("accentGreen") : Color("accentPurple"))
-                        .cornerRadius(12)
-                }
             }
-            .padding(28)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color("cardBackground"))
-            )
-            .padding(.horizontal, 40)
-            .shadow(color: .black.opacity(0.1), radius: 20)
+
+            TextField("Écris ta réponse ici...", text: $vm.userInput, axis: .vertical)
+                .font(.system(size: 17))
+                .padding(14)
+                .background(Color("cardBackground"))
+                .cornerRadius(14)
+                .overlay(RoundedRectangle(cornerRadius: 14)
+                    .stroke(isFocused ? Color("accentPurple") : Color("borderLight"),
+                            lineWidth: isFocused ? 1.5 : 0.5))
+                .focused($isFocused)
+                .lineLimit(3)
+                .padding(.horizontal, 20)
+                .onAppear { isFocused = true }
+
+            Button {
+                isFocused = false
+                vm.submitAnswer()
+            } label: {
+                Text("Valider ma réponse")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(vm.userInput.trimmingCharacters(in: .whitespaces).isEmpty
+                                ? Color("textSecondary").opacity(0.4)
+                                : Color("accentPurple"))
+                    .cornerRadius(16)
+            }
+            .disabled(vm.userInput.trimmingCharacters(in: .whitespaces).isEmpty)
+            .padding(.horizontal, 20)
         }
-        .transition(.opacity.combined(with: .scale))
+        .padding(.vertical, 8)
     }
 }
 
-// MARK: - Session terminée
+// MARK: - Feedback
+struct FeedbackCard: View {
+    let correct: Bool
+    let expected: String
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text(correct ? "🎉 Excellent !" : "💪 Presque !")
+                .font(.system(size: 22, weight: .medium))
+                .foregroundColor(correct ? Color("accentGreen") : Color("accentOrange"))
+
+            if !correct {
+                VStack(spacing: 4) {
+                    Text("La bonne réponse :")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color("textSecondary"))
+                    Text(expected)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Color("textPrimary"))
+                        .multilineTextAlignment(.center)
+                }
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(correct ? Color("accentGreen").opacity(0.08) : Color("accentOrange").opacity(0.08))
+                .overlay(RoundedRectangle(cornerRadius: 16)
+                    .stroke(correct ? Color("accentGreen").opacity(0.3) : Color("accentOrange").opacity(0.3),
+                            lineWidth: 0.5))
+        )
+        .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - Barre de progression
+struct ProgressBar: View {
+    let value: Double
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 4).fill(Color("borderLight")).frame(height: 6)
+                RoundedRectangle(cornerRadius: 4).fill(Color("accentPurple"))
+                    .frame(width: geo.size.width * max(0, min(1, value)), height: 6)
+                    .animation(.spring(response: 0.4), value: value)
+            }
+        }
+        .frame(height: 6)
+    }
+}
+
+// MARK: - Fin de session
 struct SessionCompleteView: View {
     let starsEarned: Int
     let correctAnswers: Int
@@ -483,62 +342,41 @@ struct SessionCompleteView: View {
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
-
-            Text(successRate >= 80 ? "🎉" : "💪")
-                .font(.system(size: 80))
-                .scaleEffect(1.0)
-
-            Text(successRate >= 80 ? "Excellent !" : "Bien joué !")
-                .font(.system(size: 32, weight: .medium))
-                .foregroundColor(Color("textPrimary"))
-
-            // Stats
-            HStack(spacing: 24) {
-                VStack(spacing: 4) {
-                    Text("⭐️ \(starsEarned)")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(Color("accentOrange"))
-                    Text("étoiles")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color("textSecondary"))
-                }
-                VStack(spacing: 4) {
-                    Text("\(successRate)%")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(Color("accentGreen"))
-                    Text("réussite")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color("textSecondary"))
-                }
-                VStack(spacing: 4) {
-                    Text("\(correctAnswers)/\(total)")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(Color("accentPurple"))
-                    Text("bonnes réponses")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color("textSecondary"))
-                }
+            Text(successRate >= 75 ? "🎉" : "💪").font(.system(size: 80))
+            VStack(spacing: 8) {
+                Text(successRate >= 75 ? "Bravo !" : "Continue comme ça !")
+                    .font(.system(size: 28, weight: .medium)).foregroundColor(Color("textPrimary"))
+                Text("Tu as gagné \(starsEarned) étoile\(starsEarned > 1 ? "s" : "") !")
+                    .font(.system(size: 18)).foregroundColor(Color("accentOrange"))
             }
-            .padding(24)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color("cardBackground"))
-            )
-
+            HStack(spacing: 16) {
+                ResultStat(value: "\(successRate)%", label: "Réussite", emoji: "🎯")
+                ResultStat(value: "\(starsEarned)", label: "Étoiles", emoji: "⭐️")
+                ResultStat(value: "\(correctAnswers)/\(total)", label: "Correct", emoji: "✅")
+            }
+            .padding(.horizontal, 20)
             Spacer()
-
             Button(action: onContinue) {
                 Text("Retour à l'accueil")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 54)
-                    .background(Color("accentPurple"))
-                    .cornerRadius(14)
+                    .font(.system(size: 17, weight: .medium)).foregroundColor(.white)
+                    .frame(maxWidth: .infinity).padding(.vertical, 16)
+                    .background(Color("accentPurple")).cornerRadius(16)
             }
-            .padding(.horizontal, 32)
-            .padding(.bottom, 40)
+            .padding(.horizontal, 24).padding(.bottom, 32)
         }
         .background(Color("backgroundSoft").ignoresSafeArea())
+    }
+}
+
+struct ResultStat: View {
+    let value: String; let label: String; let emoji: String
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(emoji).font(.system(size: 28))
+            Text(value).font(.system(size: 20, weight: .medium)).foregroundColor(Color("textPrimary"))
+            Text(label).font(.system(size: 12)).foregroundColor(Color("textSecondary"))
+        }
+        .frame(maxWidth: .infinity).padding(14)
+        .background(Color("cardBackground")).cornerRadius(14)
     }
 }

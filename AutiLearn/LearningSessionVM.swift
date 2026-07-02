@@ -1,19 +1,15 @@
 import SwiftUI
 import SwiftData
-import Combine
+import AVFoundation
 
+// Gardé pour compatibilité stub ContentLibrary
 struct Question {
     let word: String
     let imageEmoji: String
     let instruction: String
     let choices: [String]
     let correctAnswer: String
-
-    var syllableHint: String {
-        guard !correctAnswer.isEmpty else { return "" }
-        let syllables = correctAnswer.components(separatedBy: "-")
-        return syllables.first ?? String(correctAnswer.prefix(2))
-    }
+    var syllableHint: String { "" }
 }
 
 @MainActor
@@ -21,45 +17,31 @@ class LearningSessionVM: ObservableObject {
     let child: ChildProfile
     let moduleType: ModuleType
 
-    @Published var questions: [Question] = []
+    @Published var exercises: [CurriculumExercise] = []
     @Published var currentIndex: Int = 0
-    @Published var selectedAnswer: String?
+    @Published var userInput: String = ""
     @Published var hasAnswered: Bool = false
     @Published var lastAnswerCorrect: Bool = false
     @Published var starsEarned: Int = 0
     @Published var correctAnswers: Int = 0
     @Published var totalAnswers: Int = 0
     @Published var consecutiveErrors: Int = 0
-    @Published var showSyllableHint: Bool = false
-    @Published var shouldShowTeacherHint: Bool = false
-    @Published var teacherMessage: String = ""
+    @Published var isSpeaking: Bool = false
 
-    // Timer
-    @Published var timerActive: Bool = true
-    @Published var timerProgress: Double = 1.0
-    @Published var secondsLeft: Int = 20
+    private let speech = AVSpeechSynthesizer()
+    private var sessionStartTime = Date()
 
-    private var timerCancellable: AnyCancellable?
-    private var sessionStartTime: Date = Date()
-    private let sessionDurationSeconds = 20  // par question
-
-    var currentQuestion: Question? {
-        guard currentIndex < questions.count else { return nil }
-        return questions[currentIndex]
+    var currentExercise: CurriculumExercise? {
+        guard currentIndex < exercises.count else { return nil }
+        return exercises[currentIndex]
     }
 
     var progress: Double {
-        guard !questions.isEmpty else { return 0 }
-        return Double(currentIndex) / Double(questions.count)
+        guard !exercises.isEmpty else { return 0 }
+        return Double(currentIndex) / Double(exercises.count)
     }
 
-    var syllableHint: String? {
-        currentQuestion?.syllableHint
-    }
-
-    var isSessionComplete: Bool {
-        currentIndex >= questions.count - 1 && hasAnswered
-    }
+    var isSessionComplete: Bool { currentIndex >= exercises.count }
 
     init(child: ChildProfile, moduleType: ModuleType) {
         self.child = child
@@ -68,79 +50,71 @@ class LearningSessionVM: ObservableObject {
 
     func startSession() {
         sessionStartTime = Date()
-        questions = ContentLibrary.questions(
-            for: moduleType,
-            level: child.schoolLevel,
-            count: 8
-        )
-        startTimer()
+        exercises = ContentLibrary.exercises(for: moduleType,
+                                             level: child.schoolLevel,
+                                             count: 8)
+        currentIndex = 0
+        speakCurrentExercise()
     }
 
-    private func startTimer() {
-        secondsLeft = sessionDurationSeconds
-        timerProgress = 1.0
-        timerCancellable?.cancel()
-
-        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                guard let self else { return }
-                if self.secondsLeft > 0 && !self.hasAnswered {
-                    self.secondsLeft -= 1
-                    self.timerProgress = Double(self.secondsLeft) /
-                                         Double(self.sessionDurationSeconds)
-                } else if self.secondsLeft == 0 && !self.hasAnswered {
-                    // Temps écoulé → aide syllabique automatique
-                    self.showSyllableHint = true
-                    self.timerActive = false
-                }
-            }
+    func speakCurrentExercise() {
+        guard let ex = currentExercise else { return }
+        speak(ex.characterSays)
     }
 
-    func submitAnswer(_ answer: String) {
-        guard !hasAnswered, let question = currentQuestion else { return }
-        timerCancellable?.cancel()
+    func speak(_ text: String) {
+        speech.stopSpeaking(at: .immediate)
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = AVSpeechSynthesisVoice(language: "fr-FR")
+        utterance.rate = 0.42
+        utterance.pitchMultiplier = 1.1
+        isSpeaking = true
+        speech.speak(utterance)
+        let delay = Double(text.count) * 0.065 + 0.5
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            self.isSpeaking = false
+        }
+    }
 
-        selectedAnswer = answer
-        hasAnswered = true
+    // Validation d'une réponse écrite
+    func submitAnswer() {
+        guard let ex = currentExercise, !hasAnswered else { return }
         totalAnswers += 1
-
-        let isCorrect = answer == question.correctAnswer
+        let isCorrect = evaluate(input: userInput, expected: ex.expectedAnswer)
+        hasAnswered = true
         lastAnswerCorrect = isCorrect
-
         if isCorrect {
-            consecutiveErrors = 0
-            starsEarned += bonusStars
             correctAnswers += 1
-            shouldShowTeacherHint = consecutiveErrors == 0 && totalAnswers % 3 == 0
-            teacherMessage = positiveMessages.randomElement() ?? "Bravo !"
+            consecutiveErrors = 0
+            starsEarned += 1
+            speak("Bravo ! C'est exact !")
         } else {
             consecutiveErrors += 1
-            shouldShowTeacherHint = consecutiveErrors >= 2
-            teacherMessage = encouragementMessages.randomElement() ?? "Continue !"
-            if consecutiveErrors >= 2 {
-                showSyllableHint = true
+            speak("La bonne réponse est : \(ex.expectedAnswer)")
+        }
+    }
+
+    // Auto-validation pour le mode "J'ai répété à voix haute"
+    func confirmRepeated() {
+        guard !hasAnswered else { return }
+        totalAnswers += 1
+        correctAnswers += 1
+        consecutiveErrors = 0
+        starsEarned += 1
+        hasAnswered = true
+        lastAnswerCorrect = true
+        speak("Super ! Bien dit !")
+    }
+
+    func nextExercise() {
+        userInput = ""
+        hasAnswered = false
+        lastAnswerCorrect = false
+        currentIndex += 1
+        if !isSessionComplete {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                self.speakCurrentExercise()
             }
-        }
-    }
-
-    private var bonusStars: Int {
-        // Plus d'étoiles si réponse rapide
-        if secondsLeft > 15 { return 3 }
-        if secondsLeft > 8  { return 2 }
-        return 1
-    }
-
-    func nextQuestion() {
-        withAnimation(.spring()) {
-            currentIndex += 1
-            selectedAnswer = nil
-            hasAnswered = false
-            showSyllableHint = false
-            shouldShowTeacherHint = false
-        }
-        if currentIndex < questions.count {
-            startTimer()
         }
     }
 
@@ -148,7 +122,7 @@ class LearningSessionVM: ObservableObject {
         let session = LearningSession(moduleType: moduleType)
         session.durationSeconds = Int(Date().timeIntervalSince(sessionStartTime))
         session.starsEarned = starsEarned
-        session.wordsStudied = questions.count
+        session.wordsStudied = exercises.count
         session.correctAnswers = correctAnswers
         session.totalAnswers = totalAnswers
         session.completed = isSessionComplete
@@ -158,20 +132,20 @@ class LearningSessionVM: ObservableObject {
         try? modelContext.save()
     }
 
-    // MARK: - Messages professeur
-    private let positiveMessages = [
-        "Excellent ! Tu apprends tellement vite !",
-        "Bravo ! C'est exactement ça !",
-        "Super ! Tu es vraiment fort(e) !",
-        "Parfait ! Continue comme ça !",
-        "Wow, tu te souviens bien !"
-    ]
+    private func evaluate(input: String, expected: String) -> Bool {
+        let a = normalize(input)
+        let b = normalize(expected)
+        if a == b { return true }
+        // Tolérance 70% des mots
+        let wa = Set(a.components(separatedBy: " ").filter { !$0.isEmpty })
+        let wb = Set(b.components(separatedBy: " ").filter { !$0.isEmpty })
+        guard !wb.isEmpty else { return false }
+        return Double(wa.intersection(wb).count) / Double(wb.count) >= 0.7
+    }
 
-    private let encouragementMessages = [
-        "Presque ! Regarde bien l'indice.",
-        "Ce n'est pas grave, on réessaie ensemble.",
-        "Tu peux y arriver ! Regarde le mot encore une fois.",
-        "Chaque erreur nous aide à apprendre !",
-        "Ne t'inquiète pas, tu vas y arriver !"
-    ]
+    private func normalize(_ s: String) -> String {
+        s.trimmingCharacters(in: .whitespacesAndNewlines)
+         .lowercased()
+         .folding(options: .diacriticInsensitive, locale: .current)
+    }
 }
