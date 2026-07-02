@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>AutiLearn</string>
+	<string>ABA Homeschooling</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -23,9 +23,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>AutiLearn utilise le microphone pour les exercices de diction et de lecture à voix haute.</string>
+	<string>ABA Homeschooling utilise le microphone pour les exercices de diction et de lecture à voix haute.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>AutiLearn utilise la reconnaissance vocale pour que votre enfant puisse répondre à voix haute.</string>
+	<string>ABA Homeschooling utilise la reconnaissance vocale pour que votre enfant puisse répondre à voix haute.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
