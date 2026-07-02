@@ -73,6 +73,15 @@ enum SchoolLevel: String, Codable, CaseIterable {
         case .level3: return "levelOrange"
         }
     }
+
+    var description: String {
+        switch self {
+        case .level0: return "3 – 5 ans · Premiers mots et sons"
+        case .level1: return "6 – 7 ans · Lecture et écriture"
+        case .level2: return "8 – 10 ans · Phrases complètes"
+        case .level3: return "11 – 14 ans · Expression avancée"
+        }
+    }
 }
 
 // MARK: - Niveau de communication
