@@ -30,7 +30,7 @@ struct LearningSessionView: View {
                 )
             } else if let exercise = vm.currentExercise {
                 VStack(spacing: 0) {
-                    ProgressBar(value: vm.progress)
+                    SessionProgressBar(value: vm.progress)
                         .padding(.horizontal, 20)
                         .padding(.top, 16)
 
@@ -310,8 +310,8 @@ struct FeedbackCard: View {
     }
 }
 
-// MARK: - Barre de progression
-struct ProgressBar: View {
+// MARK: - Barre de progression session
+struct SessionProgressBar: View {
     let value: Double
 
     var body: some View {
