@@ -59,6 +59,9 @@ class LearningSessionVM: ObservableObject {
         }
     }
 
+    let leo = LeoPrimary()
+    private var correctStreak = 0
+
     private let speech = AVSpeechSynthesizer()
     private var sessionStartTime = Date()
 
@@ -88,7 +91,14 @@ class LearningSessionVM: ObservableObject {
                                              count: 8)
         currentIndex = 0
         currentPromptLevel = .independent
-        speakCurrentExercise()
+        // Léo accueille l'enfant
+        let moduleName = moduleType.rawValue
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.leo.speak(context: .moduleStart(module: moduleName, firstName: self.child.firstName))
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+            self.speakCurrentExercise()
+        }
     }
 
     // MARK: - Hiérarchie de prompts ABA
@@ -98,11 +108,11 @@ class LearningSessionVM: ObservableObject {
         currentPromptLevel = nextLevel
         totalPromptsUsed += 1
         showHint = true
+        leo.speak(context: .hint)
 
         if nextLevel == .full {
-            // Aide complète : lire la réponse à voix haute
-            speak("La réponse est : \(ex.expectedAnswer)")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.speak("La réponse est : \(ex.expectedAnswer)")
                 self.userInput = ex.expectedAnswer
             }
         }
@@ -155,11 +165,16 @@ class LearningSessionVM: ObservableObject {
         if isCorrect {
             correctAnswers += 1
             consecutiveErrors = 0
+            correctStreak += 1
             starsEarned += 1
-            speak("Bravo ! C'est exact !")
+            leo.speak(context: .correct(streak: correctStreak))
         } else {
             consecutiveErrors += 1
-            speak("La bonne réponse est : \(ex.expectedAnswer)")
+            correctStreak = 0
+            leo.speak(context: .wrong(attempt: consecutiveErrors))
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+                self.speak("La bonne réponse est : \(ex.expectedAnswer)")
+            }
         }
     }
 
@@ -169,10 +184,11 @@ class LearningSessionVM: ObservableObject {
         totalAnswers += 1
         correctAnswers += 1
         consecutiveErrors = 0
+        correctStreak += 1
         starsEarned += 1
         hasAnswered = true
         lastAnswerCorrect = true
-        speak("Super ! Bien dit !")
+        leo.speak(context: .correct(streak: correctStreak))
     }
 
     func nextExercise() {
@@ -204,6 +220,8 @@ class LearningSessionVM: ObservableObject {
         child.totalStars += starsEarned
         child.lastActiveAt = Date()
         try? modelContext.save()
+
+        leo.speak(context: .sessionEnd(correct: correctAnswers, total: totalAnswers, firstName: child.firstName))
 
         let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
         ABAReviewService.checkAndRequestReview(totalSessions: child.sessions.count, scene: scene)

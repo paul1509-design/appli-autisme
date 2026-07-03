@@ -18,6 +18,7 @@ struct HomeView: View {
     @State private var showReward = false
     @State private var showBonusUnlock = false
     @State private var lastRewardAt: Int = 0
+    @StateObject private var leo = LeoPrimary()
     @State private var completedScheduleSteps: Set<Int> = []
     @AppStorage("scheduleDate") private var scheduleDateString: String = ""
 
@@ -39,6 +40,7 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
+            ZStack(alignment: .bottom) {
             ScrollView {
                 VStack(spacing: 20) {
 
@@ -171,12 +173,27 @@ struct HomeView: View {
             .sheet(isPresented: $showBonusUnlock) {
                 ABABonusUnlockView(isPresented: $showBonusUnlock, childName: child.firstName)
             }
+
+            LeoPrimaryBubble(leo: leo)
+                .padding(.bottom, 16)
+                .allowsHitTesting(false)
+            } // end ZStack
         }
         .onAppear {
             let today = ISO8601DateFormatter().string(from: Calendar.current.startOfDay(for: Date()))
             if scheduleDateString != today {
                 scheduleDateString = today
                 completedScheduleSteps = []
+            }
+            // Léo accueille l'enfant
+            let lastActive = child.lastActiveAt
+            let daysSince = Calendar.current.dateComponents([.day], from: lastActive, to: Date()).day ?? 0
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                if daysSince >= 2 {
+                    self.leo.speak(context: .returnAfterDays(firstName: self.child.firstName, days: daysSince))
+                } else {
+                    self.leo.speak(context: .welcome(firstName: self.child.firstName))
+                }
             }
         }
         .onReceive(timer) { time in

@@ -13,6 +13,7 @@ struct CollegeHomeView: View {
     @State private var lastRewardAt: Int = 0
     @State private var completedSteps: Set<Int> = []
     @AppStorage("collegeScheduleDate") private var scheduleDateString: String = ""
+    @StateObject private var leo = LeoCompanion()
 
     private let rewardThreshold = 10
 
@@ -29,6 +30,7 @@ struct CollegeHomeView: View {
 
     var body: some View {
         NavigationStack {
+            ZStack(alignment: .bottom) {
             ScrollView {
                 VStack(spacing: 20) {
 
@@ -151,6 +153,10 @@ struct CollegeHomeView: View {
                 .padding(.vertical, 16)
             }
             .background(Color("backgroundSoft"))
+            // Léo flottant en bas
+            LeoBubbleView(leo: leo)
+                .padding(.bottom, 8)
+            } // ZStack
             .navigationBarHidden(true)
             .sheet(isPresented: $showLevelPicker) {
                 CollegeLevelPicker(student: student)
@@ -170,6 +176,27 @@ struct CollegeHomeView: View {
             if scheduleDateString != today {
                 scheduleDateString = today
                 completedSteps = []
+            }
+            leo.configure(language: student.language)
+            // Léo salue à l'arrivée
+            let daysSinceLast: Int = {
+                guard let last = student.lastSessionDate else { return 0 }
+                return Calendar.current.dateComponents([.day], from: last, to: Date()).day ?? 0
+            }()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                if daysSinceLast == 0 {
+                    self.leo.speak(context: .encourageStart(firstName: self.student.firstName))
+                } else if daysSinceLast >= 2 {
+                    self.leo.speak(context: .greetingReturn(firstName: self.student.firstName, daysSince: daysSinceLast))
+                } else {
+                    self.leo.speak(context: .greetingMorning(firstName: self.student.firstName))
+                }
+            }
+            // Célébration streak si ≥ 3 jours
+            if student.currentStreak >= 3 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    self.leo.speak(context: .streakCelebration(days: self.student.currentStreak))
+                }
             }
         }
         .onChange(of: student.totalStars) { _, newValue in

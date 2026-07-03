@@ -24,6 +24,7 @@
 		AA000016 /* CollegeNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000016 /* CollegeNotificationService.swift */; };
 		AA000017 /* CollegePDFReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000017 /* CollegePDFReport.swift */; };
 		AA000018 /* CollegeReviewAndBonus.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000018 /* CollegeReviewAndBonus.swift */; };
+		AA000019 /* LeoCompanion.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000019 /* LeoCompanion.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +46,7 @@
 		BB000016 /* CollegeNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeNotificationService.swift; sourceTree = "<group>"; };
 		BB000017 /* CollegePDFReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegePDFReport.swift; sourceTree = "<group>"; };
 		BB000018 /* CollegeReviewAndBonus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeReviewAndBonus.swift; sourceTree = "<group>"; };
+		BB000019 /* LeoCompanion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeoCompanion.swift; sourceTree = "<group>"; };
 		CC000001 /* AutiLearnCollege.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutiLearnCollege.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -78,6 +80,7 @@
 				BB000016 /* CollegeNotificationService.swift */,
 				BB000017 /* CollegePDFReport.swift */,
 				BB000018 /* CollegeReviewAndBonus.swift */,
+				BB000019 /* LeoCompanion.swift */,
 			);
 			path = AutiLearnCollege;
 			sourceTree = "<group>";
@@ -174,6 +177,7 @@
 				AA000016 /* CollegeNotificationService.swift in Sources */,
 				AA000017 /* CollegePDFReport.swift in Sources */,
 				AA000018 /* CollegeReviewAndBonus.swift in Sources */,
+				AA000019 /* LeoCompanion.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -22,6 +22,9 @@ class CollegeSessionVM: ObservableObject {
     @Published var showHint: Bool = false
     @Published var totalPromptsUsed: Int = 0
 
+    let leo = LeoCompanion()
+    private var correctStreak = 0
+
     private let synthesizer = AVSpeechSynthesizer()
     private let startDate = Date()
 
@@ -41,8 +44,17 @@ class CollegeSessionVM: ObservableObject {
     }
 
     func startSession() {
+        leo.configure(language: student.language)
         exercises = CollegeContentLibrary.exercises(for: subject, level: student.level, language: student.language, count: 8)
-        if let first = exercises.first { speak(first.question) }
+        // Léo accueille l'élève
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.leo.speak(context: .sessionStart(
+                subject: self.subject.displayName(for: self.student.language),
+                firstName: self.student.firstName))
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+            if let first = self.exercises.first { self.speak(first.question) }
+        }
     }
 
     func submitChoice(_ choice: String) {
@@ -72,10 +84,26 @@ class CollegeSessionVM: ObservableObject {
         totalAnswers += 1
         if correct {
             correctAnswers += 1
+            correctStreak += 1
             let stars = max(1, ex.difficulty - totalPromptsUsed)
             starsEarned += stars
+        } else {
+            correctStreak = 0
         }
-        speak(correct ? "Excellent !" : ex.explanation)
+
+        // Léo réagit à voix haute
+        if correct {
+            leo.speak(context: .correctAnswer(streak: correctStreak))
+        } else {
+            let attempt = totalAnswers - correctAnswers
+            leo.speak(context: .wrongAnswer(attempt: attempt))
+        }
+
+        // La synthèse de l'exercice parle après Léo (délai 2s)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+            if !correct { self.speak(ex.explanation) }
+        }
+
         // Mise à jour progression par exercice (spacing effect)
         let key = ex.subject.rawValue + "|" + ex.question.prefix(60)
         if let prog = student.exerciseProgresses.first(where: { $0.exerciseKey == key }) {
@@ -93,7 +121,10 @@ class CollegeSessionVM: ObservableObject {
         promptLevel = next
         totalPromptsUsed += 1
         showHint = true
-        if next == .full { speak(ex.correctAnswer) }
+        leo.speak(context: .hintRequested)
+        if next == .full {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.speak(ex.correctAnswer) }
+        }
     }
 
     func hintText(for ex: CollegeExercise) -> String {
@@ -143,6 +174,9 @@ class CollegeSessionVM: ObservableObject {
         }
         student.lastSessionDate = Date()
         try? modelContext.save()
+
+        // Léo félicite en fin de session
+        leo.speak(context: .sessionEnd(correct: correctAnswers, total: totalAnswers, firstName: student.firstName))
 
         // Demande d'avis App Store après la 3ème session
         let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene

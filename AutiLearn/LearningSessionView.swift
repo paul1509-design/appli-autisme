@@ -63,10 +63,14 @@ struct LearningSessionView: View {
 
                     ScrollView {
                         VStack(spacing: 24) {
+                            LeoPrimaryBubble(leo: vm.leo)
+                                .padding(.horizontal, 0)
+                                .padding(.top, 12)
+
                             CharacterBubble(exercise: exercise,
                                             isSpeaking: vm.isSpeaking,
                                             onReplay: { vm.speakCurrentExercise() })
-                            .padding(.top, 20)
+                            .padding(.top, 8)
 
                             if !vm.hasAnswered {
                                 switch exercise.type {

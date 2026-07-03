@@ -21,6 +21,7 @@
 		A1B2C3D4E5F6789012345678 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6789012345679 /* SplashView.swift */; };
 		C2D3E4F5A6B7890123456780 /* ParentPINView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E4F5A6B7C8901234567801 /* ParentPINView.swift */; };
 		0F2A3DCD6E22486B9230AC7E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 66F9613F09884521972BE86E /* Assets.xcassets */; };
+		AA100001 /* LeoCompanionPrimary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB100001 /* LeoCompanionPrimary.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,7 @@
 		B1C2D3E4F5A6789012345679 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		D3E4F5A6B7C8901234567801 /* ParentPINView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentPINView.swift; sourceTree = "<group>"; };
 		66F9613F09884521972BE86E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BB100001 /* LeoCompanionPrimary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeoCompanionPrimary.swift; sourceTree = "<group>"; };
 		000FD7236D9345879211E10B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9BDE3E69C9A549518BCF94D0 /* AutiLearn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutiLearn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -77,6 +79,7 @@
 				32A35D7CA75A489CAA6CE5E0 /* ContentLibrary.swift */,
 				B1C2D3E4F5A6789012345679 /* SplashView.swift */,
 				D3E4F5A6B7C8901234567801 /* ParentPINView.swift */,
+				BB100001 /* LeoCompanionPrimary.swift */,
 				66F9613F09884521972BE86E /* Assets.xcassets */,
 				000FD7236D9345879211E10B /* Info.plist */,
 			);
@@ -175,6 +178,7 @@
 				C4CEBD1CFFF24597828756E2 /* ContentLibrary.swift in Sources */,
 				A1B2C3D4E5F6789012345678 /* SplashView.swift in Sources */,
 				C2D3E4F5A6B7890123456780 /* ParentPINView.swift in Sources */,
+				AA100001 /* LeoCompanionPrimary.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

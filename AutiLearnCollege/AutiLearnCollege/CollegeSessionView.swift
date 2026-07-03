@@ -103,10 +103,17 @@ struct CollegeSessionView: View {
                                 .padding(.horizontal, 20)
                             }
 
-                            Spacer(minLength: 32)
+                            Spacer(minLength: 120)
                         }
                     }
                 }
+            }
+
+            // Léo — bulle de dialogue flottante en bas
+            VStack {
+                Spacer()
+                LeoBubbleView(leo: vm.leo)
+                    .padding(.bottom, 16)
             }
         }
         .navigationBarHidden(true)
