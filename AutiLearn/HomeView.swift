@@ -15,6 +15,8 @@ struct HomeView: View {
     @State private var showLevelPicker = false
     @State private var showReward = false
     @State private var lastRewardAt: Int = 0
+    @State private var completedScheduleSteps: Set<Int> = []
+    @AppStorage("scheduleDate") private var scheduleDateString: String = ""
 
     let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
@@ -56,6 +58,17 @@ struct HomeView: View {
 
                     // Compagnon pair — encouragement
                     PeerCompanionCard(child: child, starsUntilReward: starsUntilReward)
+
+                    // Planning visuel du jour (style PECS)
+                    DailyScheduleCard(
+                        child: child,
+                        completedSteps: completedScheduleSteps,
+                        onComplete: { idx in
+                            withAnimation(.spring(response: 0.3)) {
+                                completedScheduleSteps.insert(idx)
+                            }
+                        }
+                    )
 
                     StatsRow(child: child, onRewardTap: { showReward = true })
 
@@ -115,6 +128,13 @@ struct HomeView: View {
             }
             .fullScreenCover(isPresented: $showReward) {
                 RewardBreakView(child: child, onDismiss: { showReward = false })
+            }
+        }
+        .onAppear {
+            let today = ISO8601DateFormatter().string(from: Calendar.current.startOfDay(for: Date()))
+            if scheduleDateString != today {
+                scheduleDateString = today
+                completedScheduleSteps = []
             }
         }
         .onReceive(timer) { time in
@@ -557,6 +577,144 @@ struct DailyStoryTeaser: View {
                     .stroke(Color("accentPurple").opacity(0.15), lineWidth: 0.5))
         )
         .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - Planning visuel journalier (style PECS)
+struct DailyScheduleCard: View {
+    let child: ChildProfile
+    let completedSteps: Set<Int>
+    let onComplete: (Int) -> Void
+
+    struct ScheduleStep {
+        let emoji: String
+        let title: String
+        let subtitle: String
+        let color: String
+    }
+
+    private var steps: [ScheduleStep] {
+        let hour = Calendar.current.component(.hour, from: Date())
+        var list: [ScheduleStep] = [
+            ScheduleStep(emoji: "😊", title: "Comment tu te sens ?",   subtitle: "Émotion du matin", color: "accentYellow"),
+            ScheduleStep(emoji: "🗣️", title: "Exercice de parole",     subtitle: "5 min – 8 exercices", color: "accentOrange"),
+            ScheduleStep(emoji: "🔤", title: "Vocabulaire",             subtitle: "Nouveaux mots", color: "accentBlue"),
+            ScheduleStep(emoji: "🧮", title: "Chiffres & maths",        subtitle: "Compter et calculer", color: "accentGreen"),
+            ScheduleStep(emoji: "🎉", title: "Récompense !",            subtitle: "Pause de 5 minutes", color: "accentPink"),
+        ]
+        if hour >= 14 {
+            list[1] = ScheduleStep(emoji: "📖", title: "Histoire", subtitle: "Lecture du jour", color: "accentPurple")
+        }
+        return list
+    }
+
+    var doneCount: Int { completedSteps.count }
+    var totalCount: Int { steps.count }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("📅 Programme du jour")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Color("textPrimary"))
+                    Text("\(doneCount) / \(totalCount) étapes terminées")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color("textSecondary"))
+                }
+                Spacer()
+                // Mini barre de progression globale
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 3).fill(Color("borderLight")).frame(height: 6)
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color("accentGreen"))
+                            .frame(width: totalCount > 0
+                                   ? geo.size.width * CGFloat(doneCount) / CGFloat(totalCount)
+                                   : 0, height: 6)
+                            .animation(.spring(response: 0.4), value: doneCount)
+                    }
+                }
+                .frame(width: 80, height: 6)
+            }
+
+            // Étapes horizontales — scrollable
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(Array(steps.enumerated()), id: \.offset) { idx, step in
+                        ScheduleStepCard(
+                            step: step,
+                            index: idx,
+                            isDone: completedSteps.contains(idx),
+                            isNext: !completedSteps.contains(idx) && idx == (0..<steps.count).first(where: { !completedSteps.contains($0) }),
+                            onTap: { onComplete(idx) }
+                        )
+                    }
+                }
+                .padding(.horizontal, 2)
+                .padding(.bottom, 4)
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color("cardBackground"))
+                .overlay(RoundedRectangle(cornerRadius: 18)
+                    .stroke(Color("borderLight"), lineWidth: 0.5))
+        )
+        .padding(.horizontal, 20)
+    }
+}
+
+struct ScheduleStepCard: View {
+    let step: DailyScheduleCard.ScheduleStep
+    let index: Int
+    let isDone: Bool
+    let isNext: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(isDone
+                              ? Color("accentGreen").opacity(0.15)
+                              : isNext
+                                  ? Color(step.color).opacity(0.18)
+                                  : Color("backgroundSoft"))
+                        .frame(width: 68, height: 68)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(isDone ? Color("accentGreen")
+                                        : isNext ? Color(step.color)
+                                        : Color("borderLight"),
+                                        lineWidth: isDone || isNext ? 2 : 0.5)
+                        )
+
+                    if isDone {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(Color("accentGreen"))
+                    } else {
+                        Text(step.emoji)
+                            .font(.system(size: 32))
+                            .opacity(isNext ? 1.0 : 0.45)
+                    }
+                }
+
+                Text(step.title)
+                    .font(.system(size: 10, weight: isNext ? .medium : .regular))
+                    .foregroundColor(isDone ? Color("accentGreen")
+                                     : isNext ? Color(step.color)
+                                     : Color("textSecondary"))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .frame(width: 70)
+            }
+        }
+        .scaleEffect(isNext ? 1.05 : 1.0)
+        .animation(.spring(response: 0.3), value: isNext)
     }
 }
 
