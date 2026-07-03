@@ -40,7 +40,7 @@ class CollegeSessionVM: ObservableObject {
     }
 
     func startSession() {
-        exercises = CollegeContentLibrary.exercises(for: subject, level: student.level, count: 8)
+        exercises = CollegeContentLibrary.exercises(for: subject, level: student.level, language: student.language, count: 8)
         if let first = exercises.first { speak(first.question) }
     }
 
@@ -138,7 +138,7 @@ class CollegeSessionVM: ObservableObject {
     func speak(_ text: String) {
         synthesizer.stopSpeaking(at: .immediate)
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: "fr-FR")
+        utterance.voice = AVSpeechSynthesisVoice(language: student.language.voiceLocale)
         utterance.rate = 0.45
         isSpeaking = true
         synthesizer.speak(utterance)

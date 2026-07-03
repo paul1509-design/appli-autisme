@@ -8,9 +8,11 @@ struct CollegeOnboardingView: View {
     @State private var firstName: String = ""
     @State private var selectedLevel: CollegeLevel = .sixieme
     @State private var selectedAvatar: String = "🧒"
+    @State private var selectedLanguage: CollegeLanguage = .french
     @State private var step: Int = 0
 
     let avatars = ["🧒", "👦", "👧", "🧑", "🧑‍🦱", "🧑‍🦰", "🧑‍🦳"]
+    private let totalSteps = 4
 
     var body: some View {
         ZStack {
@@ -19,7 +21,7 @@ struct CollegeOnboardingView: View {
             VStack(spacing: 32) {
                 // Indicateur d'étape
                 HStack(spacing: 8) {
-                    ForEach(0..<3) { i in
+                    ForEach(0..<totalSteps) { i in
                         Circle()
                             .fill(i <= step ? Color("accentPurple") : Color("borderLight"))
                             .frame(width: 8, height: 8)
@@ -34,8 +36,8 @@ struct CollegeOnboardingView: View {
                     VStack(spacing: 24) {
                         Text("👋").font(.system(size: 56))
                         VStack(spacing: 8) {
-                            Text("Bienvenue sur ABA Collège !")
-                                .font(.system(size: 22, weight: .medium))
+                            Text("Bienvenue sur ABA Homeschooling Ado !")
+                                .font(.system(size: 20, weight: .medium))
                                 .foregroundColor(Color("textPrimary"))
                                 .multilineTextAlignment(.center)
                             Text("Quel est le prénom de votre enfant ?")
@@ -80,8 +82,61 @@ struct CollegeOnboardingView: View {
                         .padding(.horizontal, 20)
                     }
 
+                } else if step == 2 {
+                    // Étape 3 : Langue / pays de scolarisation
+                    VStack(spacing: 20) {
+                        VStack(spacing: 6) {
+                            Text("🌍").font(.system(size: 40))
+                            Text("Dans quelle langue \(firstName) est-il scolarisé(e) ?")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(Color("textPrimary"))
+                                .multilineTextAlignment(.center)
+                            Text("Le programme scolaire s'adaptera à votre pays.")
+                                .font(.system(size: 13))
+                                .foregroundColor(Color("textSecondary"))
+                        }
+                        ScrollView {
+                            LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 2), spacing: 10) {
+                                ForEach(CollegeLanguage.allCases, id: \.self) { lang in
+                                    Button {
+                                        selectedLanguage = lang
+                                    } label: {
+                                        HStack(spacing: 10) {
+                                            Text(lang.flag).font(.system(size: 24))
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(lang.rawValue)
+                                                    .font(.system(size: 14, weight: .medium))
+                                                    .foregroundColor(Color("textPrimary"))
+                                                Text(lang.historySubjectName)
+                                                    .font(.system(size: 10))
+                                                    .foregroundColor(Color("textSecondary"))
+                                            }
+                                            Spacer()
+                                            if selectedLanguage == lang {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                    .foregroundColor(Color("accentPurple"))
+                                                    .font(.system(size: 14))
+                                            }
+                                        }
+                                        .padding(12)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(selectedLanguage == lang
+                                                      ? Color("accentPurple").opacity(0.08) : Color("cardBackground"))
+                                                .overlay(RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(selectedLanguage == lang
+                                                            ? Color("accentPurple") : Color("borderLight"),
+                                                            lineWidth: selectedLanguage == lang ? 1.5 : 0.5))
+                                        )
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 4)
+                        }
+                    }
+
                 } else {
-                    // Étape 3 : Niveau
+                    // Étape 4 : Niveau scolaire
                     VStack(spacing: 20) {
                         Text("Quel est le niveau de \(firstName) ?")
                             .font(.system(size: 20, weight: .medium))
@@ -139,18 +194,21 @@ struct CollegeOnboardingView: View {
                 Spacer()
 
                 Button {
-                    if step < 2 {
+                    if step < totalSteps - 1 {
                         withAnimation { step += 1 }
                     } else {
-                        let profile = CollegeProfile(firstName: firstName.isEmpty ? "Élève" : firstName,
-                                                     avatarName: selectedAvatar,
-                                                     level: selectedLevel)
+                        let profile = CollegeProfile(
+                            firstName: firstName.isEmpty ? "Élève" : firstName,
+                            avatarName: selectedAvatar,
+                            level: selectedLevel,
+                            language: selectedLanguage
+                        )
                         modelContext.insert(profile)
                         try? modelContext.save()
                         onComplete(profile)
                     }
                 } label: {
-                    Text(step < 2 ? "Continuer →" : "Commencer !")
+                    Text(step < totalSteps - 1 ? "Continuer →" : "Commencer !")
                         .font(.system(size: 17, weight: .medium))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)

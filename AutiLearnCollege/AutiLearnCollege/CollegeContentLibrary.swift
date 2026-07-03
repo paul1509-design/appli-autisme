@@ -5,18 +5,18 @@ struct CollegeContentLibrary {
 
     static func exercises(for subject: CollegeSubject,
                           level: CollegeLevel,
+                          language: CollegeLanguage = .french,
                           count: Int = 8) -> [CollegeExercise] {
-        let pool = allExercises(subject: subject, level: level)
-        let shuffled = pool.shuffled()
-        return Array(shuffled.prefix(count))
+        let pool = allExercises(subject: subject, level: level, language: language)
+        return Array(pool.shuffled().prefix(count))
     }
 
-    private static func allExercises(subject: CollegeSubject, level: CollegeLevel) -> [CollegeExercise] {
+    private static func allExercises(subject: CollegeSubject, level: CollegeLevel, language: CollegeLanguage) -> [CollegeExercise] {
         switch subject {
-        case .francais:      return francaisExercises(level: level)
+        case .francais:      return CollegeNativeLangLibrary.exercises(level: level, language: language)
+        case .histoire:      return CollegeHistoryLibrary.exercises(level: level, language: language)
         case .maths:         return mathsExercises(level: level)
-        case .anglais:       return anglaisExercises(level: level)
-        case .histoire:      return histoireExercises(level: level)
+        case .anglais:       return anglaisExercises(level: level, language: language)
         case .sciences:      return sciencesExercises(level: level)
         case .communication: return communicationExercises(level: level)
         }
@@ -171,121 +171,89 @@ struct CollegeContentLibrary {
         return pool
     }
 
-    // MARK: - Anglais
-    private static func anglaisExercises(level: CollegeLevel) -> [CollegeExercise] {
-        var pool: [CollegeExercise] = []
-
-        pool += [
+    // MARK: - Langue étrangère (anglais pour la plupart, français pour anglophones)
+    private static func anglaisExercises(level: CollegeLevel, language: CollegeLanguage) -> [CollegeExercise] {
+        // Anglophones apprennent le français comme langue étrangère
+        if language == .english {
+            return foreignFrenchForEnglish(level: level)
+        }
+        // Tous les autres apprennent l'anglais
+        var pool: [CollegeExercise] = [
             ex(.anglais, .multipleChoice,
-               "Traduis en anglais : « Je m'appelle... »",
-               ["My name is...", "I have...", "I am...", "I like..."], "My name is...",
-               "'My name is' signifie littéralement 'mon nom est'.", "🇬🇧", 1),
+               "Translate: 'My name is...'",
+               ["Je m'appelle / My name is", "J'ai / I have", "Je suis / I am", "J'aime / I like"], "Je m'appelle / My name is",
+               "'My name is' in English = 'Je m'appelle' in French.", "🇬🇧", 1),
             ex(.anglais, .trueFalse,
-               "En anglais, on dit 'I goes to school'.",
+               "In English: 'He go to school' is correct.",
                ["Vrai", "Faux"], "Faux",
-               "Avec 'I', on dit 'I go'. Le 's' du présent simple s'ajoute seulement avec he/she/it.", "📚", 2),
+               "With he/she/it, add -s: 'He goes to school'. Only 'I/you/we/they' use the base form.", "📚", 2),
             ex(.anglais, .fillBlank,
-               "Complète : « ___ is the capital of England. »",
+               "Complete: '___ is the capital of England.'",
                [], "London",
-               "London (Londres) est la capitale de l'Angleterre.", "🏙️", 1),
+               "London is the capital of England, and one of the largest cities in Europe.", "🏙️", 1),
             ex(.anglais, .multipleChoice,
-               "Quel est le prétérit de 'to go' ?",
+               "Past tense of 'to go':",
                ["went", "goed", "gone", "go"], "went",
-               "'Go' est un verbe irrégulier : go → went → gone.", "⏰", 2),
-            ex(.anglais, .shortAnswer,
-               "Traduis : 'The dog is running in the garden.'",
-               [], "Le chien court dans le jardin.",
-               "The dog = le chien / is running = court (présent continu) / in the garden = dans le jardin.", "🐕", 1),
+               "'Go' is irregular: go → went → gone.", "⏰", 2),
             ex(.anglais, .oral,
-               "Présente-toi en 2 phrases en anglais.",
+               "Introduce yourself in 2 sentences in English.",
                [], "My name is... I am ... years old and I like...",
-               "Se présenter en anglais : nom, âge, goûts. C'est la base de la communication.", "🗣️", 1),
+               "Self-introduction: name, age, interests. A key social and academic skill.", "🗣️", 1),
             ex(.anglais, .multipleChoice,
-               "Que signifie 'although' ?",
-               ["Bien que / même si", "Parce que", "Donc", "Si"], "Bien que / même si",
-               "'Although' introduit une concession : Although it rains, we play. = Bien qu'il pleuve, on joue.", "💬", 3),
+               "What does 'although' mean?",
+               ["Even though / despite", "Because", "Therefore", "If"], "Even though / despite",
+               "'Although' introduces a concession: 'Although it rains, we play.' = même si.", "💬", 3),
         ]
-
         if level.rawValue >= CollegeLevel.quatrieme.rawValue {
             pool += [
                 ex(.anglais, .fillBlank,
-                   "Complète au passif : « The book ___ (to write) by J.K. Rowling. »",
+                   "Complete (passive): 'The book ___ (to write) by J.K. Rowling.'",
                    [], "was written",
-                   "La voix passive au prétérit : was/were + participe passé. 'write' → 'written'.", "✍️", 3),
+                   "Passive past: was/were + past participle. 'write' → 'written'.", "✍️", 3),
                 ex(.anglais, .multipleChoice,
-                   "Quel temps est 'I will have finished by 5pm'?",
-                   ["Futur antérieur", "Présent continu", "Conditionnel", "Prétérit"], "Futur antérieur",
-                   "'Will have + past participle' = futur antérieur (future perfect).", "⏳", 3),
+                   "What tense is: 'I will have finished by 5pm'?",
+                   ["Future perfect", "Present continuous", "Conditional", "Past simple"], "Future perfect",
+                   "'Will have + past participle' = future perfect. Action completed before a future point.", "⏳", 3),
             ]
         }
-
         return pool
     }
 
-    // MARK: - Histoire-Géo (différencié par niveau)
-    private static func histoireExercises(level: CollegeLevel) -> [CollegeExercise] {
-        var pool: [CollegeExercise] = []
-
-        // 6ème / 5ème — Antiquité, Moyen Âge, Géographie de base
-        pool += [
-            ex(.histoire, .multipleChoice,
-               "Quel est le plus grand pays du monde ?",
-               ["Russie", "Canada", "Chine", "États-Unis"], "Russie",
-               "La Russie est le plus grand pays du monde avec 17 millions de km².", "🌍", 1),
-            ex(.histoire, .trueFalse,
-               "La Révolution française a eu lieu en 1789.",
-               ["Vrai", "Faux"], "Vrai",
-               "La Révolution française commence le 14 juillet 1789 avec la prise de la Bastille.", "🗼", 1),
-            ex(.histoire, .multipleChoice,
-               "Les Romains ont construit le Colisée à :",
-               ["Rome", "Paris", "Athènes", "Carthage"], "Rome",
-               "Le Colisée (Colosseum) est un amphithéâtre construit à Rome au 1er siècle ap. J.-C.", "🏟️", 1),
-            ex(.histoire, .multipleChoice,
-               "Charlemagne a été couronné empereur en :",
-               ["800", "1066", "732", "987"], "800",
-               "Charlemagne est couronné empereur d'Occident le 25 décembre 800 par le pape Léon III.", "👑", 2),
+    private static func foreignFrenchForEnglish(level: CollegeLevel) -> [CollegeExercise] {
+        var pool: [CollegeExercise] = [
+            ex(.anglais, .multipleChoice,
+               "How do you say 'My name is...' in French?",
+               ["Je m'appelle...", "J'ai...", "Je suis...", "J'aime..."], "Je m'appelle...",
+               "'Je m'appelle' literally means 'I call myself'. It's the standard French introduction.", "🇫🇷", 1),
+            ex(.anglais, .trueFalse,
+               "In French, adjectives usually come AFTER the noun.",
+               ["True", "False"], "True",
+               "E.g. 'une maison rouge' (a red house). Some short adjectives (grand, petit, beau) come before.", "📝", 2),
+            ex(.anglais, .multipleChoice,
+               "What does 'bonjour' mean?",
+               ["Good morning / Hello", "Good night", "Goodbye", "Thank you"], "Good morning / Hello",
+               "'Bonjour' is used as a daytime greeting in French. 'Bonsoir' is for the evening.", "👋", 1),
+            ex(.anglais, .shortAnswer,
+               "Conjugate 'avoir' (to have) for 'je'.",
+               [], "j'ai",
+               "'Avoir' is an irregular verb: j'ai, tu as, il a, nous avons, vous avez, ils ont.", "✍️", 2),
+            ex(.anglais, .multipleChoice,
+               "The French word for 'dog' is:",
+               ["chien", "chat", "cheval", "cochon"], "chien",
+               "Chien (m) = dog. Chat = cat. Cheval = horse. Cochon = pig.", "🐕", 1),
         ]
-
-        // 4ème / 3ème — Révolutions, guerres mondiales
         if level.rawValue >= CollegeLevel.quatrieme.rawValue {
             pool += [
-                ex(.histoire, .multipleChoice,
-                   "En quelle année a débuté la Première Guerre mondiale ?",
-                   ["1914", "1918", "1939", "1905"], "1914",
-                   "La Première Guerre mondiale a débuté en 1914 et s'est terminée en 1918.", "🏛️", 2),
-                ex(.histoire, .shortAnswer,
-                   "Cite deux causes de la Seconde Guerre mondiale.",
-                   [], "Montée du nazisme / Crise économique / Traité de Versailles humiliant",
-                   "La montée du nazisme, la crise de 1929 et les clauses humiliantes du traité de Versailles.", "📜", 3),
-                ex(.histoire, .multipleChoice,
-                   "Le mur de Berlin est tombé en :",
-                   ["1989", "1979", "1999", "1969"], "1989",
-                   "Le mur de Berlin, symbole de la Guerre froide, est tombé le 9 novembre 1989.", "🧱", 2),
-                ex(.histoire, .oral,
-                   "Explique pourquoi la Seconde Guerre mondiale s'est terminée en 1945.",
-                   [], "Défaite de l'Allemagne nazie en mai 1945, capitulation du Japon en août 1945.",
-                   "L'Allemagne capitule le 8 mai 1945 (VE Day) ; le Japon le 2 septembre 1945 après Hiroshima.", "🕊️", 3),
+                ex(.anglais, .multipleChoice,
+                   "Which is correct: 'Je suis allé' or 'J'ai allé'?",
+                   ["Je suis allé", "J'ai allé", "Both are correct", "Neither"], "Je suis allé",
+                   "'Aller' uses 'être' not 'avoir' in passé composé: je suis allé(e).", "⏰", 3),
+                ex(.anglais, .shortAnswer,
+                   "Translate: 'She has been living in Paris for three years.'",
+                   [], "Elle habite à Paris depuis trois ans.",
+                   "French uses present tense + 'depuis' where English uses present perfect continuous.", "🗼", 3),
             ]
         }
-
-        // Lycée — Géopolitique, décolonisation, monde contemporain
-        if level.isLycee {
-            pool += [
-                ex(.histoire, .oral,
-                   "Explique pourquoi l'Union européenne a été créée.",
-                   [], "Pour assurer la paix, la coopération économique et la stabilité en Europe.",
-                   "L'UE est née après les guerres pour garantir la paix et la prospérité en Europe.", "🇪🇺", 3),
-                ex(.histoire, .multipleChoice,
-                   "La décolonisation en Afrique s'est principalement déroulée dans les années :",
-                   ["1950-1970", "1920-1930", "1900-1910", "1980-1990"], "1950-1970",
-                   "La vague de décolonisation africaine a eu lieu dans les années 1950-1960, avec des indépendances en cascade.", "🌍", 3),
-                ex(.histoire, .shortAnswer,
-                   "Cite deux enjeux géopolitiques majeurs du XXIe siècle.",
-                   [], "Réchauffement climatique / Tensions USA-Chine / Terrorisme / Pandémies",
-                   "Le monde contemporain est marqué par le changement climatique, la montée en puissance de la Chine, et les crises sanitaires.", "🌐", 3),
-            ]
-        }
-
         return pool
     }
 

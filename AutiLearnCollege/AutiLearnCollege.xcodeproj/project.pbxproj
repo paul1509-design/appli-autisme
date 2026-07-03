@@ -19,6 +19,8 @@
 		AA000010 /* CollegeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000010 /* CollegeRootView.swift */; };
 		AA000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB000011 /* Assets.xcassets */; };
 		AA000012 /* CollegeSubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000013 /* CollegeSubscriptionService.swift */; };
+		AA000014 /* CollegeHistoryLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000014 /* CollegeHistoryLibrary.swift */; };
+		AA000015 /* CollegeNativeLangLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000015 /* CollegeNativeLangLibrary.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +37,8 @@
 		BB000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BB000012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BB000013 /* CollegeSubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeSubscriptionService.swift; sourceTree = "<group>"; };
+		BB000014 /* CollegeHistoryLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeHistoryLibrary.swift; sourceTree = "<group>"; };
+		BB000015 /* CollegeNativeLangLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeNativeLangLibrary.swift; sourceTree = "<group>"; };
 		CC000001 /* AutiLearnCollege.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutiLearnCollege.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -63,6 +67,8 @@
 				BB000011 /* Assets.xcassets */,
 				BB000012 /* Info.plist */,
 				BB000013 /* CollegeSubscriptionService.swift */,
+				BB000014 /* CollegeHistoryLibrary.swift */,
+				BB000015 /* CollegeNativeLangLibrary.swift */,
 			);
 			path = AutiLearnCollege;
 			sourceTree = "<group>";
@@ -154,6 +160,8 @@
 				AA000009 /* CollegeOnboardingView.swift in Sources */,
 				AA000010 /* CollegeRootView.swift in Sources */,
 				AA000012 /* CollegeSubscriptionService.swift in Sources */,
+				AA000014 /* CollegeHistoryLibrary.swift in Sources */,
+				AA000015 /* CollegeNativeLangLibrary.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,6 +1,118 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Langue / Pays de scolarisation
+enum CollegeLanguage: String, CaseIterable, Codable {
+    case french     = "Français"
+    case english    = "English"
+    case spanish    = "Español"
+    case portuguese = "Português"
+    case italian    = "Italiano"
+    case german     = "Deutsch"
+    case arabic     = "العربية"
+    case dutch      = "Nederlands"
+
+    var flag: String {
+        switch self {
+        case .french:     return "🇫🇷"
+        case .english:    return "🇬🇧"
+        case .spanish:    return "🇪🇸"
+        case .portuguese: return "🇵🇹"
+        case .italian:    return "🇮🇹"
+        case .german:     return "🇩🇪"
+        case .arabic:     return "🇸🇦"
+        case .dutch:      return "🇳🇱"
+        }
+    }
+
+    var voiceLocale: String {
+        switch self {
+        case .french:     return "fr-FR"
+        case .english:    return "en-GB"
+        case .spanish:    return "es-ES"
+        case .portuguese: return "pt-PT"
+        case .italian:    return "it-IT"
+        case .german:     return "de-DE"
+        case .arabic:     return "ar-SA"
+        case .dutch:      return "nl-NL"
+        }
+    }
+
+    var nativeSubjectName: String {
+        switch self {
+        case .french:     return "Français"
+        case .english:    return "English"
+        case .spanish:    return "Lengua"
+        case .portuguese: return "Português"
+        case .italian:    return "Italiano"
+        case .german:     return "Deutsch"
+        case .arabic:     return "اللغة العربية"
+        case .dutch:      return "Nederlands"
+        }
+    }
+
+    // Langue étrangère enseignée (anglais pour la plupart; français pour anglophones)
+    var foreignSubjectName: String {
+        switch self {
+        case .english:    return "French"
+        case .french:     return "English"
+        default:          return "English"
+        }
+    }
+
+    var historySubjectName: String {
+        switch self {
+        case .french:     return "Histoire-Géo"
+        case .english:    return "History"
+        case .spanish:    return "Historia"
+        case .portuguese: return "História"
+        case .italian:    return "Storia"
+        case .german:     return "Geschichte"
+        case .arabic:     return "التاريخ"
+        case .dutch:      return "Geschiedenis"
+        }
+    }
+
+    var sciencesSubjectName: String {
+        switch self {
+        case .french:     return "Sciences"
+        case .english:    return "Science"
+        case .spanish:    return "Ciencias"
+        case .portuguese: return "Ciências"
+        case .italian:    return "Scienze"
+        case .german:     return "Naturwissenschaften"
+        case .arabic:     return "العلوم"
+        case .dutch:      return "Wetenschappen"
+        }
+    }
+
+    var mathsSubjectName: String {
+        switch self {
+        case .french:     return "Mathématiques"
+        case .english:    return "Mathematics"
+        case .spanish:    return "Matemáticas"
+        case .portuguese: return "Matemática"
+        case .italian:    return "Matematica"
+        case .german:     return "Mathematik"
+        case .arabic:     return "الرياضيات"
+        case .dutch:      return "Wiskunde"
+        }
+    }
+
+    var communicationSubjectName: String {
+        switch self {
+        case .french:     return "Communication sociale"
+        case .english:    return "Social Skills"
+        case .spanish:    return "Habilidades Sociales"
+        case .portuguese: return "Habilidades Sociais"
+        case .italian:    return "Abilità Sociali"
+        case .german:     return "Soziale Kompetenzen"
+        case .arabic:     return "المهارات الاجتماعية"
+        case .dutch:      return "Sociale Vaardigheden"
+        }
+    }
+}
+
 // MARK: - Niveaux scolaires collège/lycée
 enum CollegeLevel: String, CaseIterable, Codable {
     case sixieme  = "6ème"
@@ -70,6 +182,17 @@ enum CollegeSubject: String, CaseIterable, Codable {
         case .communication: return "accentYellow"
         }
     }
+
+    func displayName(for language: CollegeLanguage) -> String {
+        switch self {
+        case .francais:      return language.nativeSubjectName
+        case .maths:         return language.mathsSubjectName
+        case .anglais:       return language.foreignSubjectName
+        case .histoire:      return language.historySubjectName
+        case .sciences:      return language.sciencesSubjectName
+        case .communication: return language.communicationSubjectName
+        }
+    }
 }
 
 // MARK: - Mode d'exercice
@@ -100,15 +223,17 @@ class CollegeProfile {
     var firstName: String
     var avatarName: String
     var level: CollegeLevel
+    var language: CollegeLanguage
     var totalStars: Int
     var currentStreak: Int
     var lastSessionDate: Date?
     var sessions: [CollegeSession]
 
-    init(firstName: String, avatarName: String, level: CollegeLevel) {
+    init(firstName: String, avatarName: String, level: CollegeLevel, language: CollegeLanguage = .french) {
         self.firstName = firstName
         self.avatarName = avatarName
         self.level = level
+        self.language = language
         self.totalStars = 0
         self.currentStreak = 0
         self.sessions = []
