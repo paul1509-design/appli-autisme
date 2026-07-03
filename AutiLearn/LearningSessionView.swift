@@ -199,6 +199,11 @@ struct RepeatResponseView: View {
                 .foregroundColor(Color("textSecondary"))
                 .multilineTextAlignment(.center)
 
+            // Indice ABA si demandé
+            if vm.showHint, let ex = vm.currentExercise {
+                HintBubble(text: vm.hintText(for: ex))
+            }
+
             Button {
                 hasPressed = true
                 vm.confirmRepeated()
@@ -218,6 +223,21 @@ struct RepeatResponseView: View {
             }
             .padding(.horizontal, 20)
             .disabled(hasPressed)
+
+            // Bouton indice (hiérarchie de prompts ABA)
+            if !hasPressed && vm.currentPromptLevel != .full {
+                Button {
+                    vm.requestHint()
+                } label: {
+                    Text(vm.currentPromptLevel.hintButtonLabel)
+                        .font(.system(size: 14))
+                        .foregroundColor(Color("accentPurple"))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color("accentPurple").opacity(0.08))
+                        .cornerRadius(10)
+                }
+            }
 
             Text("Si tu n'y arrives pas, réécoute et réessaie !")
                 .font(.system(size: 12))
@@ -240,6 +260,11 @@ struct WriteResponseView: View {
                     .font(.system(size: 17, weight: .medium))
                     .foregroundColor(Color("textPrimary"))
                     .multilineTextAlignment(.center)
+
+                // Indice ABA si demandé
+                if vm.showHint {
+                    HintBubble(text: vm.hintText(for: ex))
+                }
             }
 
             TextField("Écris ta réponse ici...", text: $vm.userInput, axis: .vertical)
@@ -254,6 +279,26 @@ struct WriteResponseView: View {
                 .lineLimit(3)
                 .padding(.horizontal, 20)
                 .onAppear { isFocused = true }
+
+            // Bouton indice (hiérarchie de prompts ABA)
+            if vm.currentPromptLevel != .full {
+                Button {
+                    isFocused = false
+                    vm.requestHint()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.system(size: 13))
+                        Text(vm.currentPromptLevel.hintButtonLabel)
+                            .font(.system(size: 14))
+                    }
+                    .foregroundColor(Color("accentOrange"))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Color("accentOrange").opacity(0.08))
+                    .cornerRadius(10)
+                }
+            }
 
             Button {
                 isFocused = false
@@ -273,6 +318,31 @@ struct WriteResponseView: View {
             .padding(.horizontal, 20)
         }
         .padding(.vertical, 8)
+    }
+}
+
+// MARK: - Bulle d'indice ABA
+struct HintBubble: View {
+    let text: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text("💡")
+                .font(.system(size: 20))
+            Text(text)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(Color("accentOrange"))
+            Spacer()
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color("accentOrange").opacity(0.08))
+                .overlay(RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color("accentOrange").opacity(0.25), lineWidth: 1))
+        )
+        .padding(.horizontal, 20)
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 }
 

@@ -72,6 +72,35 @@ struct HomeView: View {
 
                     DailyStoryTeaser(child: child)
 
+                    // Accès espace parents
+                    NavigationLink {
+                        ParentDashboardView(child: child)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text("📊").font(.system(size: 22))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Espace Parents")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(Color("textPrimary"))
+                                Text("Suivi des progrès, compétences ABA, rapport")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color("textSecondary"))
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13))
+                                .foregroundColor(Color("textSecondary"))
+                        }
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color("cardBackground"))
+                                .overlay(RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color("borderLight"), lineWidth: 0.5))
+                        )
+                        .padding(.horizontal, 20)
+                    }
+
                     Spacer(minLength: 20)
                 }
                 .padding(.vertical, 16)
@@ -443,15 +472,15 @@ struct SpacingReviewBanner: View {
 // MARK: - Grille des modules (Parole en premier)
 struct ModuleGrid: View {
     let child: ChildProfile
+    @EnvironmentObject private var appState: AppState
 
-    // Parole / diction EN PREMIER — c'est l'objectif principal
     let modules: [(String, String, String, ModuleType)] = [
-        ("🗣️", "Parole", "accentOrange", .diction),
-        ("🎵", "Chanson", "accentPink", .karaoke),
-        ("📖", "Histoire", "accentPurple", .story),
-        ("🔤", "Vocabulaire", "accentBlue", .vocabulary),
-        ("🔢", "Chiffres", "accentGreen", .numbers),
-        ("✏️", "Dessin", "accentYellow", .drawing)
+        ("🗣️", "Parole",      "accentOrange", .diction),
+        ("🎵", "Chanson",     "accentPink",   .karaoke),
+        ("📖", "Histoire",    "accentPurple", .story),
+        ("🔤", "Vocabulaire", "accentBlue",   .vocabulary),
+        ("🔢", "Chiffres",    "accentGreen",  .numbers),
+        ("✏️", "Dessin",      "accentYellow", .drawing)
     ]
 
     var body: some View {
@@ -460,7 +489,8 @@ struct ModuleGrid: View {
             ForEach(Array(modules.enumerated()), id: \.offset) { index, module in
                 let (emoji, title, color, moduleType) = module
                 NavigationLink {
-                    LearningSessionView(child: child, moduleType: moduleType)
+                    LearningSessionView(child: child, moduleType: moduleType,
+                                        language: appState.currentLanguage)
                 } label: {
                     ModuleCard(emoji: emoji, title: title, colorName: color,
                                isPrimary: index == 0)

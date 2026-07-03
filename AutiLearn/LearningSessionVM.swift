@@ -28,6 +28,35 @@ class LearningSessionVM: ObservableObject {
     @Published var totalAnswers: Int = 0
     @Published var consecutiveErrors: Int = 0
     @Published var isSpeaking: Bool = false
+    @Published var currentPromptLevel: PromptLevel = .independent
+    @Published var showHint: Bool = false
+    @Published var totalPromptsUsed: Int = 0
+
+    // Hiérarchie de prompts ABA : independent → gesture → partial → full
+    enum PromptLevel: Int, CaseIterable {
+        case independent = 0  // aucune aide
+        case gesture     = 1  // indice visuel (emoji / 1ère lettre)
+        case partial     = 2  // début de la réponse
+        case full        = 3  // réponse complète lue à voix haute
+
+        var label: String {
+            switch self {
+            case .independent: return "Sans aide"
+            case .gesture:     return "Indice visuel"
+            case .partial:     return "Aide partielle"
+            case .full:        return "Aide complète"
+            }
+        }
+
+        var hintButtonLabel: String {
+            switch self {
+            case .independent: return "J'ai besoin d'un indice 💡"
+            case .gesture:     return "Encore un indice 💡"
+            case .partial:     return "Lire la réponse 🔊"
+            case .full:        return ""
+            }
+        }
+    }
 
     private let speech = AVSpeechSynthesizer()
     private var sessionStartTime = Date()
@@ -57,7 +86,43 @@ class LearningSessionVM: ObservableObject {
                                              language: language,
                                              count: 8)
         currentIndex = 0
+        currentPromptLevel = .independent
         speakCurrentExercise()
+    }
+
+    // MARK: - Hiérarchie de prompts ABA
+    func requestHint() {
+        guard let ex = currentExercise, !hasAnswered else { return }
+        let nextLevel = PromptLevel(rawValue: currentPromptLevel.rawValue + 1) ?? .full
+        currentPromptLevel = nextLevel
+        totalPromptsUsed += 1
+        showHint = true
+
+        if nextLevel == .full {
+            // Aide complète : lire la réponse à voix haute
+            speak("La réponse est : \(ex.expectedAnswer)")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                self.userInput = ex.expectedAnswer
+            }
+        }
+    }
+
+    func hintText(for exercise: CurriculumExercise) -> String {
+        switch currentPromptLevel {
+        case .independent:
+            return ""
+        case .gesture:
+            // Première lettre
+            let first = String(exercise.expectedAnswer.prefix(1))
+            return "Ça commence par : \(first)..."
+        case .partial:
+            // Moitié de la réponse
+            let words = exercise.expectedAnswer.components(separatedBy: " ")
+            let half = words.prefix(max(1, words.count / 2)).joined(separator: " ")
+            return "Début : \(half)..."
+        case .full:
+            return "Réponse : \(exercise.expectedAnswer)"
+        }
     }
 
     func speakCurrentExercise() {
@@ -113,6 +178,8 @@ class LearningSessionVM: ObservableObject {
         userInput = ""
         hasAnswered = false
         lastAnswerCorrect = false
+        currentPromptLevel = .independent
+        showHint = false
         currentIndex += 1
         if !isSessionComplete {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
@@ -129,6 +196,9 @@ class LearningSessionVM: ObservableObject {
         session.correctAnswers = correctAnswers
         session.totalAnswers = totalAnswers
         session.completed = isSessionComplete
+        // Pénalité légère si beaucoup de prompts utilisés (ABA : encourager l'indépendance)
+        let promptPenalty = min(totalPromptsUsed, starsEarned)
+        session.starsEarned = max(0, starsEarned - promptPenalty / 4)
         child.sessions.append(session)
         child.totalStars += starsEarned
         child.lastActiveAt = Date()

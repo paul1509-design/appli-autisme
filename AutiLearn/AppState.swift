@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 enum AppScreen {
+    case splash
     case onboarding
     case childSelector
     case home
@@ -12,7 +13,8 @@ enum AppScreen {
 
 @MainActor
 class AppState: ObservableObject {
-    @Published var currentScreen: AppScreen = .home
+    @Published var currentScreen: AppScreen = .splash
+    @Published var hasSeenSplash: Bool = false
     @Published var selectedChild: ChildProfile?
     @Published var currentLanguage: AppLanguage = .french
     @Published var isOnboardingComplete: Bool = false

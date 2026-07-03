@@ -9,6 +9,18 @@ struct RootView: View {
     var body: some View {
         Group {
             switch appState.currentScreen {
+            case .splash:
+                SplashView(onGetStarted: {
+                    appState.hasSeenSplash = true
+                    if children.isEmpty {
+                        appState.currentScreen = .onboarding
+                    } else if children.count == 1 {
+                        appState.selectedChild = children.first
+                        appState.currentScreen = .home
+                    } else {
+                        appState.currentScreen = .childSelector
+                    }
+                })
             case .onboarding:
                 OnboardingView()
             case .childSelector:
@@ -36,6 +48,8 @@ struct RootView: View {
             }
         }
         .onAppear {
+            // Splash shown once; après, on va direct au contenu
+            guard appState.hasSeenSplash else { return }
             if children.isEmpty {
                 appState.currentScreen = .onboarding
             } else if children.count == 1 {

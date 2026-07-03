@@ -86,47 +86,106 @@ struct ProgressTabView: View {
     let child: ChildProfile
 
     var recentSessions: [LearningSession] {
-        child.sessions.sorted { $0.date > $1.date }.prefix(7).map { $0 }
+        child.sessions.sorted { $0.date > $1.date }.prefix(14).map { $0 }
     }
 
-    var masteredWords: [WordProgress] {
-        child.wordProgresses.filter { $0.masteryLevel == .mastered }
-    }
-
-    var learningWords: [WordProgress] {
-        child.wordProgresses.filter { $0.masteryLevel == .learning }
-    }
-
-    var weeklySuccessRate: Double {
-        let weekSessions = recentSessions.filter {
+    var thisWeekSessions: [LearningSession] {
+        recentSessions.filter {
             Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .weekOfYear)
         }
-        guard !weekSessions.isEmpty else { return 0 }
-        return weekSessions.map { $0.successRate }.reduce(0, +) / Double(weekSessions.count)
+    }
+
+    var masteredWords: [WordProgress] { child.wordProgresses.filter { $0.masteryLevel == .mastered } }
+    var learningWords: [WordProgress] { child.wordProgresses.filter { $0.masteryLevel == .learning } }
+
+    var weeklySuccessRate: Double {
+        guard !thisWeekSessions.isEmpty else { return 0 }
+        return thisWeekSessions.map { $0.successRate }.reduce(0, +) / Double(thisWeekSessions.count)
+    }
+
+    var dueWords: [WordProgress] {
+        let today = Date()
+        return child.wordProgresses.filter { wp in
+            guard let next = wp.nextReviewDate else { return false }
+            return next <= today && wp.masteryLevel != .mastered
+        }
+    }
+
+    // Données 7 derniers jours pour le graphique
+    var last7DaysData: [(String, Double)] {
+        let cal = Calendar.current
+        return (0..<7).reversed().map { daysAgo -> (String, Double) in
+            let date = cal.date(byAdding: .day, value: -daysAgo, to: Date())!
+            let daySessions = recentSessions.filter {
+                cal.isDate($0.date, inSameDayAs: date)
+            }
+            let rate = daySessions.isEmpty ? 0.0
+                : daySessions.map { $0.successRate }.reduce(0, +) / Double(daySessions.count)
+            let label = cal.isDateInToday(date) ? "Auj." :
+                ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"][cal.component(.weekday, from: date) - 2 < 0 ? 6 : cal.component(.weekday, from: date) - 2]
+            return (label, rate)
+        }
+    }
+
+    // Compétences ABA : echoïques / tacts / intraverbaux
+    var abaSkills: [(String, String, Double, String)] {
+        let echoics   = recentSessions.filter { $0.moduleType == .diction }
+        let tacts     = recentSessions.filter { $0.moduleType == .vocabulary }
+        let intraver  = recentSessions.filter { $0.moduleType == .reading || $0.moduleType == .story }
+
+        func rate(_ s: [LearningSession]) -> Double {
+            guard !s.isEmpty else { return 0 }
+            return s.map { $0.successRate }.reduce(0, +) / Double(s.count)
+        }
+
+        return [
+            ("🗣️", "Échoïques (répétition)", rate(echoics), "accentOrange"),
+            ("👁️", "Tacts (nommer)", rate(tacts), "accentPurple"),
+            ("💬", "Intraverbaux (répondre)", rate(intraver), "accentBlue"),
+        ]
+    }
+
+    var autoParentMessage: String {
+        let rate = Int(weeklySuccessRate * 100)
+        let streak = child.currentStreak
+        let mastered = masteredWords.count
+
+        if rate >= 80 {
+            return "💪 \(child.firstName) performe excellemment cette semaine (\(rate)% de réussite). Continuez ainsi — la régularité est la clé ABA !"
+        } else if rate >= 60 {
+            return "📈 Bonne semaine pour \(child.firstName) (\(rate)% de réussite). Insistez sur les exercices de répétition vocale."
+        } else if thisWeekSessions.isEmpty {
+            return "⏰ Pas encore de session cette semaine. Même 10 minutes par jour font une grande différence pour \(child.firstName)."
+        } else {
+            return "🤝 \(child.firstName) progresse doucement (\(rate)%). Utilisez les indices (💡) pour réduire la frustration et renforcer chaque tentative."
+        }
     }
 
     var body: some View {
         VStack(spacing: 16) {
-            // Stats hebdo
-            Text("Cette semaine")
-                .font(.system(size: 17, weight: .medium))
-                .foregroundColor(Color("textPrimary"))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
 
-            LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 2),
-                      spacing: 12) {
-                StatCard(value: "\(masteredWords.count)",
-                         label: "mots maîtrisés", emoji: "⭐️")
-                StatCard(value: "\(learningWords.count)",
-                         label: "en apprentissage", emoji: "📚")
-                StatCard(value: "\(Int(weeklySuccessRate * 100))%",
-                         label: "taux de réussite", emoji: "✅")
-                StatCard(value: "\(child.currentStreak)j",
-                         label: "série active", emoji: "🔥")
+            SectionHeader(title: "Cette semaine")
+
+            // KPI grid
+            LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 2), spacing: 12) {
+                StatCard(value: "\(masteredWords.count)",  label: "mots maîtrisés",    emoji: "⭐️")
+                StatCard(value: "\(learningWords.count)",  label: "en apprentissage",  emoji: "📚")
+                StatCard(value: "\(Int(weeklySuccessRate * 100))%", label: "taux de réussite", emoji: "✅")
+                StatCard(value: "\(child.currentStreak)j", label: "série active",      emoji: "🔥")
             }
             .padding(.horizontal, 20)
+
+            // Graphique 7 jours
+            WeekBarChart(data: last7DaysData)
+                .padding(.horizontal, 20)
+
+            // Compétences ABA
+            ABASkillsCard(skills: abaSkills)
+                .padding(.horizontal, 20)
+
+            // Maîtrise des mots
+            MasteryBreakdownCard(child: child)
+                .padding(.horizontal, 20)
 
             // Mots à réviser
             if !dueWords.isEmpty {
@@ -137,7 +196,8 @@ struct ProgressTabView: View {
             // Rapport hebdomadaire
             WeeklyReportCard(child: child,
                              successRate: weeklySuccessRate,
-                             sessionsCount: recentSessions.count)
+                             sessionsCount: thisWeekSessions.count,
+                             autoMessage: autoParentMessage)
                 .padding(.horizontal, 20)
 
             // Progression par module
@@ -147,13 +207,178 @@ struct ProgressTabView: View {
             Spacer(minLength: 24)
         }
     }
+}
 
-    var dueWords: [WordProgress] {
-        let today = Date()
-        return child.wordProgresses.filter { wp in
-            guard let next = wp.nextReviewDate else { return false }
-            return next <= today && wp.masteryLevel != .mastered
+// MARK: - En-tête de section
+struct SectionHeader: View {
+    let title: String
+    var body: some View {
+        Text(title)
+            .font(.system(size: 17, weight: .medium))
+            .foregroundColor(Color("textPrimary"))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+    }
+}
+
+// MARK: - Graphique barres 7 jours
+struct WeekBarChart: View {
+    let data: [(String, Double)] // (label, rate 0-1)
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("📅 Réussite sur 7 jours")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(Color("textPrimary"))
+
+            GeometryReader { geo in
+                HStack(alignment: .bottom, spacing: 6) {
+                    ForEach(data, id: \.0) { (label, rate) in
+                        VStack(spacing: 4) {
+                            // Valeur au-dessus si > 0
+                            Text(rate > 0 ? "\(Int(rate * 100))%" : "")
+                                .font(.system(size: 9, weight: .medium))
+                                .foregroundColor(Color("accentPurple"))
+                                .frame(height: 12)
+
+                            // Barre
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(rate > 0
+                                      ? Color("accentPurple").opacity(0.7 + rate * 0.3)
+                                      : Color("borderLight"))
+                                .frame(height: max(4, (geo.size.height - 36) * rate))
+
+                            // Étiquette jour
+                            Text(label)
+                                .font(.system(size: 10))
+                                .foregroundColor(Color("textSecondary"))
+                                .frame(height: 14)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+            }
+            .frame(height: 120)
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color("cardBackground"))
+                .overlay(RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color("borderLight"), lineWidth: 0.5))
+        )
+    }
+}
+
+// MARK: - Compétences ABA
+struct ABASkillsCard: View {
+    let skills: [(String, String, Double, String)] // emoji, nom, rate, color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("🧠 Compétences ABA")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(Color("textPrimary"))
+
+            ForEach(skills, id: \.1) { (emoji, name, rate, color) in
+                VStack(spacing: 6) {
+                    HStack {
+                        Text(emoji + " " + name)
+                            .font(.system(size: 13))
+                            .foregroundColor(Color("textSecondary"))
+                        Spacer()
+                        Text(rate > 0 ? "\(Int(rate * 100))%" : "Pas encore")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(rate > 0 ? Color(color) : Color("textSecondary"))
+                    }
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Color("borderLight"))
+                                .frame(height: 6)
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Color(color))
+                                .frame(width: geo.size.width * rate, height: 6)
+                        }
+                    }
+                    .frame(height: 6)
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color("cardBackground"))
+                .overlay(RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color("borderLight"), lineWidth: 0.5))
+        )
+    }
+}
+
+// MARK: - Répartition des niveaux de maîtrise
+struct MasteryBreakdownCard: View {
+    let child: ChildProfile
+
+    var counts: [(MasteryLevel, Int)] {
+        MasteryLevel.allCases.map { level in
+            (level, child.wordProgresses.filter { $0.masteryLevel == level }.count)
+        }
+    }
+    var total: Int { child.wordProgresses.count }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("📊 Maîtrise des mots")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Color("textPrimary"))
+                Spacer()
+                Text("\(total) mots")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color("textSecondary"))
+            }
+
+            if total == 0 {
+                Text("Aucun mot étudié encore — lancez la première session !")
+                    .font(.system(size: 13))
+                    .foregroundColor(Color("textSecondary"))
+            } else {
+                // Barre segmentée
+                GeometryReader { geo in
+                    HStack(spacing: 2) {
+                        ForEach(counts, id: \.0) { (level, count) in
+                            if count > 0 {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Color(level.color))
+                                    .frame(width: geo.size.width * CGFloat(count) / CGFloat(total))
+                            }
+                        }
+                    }
+                }
+                .frame(height: 10)
+                .clipShape(RoundedRectangle(cornerRadius: 5))
+
+                // Légende
+                HStack(spacing: 12) {
+                    ForEach(counts, id: \.0) { (level, count) in
+                        HStack(spacing: 4) {
+                            Circle().fill(Color(level.color)).frame(width: 8, height: 8)
+                            Text("\(level.emoji) \(count)")
+                                .font(.system(size: 11))
+                                .foregroundColor(Color("textSecondary"))
+                        }
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color("cardBackground"))
+                .overlay(RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color("borderLight"), lineWidth: 0.5))
+        )
     }
 }
 
@@ -195,36 +420,36 @@ struct WeeklyReportCard: View {
     let child: ChildProfile
     let successRate: Double
     let sessionsCount: Int
+    let autoMessage: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("📊 Rapport de la semaine")
+                Text("📋 Bilan de la semaine")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(Color("textPrimary"))
                 Spacer()
-                Button {
-                    // TODO: Partager PDF
-                } label: {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 15))
-                        .foregroundColor(Color("accentPurple"))
-                }
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 15))
+                    .foregroundColor(Color("accentPurple").opacity(0.4))
             }
 
             HStack(spacing: 0) {
-                ReportStat(value: "\(sessionsCount)", label: "sessions", color: "accentPurple")
+                ReportStat(value: "\(sessionsCount)", label: "sessions",  color: "accentPurple")
                 Divider().frame(height: 40)
                 ReportStat(value: "\(Int(successRate * 100))%", label: "réussite", color: "accentGreen")
                 Divider().frame(height: 40)
                 ReportStat(value: "\(child.totalStars)", label: "⭐️ total", color: "accentOrange")
             }
 
-            // Message auto pour parent
-            Text("💬 \(child.firstName) progresse bien en vocabulaire. Continuez à pratiquer 15-20 min par jour pour maintenir la progression.")
+            // Message auto dynamique basé sur les vraies données
+            Text(autoMessage)
                 .font(.system(size: 13))
                 .foregroundColor(Color("textSecondary"))
                 .lineSpacing(3)
+                .padding(12)
+                .background(Color("backgroundSoft"))
+                .cornerRadius(10)
         }
         .padding(16)
         .background(
