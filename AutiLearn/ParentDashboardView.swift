@@ -803,6 +803,25 @@ struct PaywallView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
 
+                // Bloc valeur pédagogique
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Pourquoi 199 € est dérisoire")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Color("textPrimary"))
+                    VStack(alignment: .leading, spacing: 7) {
+                        PaywallValueRow(icon: "eurosign.circle", text: "1 séance d'orthophoniste coûte 90 €. ABA Homeschooling = 2 séances.")
+                        PaywallValueRow(icon: "book.closed", text: "Programme officiel maternelle → CM2 : 6 ans de scolarité couverts.")
+                        PaywallValueRow(icon: "brain.head.profile", text: "Méthode ABA validée scientifiquement pour le TSA — adaptée enfant par enfant.")
+                        PaywallValueRow(icon: "globe", text: "8 langues incluses : acquisition multilingue dès 3 ans.")
+                        PaywallValueRow(icon: "arrow.clockwise", text: "Accès à vie : votre investissement ne expire jamais.")
+                    }
+                }
+                .padding(16)
+                .background(RoundedRectangle(cornerRadius: 14).fill(Color("accentGreen").opacity(0.07))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color("accentGreen").opacity(0.2), lineWidth: 0.5)))
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+
                 // Bouton principal
                 Button {
                     isPurchasing = true
@@ -911,6 +930,16 @@ struct PaywallView: View {
             }
         }
         .background(Color("backgroundSoft").ignoresSafeArea())
+    }
+}
+
+struct PaywallValueRow: View {
+    let icon: String; let text: String
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: icon).font(.system(size: 13)).foregroundColor(Color("accentGreen")).frame(width: 18)
+            Text(text).font(.system(size: 12)).foregroundColor(Color("textSecondary")).lineSpacing(3)
+        }
     }
 }
 

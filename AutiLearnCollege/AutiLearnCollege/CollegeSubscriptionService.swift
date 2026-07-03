@@ -108,6 +108,23 @@ struct CollegePaywallView: View {
                 }
                 .padding(.horizontal, 24).padding(.top, 24)
 
+                // Bloc valeur pédagogique
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Pourquoi 149 € est un investissement rationnel")
+                        .font(.system(size: 14, weight: .medium)).foregroundColor(Color("textPrimary"))
+                    VStack(alignment: .leading, spacing: 7) {
+                        CollegeValueRow(icon: "eurosign.circle", text: "1 heure de cours particuliers = 30 €. ABA Ado = 5 heures d'équivalent.")
+                        CollegeValueRow(icon: "graduationcap", text: "Programme 6ème → Terminale : 7 années scolaires couvertes (français, maths, anglais, histoire, sciences).")
+                        CollegeValueRow(icon: "brain.head.profile", text: "Méthode ABA adaptée à l'adolescent TSA — progression par renforcement positif, sans pression scolaire.")
+                        CollegeValueRow(icon: "chart.line.uptrend.xyaxis", text: "Communication sociale TSA intégrée : module unique introuvable dans les programmes standards.")
+                        CollegeValueRow(icon: "arrow.clockwise", text: "Accès à vie — votre investissement suit votre ado jusqu'au bac.")
+                    }
+                }
+                .padding(16)
+                .background(RoundedRectangle(cornerRadius: 14).fill(Color("accentGreen").opacity(0.07))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color("accentGreen").opacity(0.2), lineWidth: 0.5)))
+                .padding(.horizontal, 20).padding(.top, 16)
+
                 // Bouton
                 Button {
                     isPurchasing = true
@@ -204,6 +221,16 @@ struct CollegePaywallFeature: View {
             Spacer()
             Image(systemName: "checkmark").font(.system(size: 12, weight: .medium))
                 .foregroundColor(Color("accentGreen"))
+        }
+    }
+}
+
+struct CollegeValueRow: View {
+    let icon: String; let text: String
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: icon).font(.system(size: 13)).foregroundColor(Color("accentGreen")).frame(width: 18)
+            Text(text).font(.system(size: 12)).foregroundColor(Color("textSecondary")).lineSpacing(3)
         }
     }
 }

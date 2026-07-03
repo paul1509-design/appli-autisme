@@ -222,43 +222,79 @@ struct CollegeContentLibrary {
         return pool
     }
 
-    // MARK: - Histoire-Géo
+    // MARK: - Histoire-Géo (différencié par niveau)
     private static func histoireExercises(level: CollegeLevel) -> [CollegeExercise] {
-        [
+        var pool: [CollegeExercise] = []
+
+        // 6ème / 5ème — Antiquité, Moyen Âge, Géographie de base
+        pool += [
             ex(.histoire, .multipleChoice,
-               "En quelle année a débuté la Première Guerre mondiale ?",
-               ["1914", "1918", "1939", "1905"], "1914",
-               "La Première Guerre mondiale a débuté en 1914 et s'est terminée en 1918.", "🏛️", 2),
+               "Quel est le plus grand pays du monde ?",
+               ["Russie", "Canada", "Chine", "États-Unis"], "Russie",
+               "La Russie est le plus grand pays du monde avec 17 millions de km².", "🌍", 1),
             ex(.histoire, .trueFalse,
                "La Révolution française a eu lieu en 1789.",
                ["Vrai", "Faux"], "Vrai",
                "La Révolution française commence le 14 juillet 1789 avec la prise de la Bastille.", "🗼", 1),
             ex(.histoire, .multipleChoice,
-               "Quel est le plus grand pays du monde ?",
-               ["Russie", "Canada", "Chine", "États-Unis"], "Russie",
-               "La Russie est le plus grand pays du monde avec 17 millions de km².", "🌍", 1),
-            ex(.histoire, .shortAnswer,
-               "Cite deux causes de la Seconde Guerre mondiale.",
-               [], "Montée du nazisme / Crise économique / Traité de Versailles humiliant",
-               "La montée du nazisme, la crise de 1929 et les clauses humiliantes du traité de Versailles.", "📜", 3),
+               "Les Romains ont construit le Colisée à :",
+               ["Rome", "Paris", "Athènes", "Carthage"], "Rome",
+               "Le Colisée (Colosseum) est un amphithéâtre construit à Rome au 1er siècle ap. J.-C.", "🏟️", 1),
             ex(.histoire, .multipleChoice,
-               "Le mur de Berlin est tombé en :",
-               ["1989", "1979", "1999", "1969"], "1989",
-               "Le mur de Berlin, symbole de la Guerre froide, est tombé le 9 novembre 1989.", "🧱", 2),
-            ex(.histoire, .oral,
-               "Explique pourquoi l'Union européenne a été créée.",
-               [], "Pour assurer la paix, la coopération économique et la stabilité en Europe.",
-               "L'UE est née après les guerres pour garantir la paix et la prospérité en Europe.", "🇪🇺", 3),
+               "Charlemagne a été couronné empereur en :",
+               ["800", "1066", "732", "987"], "800",
+               "Charlemagne est couronné empereur d'Occident le 25 décembre 800 par le pape Léon III.", "👑", 2),
         ]
+
+        // 4ème / 3ème — Révolutions, guerres mondiales
+        if level.rawValue >= CollegeLevel.quatrieme.rawValue {
+            pool += [
+                ex(.histoire, .multipleChoice,
+                   "En quelle année a débuté la Première Guerre mondiale ?",
+                   ["1914", "1918", "1939", "1905"], "1914",
+                   "La Première Guerre mondiale a débuté en 1914 et s'est terminée en 1918.", "🏛️", 2),
+                ex(.histoire, .shortAnswer,
+                   "Cite deux causes de la Seconde Guerre mondiale.",
+                   [], "Montée du nazisme / Crise économique / Traité de Versailles humiliant",
+                   "La montée du nazisme, la crise de 1929 et les clauses humiliantes du traité de Versailles.", "📜", 3),
+                ex(.histoire, .multipleChoice,
+                   "Le mur de Berlin est tombé en :",
+                   ["1989", "1979", "1999", "1969"], "1989",
+                   "Le mur de Berlin, symbole de la Guerre froide, est tombé le 9 novembre 1989.", "🧱", 2),
+                ex(.histoire, .oral,
+                   "Explique pourquoi la Seconde Guerre mondiale s'est terminée en 1945.",
+                   [], "Défaite de l'Allemagne nazie en mai 1945, capitulation du Japon en août 1945.",
+                   "L'Allemagne capitule le 8 mai 1945 (VE Day) ; le Japon le 2 septembre 1945 après Hiroshima.", "🕊️", 3),
+            ]
+        }
+
+        // Lycée — Géopolitique, décolonisation, monde contemporain
+        if level.isLycee {
+            pool += [
+                ex(.histoire, .oral,
+                   "Explique pourquoi l'Union européenne a été créée.",
+                   [], "Pour assurer la paix, la coopération économique et la stabilité en Europe.",
+                   "L'UE est née après les guerres pour garantir la paix et la prospérité en Europe.", "🇪🇺", 3),
+                ex(.histoire, .multipleChoice,
+                   "La décolonisation en Afrique s'est principalement déroulée dans les années :",
+                   ["1950-1970", "1920-1930", "1900-1910", "1980-1990"], "1950-1970",
+                   "La vague de décolonisation africaine a eu lieu dans les années 1950-1960, avec des indépendances en cascade.", "🌍", 3),
+                ex(.histoire, .shortAnswer,
+                   "Cite deux enjeux géopolitiques majeurs du XXIe siècle.",
+                   [], "Réchauffement climatique / Tensions USA-Chine / Terrorisme / Pandémies",
+                   "Le monde contemporain est marqué par le changement climatique, la montée en puissance de la Chine, et les crises sanitaires.", "🌐", 3),
+            ]
+        }
+
+        return pool
     }
 
-    // MARK: - Sciences
+    // MARK: - Sciences (différencié par niveau)
     private static func sciencesExercises(level: CollegeLevel) -> [CollegeExercise] {
-        var pool: [CollegeExercise] = [
-            ex(.sciences, .multipleChoice,
-               "De quoi est composé un atome ?",
-               ["Protons, neutrons, électrons", "Molécules et ions", "Cellules", "Photons"], "Protons, neutrons, électrons",
-               "L'atome est formé d'un noyau (protons + neutrons) entouré d'électrons.", "⚛️", 2),
+        var pool: [CollegeExercise] = []
+
+        // 6ème / 5ème — SVT et physique de base
+        pool += [
             ex(.sciences, .trueFalse,
                "La photosynthèse produit de l'oxygène.",
                ["Vrai", "Faux"], "Vrai",
@@ -271,16 +307,39 @@ struct CollegeContentLibrary {
                "Cite les 3 états de la matière.",
                [], "Solide, liquide, gazeux",
                "La matière peut être solide (glace), liquide (eau) ou gazeuse (vapeur).", "🧊", 1),
-            ex(.sciences, .multipleChoice,
-               "Qu'est-ce que la mitose ?",
-               ["Division cellulaire", "Reproduction sexuée", "Photosynthèse", "Digestion"], "Division cellulaire",
-               "La mitose est la division d'une cellule en deux cellules filles identiques.", "🔬", 3),
             ex(.sciences, .oral,
                "Explique le cycle de l'eau en 2 phrases.",
                [], "L'eau s'évapore, forme des nuages, puis retombe en pluie.",
                "Le cycle de l'eau : évaporation → condensation → précipitations → ruissellement → évaporation.", "☁️", 2),
+            ex(.sciences, .multipleChoice,
+               "Quel organe filtre le sang dans notre corps ?",
+               ["Les reins", "Le cœur", "Les poumons", "Le foie"], "Les reins",
+               "Les reins filtrent le sang et produisent l'urine pour éliminer les déchets.", "🫘", 1),
         ]
 
+        // 4ème / 3ème — Chimie, physique, génétique de base
+        if level.rawValue >= CollegeLevel.quatrieme.rawValue {
+            pool += [
+                ex(.sciences, .multipleChoice,
+                   "De quoi est composé un atome ?",
+                   ["Protons, neutrons, électrons", "Molécules et ions", "Cellules", "Photons"], "Protons, neutrons, électrons",
+                   "L'atome est formé d'un noyau (protons + neutrons) entouré d'électrons.", "⚛️", 2),
+                ex(.sciences, .multipleChoice,
+                   "Qu'est-ce que la mitose ?",
+                   ["Division cellulaire", "Reproduction sexuée", "Photosynthèse", "Digestion"], "Division cellulaire",
+                   "La mitose est la division d'une cellule en deux cellules filles identiques.", "🔬", 3),
+                ex(.sciences, .trueFalse,
+                   "La vitesse de la lumière dans le vide est d'environ 300 000 km/s.",
+                   ["Vrai", "Faux"], "Vrai",
+                   "La vitesse de la lumière dans le vide est c ≈ 3×10⁸ m/s = 300 000 km/s.", "💡", 2),
+                ex(.sciences, .shortAnswer,
+                   "Quelle est la formule de la force (2ème loi de Newton) ?",
+                   [], "F = m × a",
+                   "F (force en Newtons) = m (masse en kg) × a (accélération en m/s²).", "⚖️", 3),
+            ]
+        }
+
+        // Lycée — Terminale : génétique, chimie organique, physique avancée
         if level.isLycee {
             pool += [
                 ex(.sciences, .multipleChoice,
@@ -291,6 +350,14 @@ struct CollegeContentLibrary {
                    "Donne la formule de la loi d'Ohm.",
                    [], "U = R × I",
                    "Loi d'Ohm : U (tension en volts) = R (résistance en ohms) × I (intensité en ampères).", "⚡", 3),
+                ex(.sciences, .multipleChoice,
+                   "La méiose produit :",
+                   ["Des cellules reproductrices (gamètes)", "Des cellules somatiques", "Des anticorps", "Des neurones"], "Des cellules reproductrices (gamètes)",
+                   "La méiose produit des gamètes (ovule et spermatozoïde) avec moitié du nombre de chromosomes.", "🧫", 3),
+                ex(.sciences, .shortAnswer,
+                   "Qu'est-ce que le pH d'une solution ?",
+                   [], "Mesure de l'acidité/basicité, de 0 (acide fort) à 14 (base forte), 7 = neutre.",
+                   "Le pH mesure la concentration en ions H⁺. pH < 7 = acide, pH = 7 = neutre, pH > 7 = basique.", "🧪", 3),
             ]
         }
 
