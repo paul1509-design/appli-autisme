@@ -23,6 +23,7 @@
 		AA000015 /* CollegeNativeLangLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000015 /* CollegeNativeLangLibrary.swift */; };
 		AA000016 /* CollegeNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000016 /* CollegeNotificationService.swift */; };
 		AA000017 /* CollegePDFReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000017 /* CollegePDFReport.swift */; };
+		AA000018 /* CollegeReviewAndBonus.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000018 /* CollegeReviewAndBonus.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 		BB000015 /* CollegeNativeLangLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeNativeLangLibrary.swift; sourceTree = "<group>"; };
 		BB000016 /* CollegeNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeNotificationService.swift; sourceTree = "<group>"; };
 		BB000017 /* CollegePDFReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegePDFReport.swift; sourceTree = "<group>"; };
+		BB000018 /* CollegeReviewAndBonus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeReviewAndBonus.swift; sourceTree = "<group>"; };
 		CC000001 /* AutiLearnCollege.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutiLearnCollege.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -75,6 +77,7 @@
 				BB000015 /* CollegeNativeLangLibrary.swift */,
 				BB000016 /* CollegeNotificationService.swift */,
 				BB000017 /* CollegePDFReport.swift */,
+				BB000018 /* CollegeReviewAndBonus.swift */,
 			);
 			path = AutiLearnCollege;
 			sourceTree = "<group>";
@@ -170,6 +173,7 @@
 				AA000015 /* CollegeNativeLangLibrary.swift in Sources */,
 				AA000016 /* CollegeNotificationService.swift in Sources */,
 				AA000017 /* CollegePDFReport.swift in Sources */,
+				AA000018 /* CollegeReviewAndBonus.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

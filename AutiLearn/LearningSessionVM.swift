@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import AVFoundation
+import UIKit
 
 // Gardé pour compatibilité stub ContentLibrary
 struct Question {
@@ -203,6 +204,9 @@ class LearningSessionVM: ObservableObject {
         child.totalStars += starsEarned
         child.lastActiveAt = Date()
         try? modelContext.save()
+
+        let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        ABAReviewService.checkAndRequestReview(totalSessions: child.sessions.count, scene: scene)
     }
 
     private func evaluate(input: String, expected: String) -> Bool {
