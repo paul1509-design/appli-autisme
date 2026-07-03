@@ -4,33 +4,47 @@ import SwiftData
 struct CollegeParentDashboard: View {
     let student: CollegeProfile
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedTab: Int = 0
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-
-                    // Résumé général
-                    OverallSummaryCard(student: student)
-
-                    // Progression par matière
-                    Text("Progression par matière")
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundColor(Color("textPrimary"))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 20)
-
-                    SubjectProgressGrid(student: student)
-
-                    // Historique des 7 derniers jours
-                    WeekHistoryCard(student: student)
-
-                    // Conseils ABA parents
-                    ParentAdviceCard(student: student)
-
-                    Spacer(minLength: 24)
+            VStack(spacing: 0) {
+                // Onglets
+                HStack(spacing: 0) {
+                    ForEach([(0, "Suivi"), (1, "Guide"), (2, "Support")], id: \.0) { idx, label in
+                        Button {
+                            withAnimation { selectedTab = idx }
+                        } label: {
+                            Text(label)
+                                .font(.system(size: 14, weight: selectedTab == idx ? .medium : .regular))
+                                .foregroundColor(selectedTab == idx ? Color("accentPurple") : Color("textSecondary"))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                        }
+                    }
                 }
-                .padding(.vertical, 16)
+                .background(Color("cardBackground"))
+                .overlay(Divider(), alignment: .bottom)
+
+                ScrollView {
+                    VStack(spacing: 20) {
+                        if selectedTab == 0 {
+                            OverallSummaryCard(student: student)
+                            Text("Progression par matière")
+                                .font(.system(size: 17, weight: .medium)).foregroundColor(Color("textPrimary"))
+                                .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20)
+                            SubjectProgressGrid(student: student)
+                            WeekHistoryCard(student: student)
+                            ParentAdviceCard(student: student)
+                        } else if selectedTab == 1 {
+                            CollegeGuideTab()
+                        } else {
+                            CollegeSupportTab()
+                        }
+                        Spacer(minLength: 24)
+                    }
+                    .padding(.vertical, 16)
+                }
             }
             .background(Color("backgroundSoft"))
             .navigationTitle("Espace Parents")
@@ -41,6 +55,113 @@ struct CollegeParentDashboard: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Onglet Guide (ado)
+struct CollegeGuideTab: View {
+    let sections: [(String, String, [String])] = [
+        ("🧠", "Comprendre le TSA chez l'ado", [
+            "Pourquoi le collège est souvent un point de rupture",
+            "Profil sensoriel et surcharge au lycée",
+            "Anxiété scolaire et TSA — différencier et agir",
+            "La double empathie — mythe ou réalité ?"
+        ]),
+        ("🏠", "À la maison", [
+            "Routine et prévisibilité : comment structurer la semaine",
+            "Sommeil : 9-10 heures essentielles pour l'ado TSA",
+            "Alimentation cérébrale (oméga-3, magnésium, vitamine D3)",
+            "Gérer les crises émotionnelles à l'adolescence"
+        ]),
+        ("🧬", "Examens recommandés", [
+            "Bilan neuropsychologique — QI, mémoire, attention",
+            "qEEG (cartographie cérébrale) pour identifier les patterns",
+            "IRM DTI (connectivité des faisceaux blancs)",
+            "Bilan sensoriel avec ergothérapeute"
+        ]),
+        ("💪", "Thérapies et aides", [
+            "ABA adapté à l'ado : autonomie et généralisation",
+            "TCC adaptée TSA — gestion émotionnelle",
+            "Neurofeedback (tACS) — preuves et limites",
+            "Sport adapté : natation, escalade, arts martiaux doux"
+        ]),
+        ("👥", "Socialisation & droits", [
+            "Groupes de pairs TSA — trouver une communauté",
+            "MDPH : renouvellement et dossier lycée",
+            "PAP / PPS au lycée — ce qu'on peut demander",
+            "Orientation post-bac pour jeune avec TSA"
+        ])
+    ]
+
+    var body: some View {
+        VStack(spacing: 12) {
+            ForEach(sections, id: \.0) { emoji, title, items in
+                CollegeGuideSection(emoji: emoji, title: title, items: items)
+            }
+        }
+        .padding(.horizontal, 20).padding(.top, 8)
+    }
+}
+
+struct CollegeGuideSection: View {
+    let emoji: String; let title: String; let items: [String]
+    @State private var expanded = false
+    var body: some View {
+        VStack(spacing: 0) {
+            Button { withAnimation(.spring()) { expanded.toggle() } } label: {
+                HStack(spacing: 12) {
+                    Text(emoji).font(.system(size: 20))
+                    Text(title).font(.system(size: 14, weight: .medium)).foregroundColor(Color("textPrimary"))
+                    Spacer()
+                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 12)).foregroundColor(Color("textSecondary"))
+                }
+                .padding(14)
+            }
+            if expanded {
+                Divider().opacity(0.3)
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(items, id: \.self) { item in
+                        HStack(alignment: .top, spacing: 8) {
+                            Circle().fill(Color("accentPurple")).frame(width: 5, height: 5).padding(.top, 6)
+                            Text(item).font(.system(size: 13)).foregroundColor(Color("textSecondary")).lineSpacing(3)
+                        }
+                    }
+                }
+                .padding(14)
+            }
+        }
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color("cardBackground"))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color("borderLight"), lineWidth: 0.5)))
+    }
+}
+
+// MARK: - Onglet Support (ado)
+struct CollegeSupportTab: View {
+    let items: [(String, String, String, String)] = [
+        ("🧠", "Neurologique", "Neuropédiatre spé TSA, qEEG, neurofeedback, tACS neuromodulation", "accentPurple"),
+        ("💬", "Psychologique", "TCC adaptée TSA, thérapie familiale, coaching émotionnel ado", "accentBlue"),
+        ("🏃", "Sport & corps", "Natation, escalade, arts martiaux doux, équithérapie adaptée", "accentGreen"),
+        ("🍽️", "Nutrition cérébrale", "Oméga-3 DHA, magnésium bisglycinate, vitamine D3+K2, zinc, probiotiques", "accentOrange"),
+        ("👥", "Associations", "Autism France, Sésame Autisme, CRA régionaux, groupes de pairs ado", "accentPink"),
+        ("⚖️", "Administratif", "MDPH, AEEH, PAP lycée, PPS, orientation post-bac adaptée TSA", "accentYellow"),
+    ]
+    var body: some View {
+        VStack(spacing: 12) {
+            ForEach(items, id: \.0) { emoji, title, desc, color in
+                HStack(alignment: .top, spacing: 14) {
+                    Text(emoji).font(.system(size: 24)).frame(width: 36)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(title).font(.system(size: 14, weight: .medium)).foregroundColor(Color("textPrimary"))
+                        Text(desc).font(.system(size: 12)).foregroundColor(Color("textSecondary")).lineSpacing(3)
+                    }
+                }
+                .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color(color).opacity(0.06))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(color).opacity(0.2), lineWidth: 0.5)))
+            }
+        }
+        .padding(.horizontal, 20).padding(.top, 8)
     }
 }
 
