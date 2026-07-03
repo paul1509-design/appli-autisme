@@ -4,6 +4,8 @@ import SwiftData
 struct CollegeHomeView: View {
     let student: CollegeProfile
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var sub: CollegeSubscriptionService
+    @EnvironmentObject private var appState: CollegeAppState
     @State private var showLevelPicker = false
 
     var recentRate: Double {
@@ -16,6 +18,13 @@ struct CollegeHomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+
+                    // Bandeau trial si ≤ 7 jours restants
+                    if !sub.isSubscribed && sub.trialDaysRemaining <= 7 {
+                        CollegeTrialBanner(daysLeft: sub.trialDaysRemaining) {
+                            appState.screen = .paywall
+                        }
+                    }
 
                     // En-tête
                     CollegeHeader(student: student, onLevelTap: { showLevelPicker = true })

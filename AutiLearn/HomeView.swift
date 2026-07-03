@@ -7,6 +7,8 @@ private let rewardStarThreshold = 10
 struct HomeView: View {
     let child: ChildProfile
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var subscriptionService: SubscriptionService
+    @EnvironmentObject private var appState: AppState
 
     @State private var showEmotionCheck = true
     @State private var selectedEmotion: EmotionState?
@@ -38,6 +40,13 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+
+                    // Bandeau trial si < 7 jours restants
+                    if !subscriptionService.isSubscribed && subscriptionService.trialDaysRemaining <= 7 {
+                        TrialBanner(daysLeft: subscriptionService.trialDaysRemaining) {
+                            appState.currentScreen = .paywall
+                        }
+                    }
 
                     HomeHeader(child: child, greeting: greeting,
                                onLevelTap: { showLevelPicker = true })
@@ -147,6 +156,35 @@ struct HomeView: View {
                 withAnimation { showReward = true }
             }
         }
+    }
+}
+
+// MARK: - Bandeau trial
+struct TrialBanner: View {
+    let daysLeft: Int
+    let onUpgrade: () -> Void
+
+    var body: some View {
+        Button(action: onUpgrade) {
+            HStack(spacing: 10) {
+                Text(daysLeft <= 2 ? "🔴" : "🟡")
+                Text(daysLeft == 0
+                     ? "Votre essai expire aujourd'hui !"
+                     : "Essai gratuit : encore \(daysLeft) jour\(daysLeft > 1 ? "s" : "")")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white)
+                Spacer()
+                Text("Débloquer")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10).padding(.vertical, 4)
+                    .background(.white.opacity(0.25))
+                    .cornerRadius(8)
+            }
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .background(daysLeft <= 2 ? Color.red.opacity(0.85) : Color("accentOrange"))
+        }
+        .padding(.horizontal, 20)
     }
 }
 

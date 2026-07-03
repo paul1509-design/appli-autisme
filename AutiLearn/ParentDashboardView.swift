@@ -714,59 +714,96 @@ struct PaywallView: View {
     @EnvironmentObject var subscriptionService: SubscriptionService
     @EnvironmentObject var appState: AppState
     @State private var isPurchasing = false
+    @State private var showRestoreConfirm = false
+
+    var isTrialActive: Bool { !subscriptionService.trialExpired }
+    var daysLeft: Int { subscriptionService.trialDaysRemaining }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Hero
-            VStack(spacing: 16) {
-                Text("🌟")
-                    .font(.system(size: 64))
-                Text("Continuez l'aventure")
-                    .font(.system(size: 26, weight: .medium))
-                    .foregroundColor(Color("textPrimary"))
-                Text("Votre période d'essai est terminée.\nDébloquez l'accès complet à vie.")
-                    .font(.system(size: 16))
-                    .foregroundColor(Color("textSecondary"))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-            }
-            .padding(.top, 48)
-            .padding(.horizontal, 32)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
 
-            Spacer()
+                // Bandeau trial / expiré
+                if isTrialActive {
+                    HStack(spacing: 8) {
+                        Text("⏳")
+                        Text("Essai gratuit — encore \(daysLeft) jour\(daysLeft > 1 ? "s" : "")")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.white)
+                        Spacer()
+                        Button("Continuer gratuitement") {
+                            // retour si le trial est encore actif
+                            if let child = appState.selectedChild {
+                                _ = child
+                            }
+                            appState.currentScreen = .home
+                        }
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
+                        .underline()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(Color("accentOrange"))
+                } else {
+                    HStack(spacing: 8) {
+                        Text("🔒")
+                        Text("Votre essai de 21 jours est terminé")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(Color.red.opacity(0.85))
+                }
 
-            // Avantages
-            VStack(spacing: 12) {
-                PaywallFeature(emoji: "📚", text: "Programme scolaire complet CP → Collège")
-                PaywallFeature(emoji: "🎯", text: "Méthode ABA validée scientifiquement")
-                PaywallFeature(emoji: "📊", text: "Rapports hebdomadaires pour les parents")
-                PaywallFeature(emoji: "🌍", text: "Français et anglais inclus")
-                PaywallFeature(emoji: "👨‍👩‍👧‍👦", text: "Plusieurs enfants sur un seul compte")
-                PaywallFeature(emoji: "🔄", text: "Toutes les mises à jour incluses à vie")
-            }
-            .padding(.horizontal, 24)
+                // Hero
+                VStack(spacing: 14) {
+                    Text("🏠")
+                        .font(.system(size: 52))
+                        .padding(.top, 36)
 
-            Spacer()
+                    Text("ABA Homeschooling")
+                        .font(.system(size: 26, weight: .medium))
+                        .foregroundColor(Color("textPrimary"))
 
-            // Prix et justification
-            VStack(spacing: 8) {
-                Text("199 €")
-                    .font(.system(size: 40, weight: .medium))
-                    .foregroundColor(Color("textPrimary"))
-                Text("Accès illimité à vie — Pas d'abonnement")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color("accentGreen"))
-                Text("Soit le prix de 2 séances d'orthophoniste,\npour une solution éducative jusqu'à la fin de la scolarité.")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color("textSecondary"))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(3)
+                    Text(isTrialActive
+                         ? "Débloquez l'accès complet à vie\navant la fin de votre essai."
+                         : "Votre enfant attend.\nContinuez le programme scolaire à la maison.")
+                        .font(.system(size: 16))
+                        .foregroundColor(Color("textSecondary"))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                }
+                .padding(.horizontal, 32)
+
+                // Ancrage prix
+                VStack(spacing: 6) {
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text("199 €")
+                            .font(.system(size: 44, weight: .medium))
+                            .foregroundColor(Color("textPrimary"))
+                        Text("une fois")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color("textSecondary"))
+                    }
+                    Text("Accès à vie — aucun abonnement — pour toute la famille")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Color("accentGreen"))
+                        .multilineTextAlignment(.center)
+
+                    // Comparaison prix
+                    HStack(spacing: 8) {
+                        ComparisonPill(label: "vs 90 €/séance ortho", striked: true)
+                        ComparisonPill(label: "vs 800 €/an AVS", striked: true)
+                    }
                     .padding(.top, 4)
-            }
-            .padding(.horizontal, 24)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
 
-            // Bouton achat
-            VStack(spacing: 12) {
+                // Bouton principal
                 Button {
                     isPurchasing = true
                     Task {
@@ -777,34 +814,117 @@ struct PaywallView: View {
                         }
                     }
                 } label: {
-                    HStack {
+                    HStack(spacing: 10) {
                         if isPurchasing {
                             ProgressView().tint(.white)
                         } else {
-                            Text("Devenir propriétaire — 199 €")
-                                .font(.system(size: 17, weight: .medium))
+                            Image(systemName: "lock.open.fill")
+                                .font(.system(size: 16))
+                            Text("Débloquer — 199 €")
+                                .font(.system(size: 18, weight: .medium))
                         }
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(Color("accentPurple"))
-                    .cornerRadius(16)
+                    .frame(height: 58)
+                    .background(
+                        LinearGradient(colors: [Color("accentPurple"), Color("accentPurple").opacity(0.82)],
+                                       startPoint: .leading, endPoint: .trailing)
+                    )
+                    .cornerRadius(18)
+                    .shadow(color: Color("accentPurple").opacity(0.35), radius: 12, y: 4)
                 }
                 .disabled(isPurchasing)
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
 
                 Button {
-                    Task { await subscriptionService.restorePurchases() }
+                    Task {
+                        await subscriptionService.restorePurchases()
+                        showRestoreConfirm = true
+                    }
                 } label: {
-                    Text("Restaurer un achat")
+                    Text("Restaurer un achat précédent")
                         .font(.system(size: 14))
                         .foregroundColor(Color("textSecondary"))
+                        .underline()
                 }
+                .padding(.top, 12)
+                .alert("Achat restauré", isPresented: $showRestoreConfirm) {
+                    Button("OK") {
+                        if subscriptionService.isSubscribed { appState.currentScreen = .home }
+                    }
+                } message: {
+                    Text(subscriptionService.isSubscribed
+                         ? "Votre accès a bien été restauré."
+                         : "Aucun achat trouvé sur ce compte.")
+                }
+
+                // Ce qui est inclus
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Ce qui est inclus")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(Color("textPrimary"))
+                        .padding(.bottom, 12)
+
+                    VStack(spacing: 10) {
+                        PaywallFeature(emoji: "🏫", text: "Programme maternelle → CM2 complet")
+                        PaywallFeature(emoji: "🗣️", text: "Exercices de parole ABA avec Léo")
+                        PaywallFeature(emoji: "🌍", text: "8 langues disponibles")
+                        PaywallFeature(emoji: "📊", text: "Tableau de bord parents + rapports")
+                        PaywallFeature(emoji: "👨‍👩‍👧‍👦", text: "Plusieurs enfants, un seul achat")
+                        PaywallFeature(emoji: "🔄", text: "Mises à jour incluses à vie")
+                        PaywallFeature(emoji: "📵", text: "Fonctionne hors ligne")
+                    }
+                }
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color("cardBackground"))
+                        .overlay(RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color("borderLight"), lineWidth: 0.5))
+                )
+                .padding(.horizontal, 20)
+                .padding(.top, 28)
+
+                // Témoignage
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("❝")
+                        .font(.system(size: 28))
+                        .foregroundColor(Color("accentPurple").opacity(0.4))
+                    Text("On a essayé des centaines d'euros d'applications. ABA Homeschooling est la seule qui suit vraiment le programme. Nathan progresse en lecture chaque semaine.")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Color("textPrimary"))
+                        .lineSpacing(4)
+                    Text("— Sophie, maman de Nathan (8 ans, TSA niveau 2)")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color("textSecondary"))
+                }
+                .padding(18)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color("accentPurple").opacity(0.06))
+                )
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 48)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 40)
         }
         .background(Color("backgroundSoft").ignoresSafeArea())
+    }
+}
+
+struct ComparisonPill: View {
+    let label: String
+    let striked: Bool
+    var body: some View {
+        Text(label)
+            .font(.system(size: 11, weight: .medium))
+            .strikethrough(striked)
+            .foregroundColor(Color("textSecondary"))
+            .padding(.horizontal, 10).padding(.vertical, 5)
+            .background(Color("cardBackground"))
+            .cornerRadius(20)
     }
 }
 

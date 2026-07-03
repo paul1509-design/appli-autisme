@@ -48,8 +48,13 @@ struct RootView: View {
             }
         }
         .onAppear {
-            // Splash shown once; après, on va direct au contenu
             guard appState.hasSeenSplash else { return }
+            // Vérifier trial avant de laisser entrer
+            subscriptionService.checkSubscriptionStatus()
+            if subscriptionService.trialExpired && !subscriptionService.isSubscribed {
+                appState.currentScreen = .paywall
+                return
+            }
             if children.isEmpty {
                 appState.currentScreen = .onboarding
             } else if children.count == 1 {
@@ -57,6 +62,11 @@ struct RootView: View {
                 appState.currentScreen = .home
             } else {
                 appState.currentScreen = .childSelector
+            }
+        }
+        .onChange(of: subscriptionService.trialExpired) { _, expired in
+            if expired && !subscriptionService.isSubscribed {
+                appState.currentScreen = .paywall
             }
         }
     }

@@ -27,10 +27,10 @@ struct CollegeSplashView: View {
                         .animation(.spring(response: 0.7, dampingFraction: 0.6).delay(0.1), value: logoScale)
 
                         VStack(spacing: 10) {
-                            Text("ABA Collège")
+                            Text("ABA Homeschooling Ado")
                                 .font(.system(size: 30, weight: .medium))
                                 .foregroundColor(Color("textPrimary"))
-                            Text("Le programme collège & lycée\nà la maison pour votre ado autiste")
+                            Text("Le programme collège & lycée à la maison\npour votre ado autiste — 11 à 18 ans")
                                 .font(.system(size: 17, weight: .medium))
                                 .foregroundColor(Color("accentPurple"))
                                 .multilineTextAlignment(.center)
