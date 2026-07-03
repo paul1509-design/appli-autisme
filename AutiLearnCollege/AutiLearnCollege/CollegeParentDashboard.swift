@@ -11,12 +11,12 @@ struct CollegeParentDashboard: View {
             VStack(spacing: 0) {
                 // Onglets
                 HStack(spacing: 0) {
-                    ForEach([(0, "Suivi"), (1, "Guide"), (2, "Support")], id: \.0) { idx, label in
+                    ForEach([(0, "Suivi"), (1, "Rappels"), (2, "Guide"), (3, "Support")], id: \.0) { idx, label in
                         Button {
                             withAnimation { selectedTab = idx }
                         } label: {
                             Text(label)
-                                .font(.system(size: 14, weight: selectedTab == idx ? .medium : .regular))
+                                .font(.system(size: 13, weight: selectedTab == idx ? .medium : .regular))
                                 .foregroundColor(selectedTab == idx ? Color("accentPurple") : Color("textSecondary"))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
@@ -34,9 +34,14 @@ struct CollegeParentDashboard: View {
                                 .font(.system(size: 17, weight: .medium)).foregroundColor(Color("textPrimary"))
                                 .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20)
                             SubjectProgressGrid(student: student)
+                            CollegeExerciseMasteryCard(student: student)
                             WeekHistoryCard(student: student)
                             ParentAdviceCard(student: student)
+                            CollegePDFShareButton(student: student)
+                                .padding(.horizontal, 20)
                         } else if selectedTab == 1 {
+                            CollegeReminderSettingsCard(student: student)
+                        } else if selectedTab == 2 {
                             CollegeGuideTab()
                         } else {
                             CollegeSupportTab()
@@ -53,6 +58,125 @@ struct CollegeParentDashboard: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Fermer") { dismiss() }.foregroundColor(Color("accentPurple"))
                 }
+            }
+        }
+        .onAppear { CollegeNotificationService.requestPermission() }
+    }
+}
+
+// MARK: - Card maîtrise des exercices
+struct CollegeExerciseMasteryCard: View {
+    let student: CollegeProfile
+
+    var mastered: Int  { student.exerciseProgresses.filter { $0.masteryLevel == "mastered" }.count }
+    var reviewing: Int { student.exerciseProgresses.filter { $0.masteryLevel == "reviewing" }.count }
+    var learning: Int  { student.exerciseProgresses.filter { $0.masteryLevel == "learning" }.count }
+    var total: Int     { student.exerciseProgresses.count }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Maîtrise des exercices")
+                .font(.system(size: 15, weight: .medium)).foregroundColor(Color("textPrimary"))
+            HStack(spacing: 0) {
+                MasteryBar(count: mastered,  total: total, color: Color("accentGreen"),  label: "Maîtrisés")
+                MasteryBar(count: reviewing, total: total, color: Color("accentOrange"), label: "Révision")
+                MasteryBar(count: learning,  total: total, color: Color("accentBlue"),   label: "En cours")
+            }
+            .frame(height: 12).clipShape(RoundedRectangle(cornerRadius: 6))
+            HStack(spacing: 16) {
+                MasteryLegend(emoji: "⭐️", label: "Maîtrisés", count: mastered)
+                MasteryLegend(emoji: "🔄", label: "Révision",  count: reviewing)
+                MasteryLegend(emoji: "📚", label: "En cours",  count: learning)
+                MasteryLegend(emoji: "🆕", label: "Nouveau",   count: max(0, total - mastered - reviewing - learning))
+            }
+        }
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color("cardBackground"))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color("borderLight"), lineWidth: 0.5)))
+        .padding(.horizontal, 20)
+    }
+}
+
+private struct MasteryBar: View {
+    let count: Int; let total: Int; let color: Color; let label: String
+    var fraction: CGFloat { total > 0 ? CGFloat(count) / CGFloat(total) : 0 }
+    var body: some View {
+        color.frame(maxWidth: .infinity * fraction)
+    }
+}
+
+private struct MasteryLegend: View {
+    let emoji: String; let label: String; let count: Int
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(emoji).font(.system(size: 14))
+            Text("\(count)").font(.system(size: 13, weight: .medium)).foregroundColor(Color("textPrimary"))
+            Text(label).font(.system(size: 10)).foregroundColor(Color("textSecondary"))
+        }
+    }
+}
+
+// MARK: - Paramètres rappels
+struct CollegeReminderSettingsCard: View {
+    @Bindable var student: CollegeProfile
+    @State private var selectedHour: Int = 10
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("🔔 Rappels quotidiens")
+                .font(.system(size: 17, weight: .medium)).foregroundColor(Color("textPrimary"))
+
+            Text("Recevez une notification chaque jour pour maintenir la routine — essentielle pour les jeunes TSA.")
+                .font(.system(size: 13)).foregroundColor(Color("textSecondary")).lineSpacing(4)
+
+            Toggle("Activer les rappels", isOn: $student.reminderEnabled)
+                .font(.system(size: 15))
+                .tint(Color("accentPurple"))
+                .onChange(of: student.reminderEnabled) { _, enabled in
+                    if enabled {
+                        CollegeNotificationService.scheduleDailyReminder(
+                            studentName: student.firstName,
+                            hour: student.reminderHour,
+                            language: student.language)
+                    } else {
+                        CollegeNotificationService.cancelReminder()
+                    }
+                }
+
+            if student.reminderEnabled {
+                HStack {
+                    Text("Heure du rappel")
+                        .font(.system(size: 15)).foregroundColor(Color("textPrimary"))
+                    Spacer()
+                    Picker("Heure", selection: $student.reminderHour) {
+                        ForEach(6..<22, id: \.self) { h in
+                            Text("\(h):00").tag(h)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(Color("accentPurple"))
+                    .onChange(of: student.reminderHour) { _, hour in
+                        CollegeNotificationService.scheduleDailyReminder(
+                            studentName: student.firstName, hour: hour,
+                            language: student.language)
+                    }
+                }
+
+                Text("Le rappel sera envoyé tous les jours à \(student.reminderHour):00.")
+                    .font(.system(size: 12)).foregroundColor(Color("textSecondary"))
+            }
+        }
+        .padding(20)
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color("cardBackground"))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color("borderLight"), lineWidth: 0.5)))
+        .padding(.horizontal, 20)
+        .onAppear {
+            selectedHour = student.reminderHour
+            if student.reminderEnabled {
+                CollegeNotificationService.scheduleDailyReminder(
+                    studentName: student.firstName,
+                    hour: student.reminderHour,
+                    language: student.language)
             }
         }
     }

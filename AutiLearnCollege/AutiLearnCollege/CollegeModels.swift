@@ -228,6 +228,9 @@ class CollegeProfile {
     var currentStreak: Int
     var lastSessionDate: Date?
     var sessions: [CollegeSession]
+    var exerciseProgresses: [CollegeExerciseProgress]
+    var reminderHour: Int       // heure de notification (défaut 10h)
+    var reminderEnabled: Bool
 
     init(firstName: String, avatarName: String, level: CollegeLevel, language: CollegeLanguage = .french) {
         self.firstName = firstName
@@ -237,6 +240,9 @@ class CollegeProfile {
         self.totalStars = 0
         self.currentStreak = 0
         self.sessions = []
+        self.exerciseProgresses = []
+        self.reminderHour = 10
+        self.reminderEnabled = true
     }
 }
 
@@ -277,6 +283,66 @@ enum CollegePromptLevel: Int, CaseIterable {
         case .hint:        return "Encore un indice"
         case .partial:     return "Voir la réponse partielle"
         case .full:        return ""
+        }
+    }
+}
+
+// MARK: - Progression par exercice (spacing effect)
+@Model
+class CollegeExerciseProgress {
+    var exerciseKey: String         // subject + hash de la question
+    var subject: String
+    var timesStudied: Int
+    var timesCorrect: Int
+    var lastStudied: Date?
+    var nextReviewDate: Date?
+    var masteryLevel: String        // "new" | "learning" | "reviewing" | "mastered"
+
+    var accuracy: Double {
+        guard timesStudied > 0 else { return 0 }
+        return Double(timesCorrect) / Double(timesStudied)
+    }
+
+    var masteryEmoji: String {
+        switch masteryLevel {
+        case "mastered":  return "⭐️"
+        case "reviewing": return "🔄"
+        case "learning":  return "📚"
+        default:          return "🆕"
+        }
+    }
+
+    init(key: String, subject: String) {
+        self.exerciseKey = key
+        self.subject = subject
+        self.timesStudied = 0
+        self.timesCorrect = 0
+        self.masteryLevel = "new"
+        self.nextReviewDate = Date().addingTimeInterval(60 * 60 * 24 * 3)
+    }
+
+    func record(correct: Bool) {
+        timesStudied += 1
+        lastStudied = Date()
+        if correct {
+            timesCorrect += 1
+            switch masteryLevel {
+            case "new":
+                masteryLevel = "learning"
+                nextReviewDate = Date().addingTimeInterval(60 * 60 * 24 * 3)
+            case "learning":
+                masteryLevel = "reviewing"
+                nextReviewDate = Date().addingTimeInterval(60 * 60 * 24 * 7)
+            case "reviewing":
+                masteryLevel = "mastered"
+                nextReviewDate = nil
+            default: break
+            }
+        } else {
+            if masteryLevel == "mastered" || masteryLevel == "reviewing" {
+                masteryLevel = "learning"
+                nextReviewDate = Date().addingTimeInterval(60 * 60 * 24 * 3)
+            }
         }
     }
 }

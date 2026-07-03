@@ -189,8 +189,16 @@ struct CharacterBubble: View {
                     .foregroundColor(Color("textPrimary"))
                     .lineSpacing(5)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(exercise.emoji)
-                    .font(.system(size: 32))
+                // Grand visuel TSA — support pictographique
+                HStack {
+                    Spacer()
+                    Text(exercise.emoji)
+                        .font(.system(size: 72))
+                        .padding(14)
+                        .background(Color("accentPurple").opacity(0.07))
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                    Spacer()
+                }
             }
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)

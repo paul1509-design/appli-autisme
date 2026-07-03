@@ -8,6 +8,8 @@ struct CollegeHomeView: View {
     @EnvironmentObject private var appState: CollegeAppState
     @State private var showLevelPicker = false
     @State private var showReward = false
+    @State private var showBonusUnlock = false
+    @State private var showChampionsQuiz = false
     @State private var lastRewardAt: Int = 0
     @State private var completedSteps: Set<Int> = []
     @AppStorage("collegeScheduleDate") private var scheduleDateString: String = ""
@@ -82,6 +84,39 @@ struct CollegeHomeView: View {
                     }
                     .padding(.horizontal, 20)
 
+                    // Exercice bonus Champions Quiz
+                    Button {
+                        if CollegeReviewService.isBonusUnlocked {
+                            showChampionsQuiz = true
+                        } else {
+                            showBonusUnlock = true
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text("🏆").font(.system(size: 22))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(CollegeReviewService.isBonusUnlocked ? "Champions Quiz 🎯" : "Débloquer l'exercice bonus 🎁")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(Color("textPrimary"))
+                                Text(CollegeReviewService.isBonusUnlocked ? "Quiz chronométré — toutes matières" : "Laisser un avis 5⭐ pour débloquer")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color("textSecondary"))
+                            }
+                            Spacer()
+                            Image(systemName: CollegeReviewService.isBonusUnlocked ? "play.circle.fill" : "lock.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(CollegeReviewService.isBonusUnlocked ? Color("accentGreen") : Color("accentOrange"))
+                        }
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color("cardBackground"))
+                                .overlay(RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color("accentOrange").opacity(0.3), lineWidth: 1))
+                        )
+                        .padding(.horizontal, 20)
+                    }
+
                     // Espace parents (avec PIN)
                     NavigationLink {
                         CollegeParentPINView(student: student)
@@ -120,8 +155,14 @@ struct CollegeHomeView: View {
             .sheet(isPresented: $showLevelPicker) {
                 CollegeLevelPicker(student: student)
             }
+            .sheet(isPresented: $showBonusUnlock) {
+                CollegeBonusUnlockView(isPresented: $showBonusUnlock, studentName: student.firstName)
+            }
             .fullScreenCover(isPresented: $showReward) {
                 CollegeRewardBreakView(student: student, onDismiss: { showReward = false })
+            }
+            .fullScreenCover(isPresented: $showChampionsQuiz) {
+                CollegeChampionsQuizView(student: student)
             }
         }
         .onAppear {

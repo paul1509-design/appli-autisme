@@ -28,6 +28,7 @@ struct AutiLearnApp: App {
                 .environmentObject(appState)
                 .onAppear {
                     subscriptionService.checkSubscriptionStatus()
+                    ABANotificationService.requestPermission()
                 }
         }
     }

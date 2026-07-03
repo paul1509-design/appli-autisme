@@ -16,6 +16,7 @@ struct HomeView: View {
     @State private var currentTime = Date()
     @State private var showLevelPicker = false
     @State private var showReward = false
+    @State private var showBonusUnlock = false
     @State private var lastRewardAt: Int = 0
     @State private var completedScheduleSteps: Set<Int> = []
     @AppStorage("scheduleDate") private var scheduleDateString: String = ""
@@ -94,6 +95,35 @@ struct HomeView: View {
 
                     DailyStoryTeaser(child: child)
 
+                    // Exercice bonus Mot Mystère
+                    Button {
+                        showBonusUnlock = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text("🎁").font(.system(size: 22))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(ABAReviewService.isBonusUnlocked ? "Mot Mystère 🔤" : "Débloquer le jeu bonus 🎁")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(Color("textPrimary"))
+                                Text(ABAReviewService.isBonusUnlocked ? "Jeu de lettres adapté TSA" : "Laisser un avis 5⭐ pour débloquer")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color("textSecondary"))
+                            }
+                            Spacer()
+                            Image(systemName: ABAReviewService.isBonusUnlocked ? "play.circle.fill" : "lock.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(ABAReviewService.isBonusUnlocked ? Color("accentGreen") : Color("accentOrange"))
+                        }
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color("cardBackground"))
+                                .overlay(RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color("accentOrange").opacity(0.3), lineWidth: 1))
+                        )
+                        .padding(.horizontal, 20)
+                    }
+
                     // Accès espace parents (protégé par PIN)
                     NavigationLink {
                         ParentPINView(child: child)
@@ -137,6 +167,9 @@ struct HomeView: View {
             }
             .fullScreenCover(isPresented: $showReward) {
                 RewardBreakView(child: child, onDismiss: { showReward = false })
+            }
+            .sheet(isPresented: $showBonusUnlock) {
+                ABABonusUnlockView(isPresented: $showBonusUnlock, childName: child.firstName)
             }
         }
         .onAppear {

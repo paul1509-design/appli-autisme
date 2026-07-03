@@ -8,9 +8,10 @@ struct ParentDashboardView: View {
     @State private var selectedTab: ParentTab = .progress
 
     enum ParentTab: String, CaseIterable {
-        case progress = "Progression"
-        case guide    = "Guide"
-        case support  = "Aide"
+        case progress  = "Progression"
+        case reminders = "Rappels"
+        case guide     = "Guide"
+        case support   = "Aide"
     }
 
     var body: some View {
@@ -67,6 +68,8 @@ struct ParentDashboardView: View {
                     switch selectedTab {
                     case .progress:
                         ProgressTabView(child: child)
+                    case .reminders:
+                        ABAReminderSettingsView(child: child)
                     case .guide:
                         GuideTabView()
                     case .support:
@@ -77,6 +80,59 @@ struct ParentDashboardView: View {
             }
             .background(Color("backgroundSoft"))
             .navigationBarHidden(true)
+        }
+        .onAppear { ABANotificationService.requestPermission() }
+    }
+}
+
+// MARK: - Paramètres rappels (app primaire)
+struct ABAReminderSettingsView: View {
+    @Bindable var child: ChildProfile
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("🔔 Rappels quotidiens")
+                .font(.system(size: 19, weight: .medium)).foregroundColor(Color("textPrimary"))
+                .padding(.top, 8)
+
+            Text("Une notification quotidienne aide à maintenir la routine — fondamentale pour les enfants TSA.")
+                .font(.system(size: 13)).foregroundColor(Color("textSecondary")).lineSpacing(4)
+
+            Toggle("Activer les rappels", isOn: $child.reminderEnabled)
+                .font(.system(size: 15))
+                .tint(Color("accentBlue"))
+                .onChange(of: child.reminderEnabled) { _, enabled in
+                    if enabled {
+                        ABANotificationService.scheduleDailyReminder(childName: child.firstName, hour: child.reminderHour)
+                    } else {
+                        ABANotificationService.cancelReminder()
+                    }
+                }
+
+            if child.reminderEnabled {
+                HStack {
+                    Text("Heure du rappel").font(.system(size: 15)).foregroundColor(Color("textPrimary"))
+                    Spacer()
+                    Picker("Heure", selection: $child.reminderHour) {
+                        ForEach(6..<22, id: \.self) { h in Text("\(h):00").tag(h) }
+                    }
+                    .pickerStyle(.menu).tint(Color("accentBlue"))
+                    .onChange(of: child.reminderHour) { _, hour in
+                        ABANotificationService.scheduleDailyReminder(childName: child.firstName, hour: hour)
+                    }
+                }
+                Text("Rappel tous les jours à \(child.reminderHour):00.")
+                    .font(.system(size: 12)).foregroundColor(Color("textSecondary"))
+            }
+
+            ABAPDFShareButton(child: child)
+                .padding(.top, 8)
+        }
+        .padding(20)
+        .onAppear {
+            if child.reminderEnabled {
+                ABANotificationService.scheduleDailyReminder(childName: child.firstName, hour: child.reminderHour)
+            }
         }
     }
 }
@@ -202,6 +258,10 @@ struct ProgressTabView: View {
 
             // Progression par module
             ModuleProgressCard(sessions: recentSessions)
+                .padding(.horizontal, 20)
+
+            // Export PDF
+            ABAPDFShareButton(child: child)
                 .padding(.horizontal, 20)
 
             Spacer(minLength: 24)

@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import AVFoundation
+import UIKit
 
 @MainActor
 class CollegeSessionVM: ObservableObject {
@@ -74,7 +75,16 @@ class CollegeSessionVM: ObservableObject {
             let stars = max(1, ex.difficulty - totalPromptsUsed)
             starsEarned += stars
         }
-        if correct { speak(correct ? "Excellent !" : ex.explanation) }
+        speak(correct ? "Excellent !" : ex.explanation)
+        // Mise à jour progression par exercice (spacing effect)
+        let key = ex.subject.rawValue + "|" + ex.question.prefix(60)
+        if let prog = student.exerciseProgresses.first(where: { $0.exerciseKey == key }) {
+            prog.record(correct: correct)
+        } else {
+            let prog = CollegeExerciseProgress(key: key, subject: ex.subject.rawValue)
+            prog.record(correct: correct)
+            student.exerciseProgresses.append(prog)
+        }
     }
 
     func requestHint() {
@@ -133,6 +143,10 @@ class CollegeSessionVM: ObservableObject {
         }
         student.lastSessionDate = Date()
         try? modelContext.save()
+
+        // Demande d'avis App Store après la 3ème session
+        let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        CollegeReviewService.checkAndRequestReview(totalSessions: student.sessions.count, scene: scene)
     }
 
     func speak(_ text: String) {

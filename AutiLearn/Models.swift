@@ -15,6 +15,8 @@ class ChildProfile {
     var lastActiveAt: Date
     var totalStars: Int             // monnaie de récompense
     var currentStreak: Int          // jours consécutifs
+    var reminderHour: Int
+    var reminderEnabled: Bool
 
     @Relationship(deleteRule: .cascade) var sessions: [LearningSession]
     @Relationship(deleteRule: .cascade) var wordProgresses: [WordProgress]
@@ -34,6 +36,8 @@ class ChildProfile {
         self.lastActiveAt = Date()
         self.totalStars = 0
         self.currentStreak = 0
+        self.reminderHour = 10
+        self.reminderEnabled = true
         self.sessions = []
         self.wordProgresses = []
         self.weeklyReports = []

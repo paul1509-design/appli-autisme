@@ -21,6 +21,8 @@
 		AA000012 /* CollegeSubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000013 /* CollegeSubscriptionService.swift */; };
 		AA000014 /* CollegeHistoryLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000014 /* CollegeHistoryLibrary.swift */; };
 		AA000015 /* CollegeNativeLangLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000015 /* CollegeNativeLangLibrary.swift */; };
+		AA000016 /* CollegeNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000016 /* CollegeNotificationService.swift */; };
+		AA000017 /* CollegePDFReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000017 /* CollegePDFReport.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +41,8 @@
 		BB000013 /* CollegeSubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeSubscriptionService.swift; sourceTree = "<group>"; };
 		BB000014 /* CollegeHistoryLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeHistoryLibrary.swift; sourceTree = "<group>"; };
 		BB000015 /* CollegeNativeLangLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeNativeLangLibrary.swift; sourceTree = "<group>"; };
+		BB000016 /* CollegeNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeNotificationService.swift; sourceTree = "<group>"; };
+		BB000017 /* CollegePDFReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegePDFReport.swift; sourceTree = "<group>"; };
 		CC000001 /* AutiLearnCollege.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutiLearnCollege.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -69,6 +73,8 @@
 				BB000013 /* CollegeSubscriptionService.swift */,
 				BB000014 /* CollegeHistoryLibrary.swift */,
 				BB000015 /* CollegeNativeLangLibrary.swift */,
+				BB000016 /* CollegeNotificationService.swift */,
+				BB000017 /* CollegePDFReport.swift */,
 			);
 			path = AutiLearnCollege;
 			sourceTree = "<group>";
@@ -162,6 +168,8 @@
 				AA000012 /* CollegeSubscriptionService.swift in Sources */,
 				AA000014 /* CollegeHistoryLibrary.swift in Sources */,
 				AA000015 /* CollegeNativeLangLibrary.swift in Sources */,
+				AA000016 /* CollegeNotificationService.swift in Sources */,
+				AA000017 /* CollegePDFReport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

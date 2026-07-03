@@ -141,8 +141,18 @@ struct QuestionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            // Visuel principal — grand emoji pour support TSA
+            HStack {
+                Spacer()
+                Text(exercise.emoji)
+                    .font(.system(size: 64))
+                    .padding(12)
+                    .background(Color(exercise.subject.color).opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                Spacer()
+            }
+
             HStack(spacing: 10) {
-                Text(exercise.emoji).font(.system(size: 28))
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Difficulté " + String(repeating: "★", count: exercise.difficulty) + String(repeating: "☆", count: 3 - exercise.difficulty))
                         .font(.system(size: 11))

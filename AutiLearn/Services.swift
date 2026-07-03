@@ -364,3 +364,291 @@ struct ChildCard: View {
         )
     }
 }
+
+// MARK: - Service de notifications quotidiennes
+import UserNotifications
+
+struct ABANotificationService {
+
+    static func requestPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+    }
+
+    static func scheduleDailyReminder(childName: String, hour: Int) {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: ["aba_daily_reminder"])
+
+        let content = UNMutableNotificationContent()
+        content.title = "C'est l'heure de la session de \(childName) ! 🌟"
+        content.body  = "15 minutes par jour font toute la différence. Bonne séance ! 💪"
+        content.sound = .default
+        content.badge = 1
+
+        var components = DateComponents()
+        components.hour   = hour
+        components.minute = 0
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        let request = UNNotificationRequest(identifier: "aba_daily_reminder", content: content, trigger: trigger)
+        center.add(request)
+    }
+
+    static func cancelReminder() {
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: ["aba_daily_reminder"])
+    }
+}
+
+// MARK: - Génération rapport PDF (app primaire)
+import PDFKit
+
+struct ABAProgressPDFReport {
+
+    static func generate(for child: ChildProfile) -> Data {
+        let pageRect = CGRect(x: 0, y: 0, width: 595, height: 842)
+        let renderer = UIGraphicsPDFRenderer(bounds: pageRect)
+        return renderer.pdfData { ctx in
+            ctx.beginPage()
+            draw(ctx: ctx.cgContext, rect: pageRect, child: child)
+        }
+    }
+
+    private static func draw(ctx: CGContext, rect: CGRect, child: ChildProfile) {
+        let margin: CGFloat = 48
+        var y: CGFloat = margin
+
+        // En-tête
+        ctx.setFillColor(UIColor(red: 0.30, green: 0.47, blue: 0.90, alpha: 1).cgColor)
+        ctx.fill(CGRect(x: 0, y: 0, width: rect.width, height: 100))
+
+        let titleAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 20, weight: .semibold),
+            .foregroundColor: UIColor.white
+        ]
+        "ABA Homeschooling — Rapport de progression".draw(at: CGPoint(x: margin, y: 20), withAttributes: titleAttr)
+        let subAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 12), .foregroundColor: UIColor.white.withAlphaComponent(0.85)
+        ]
+        let dateStr = DateFormatter.localizedString(from: Date(), dateStyle: .long, timeStyle: .none)
+        "Enfant : \(child.firstName)  •  Niveau : \(child.schoolLevel.displayName)  •  \(dateStr)".draw(
+            at: CGPoint(x: margin, y: 52), withAttributes: subAttr)
+
+        y = 120
+
+        // Résumé
+        y = drawSection(ctx: ctx, title: "Résumé global", y: y, margin: margin, pageWidth: rect.width)
+
+        let totalSessions = child.sessions.count
+        let totalMinutes  = child.sessions.reduce(0) { $0 + $1.durationSeconds } / 60
+        let avgSuccess    = child.sessions.isEmpty ? 0.0 :
+            child.sessions.reduce(0.0) { $0 + $1.successRate } / Double(child.sessions.count)
+        let mastered  = child.wordProgresses.filter { $0.masteryLevel == .mastered }.count
+        let inProgress = child.wordProgresses.filter { $0.masteryLevel == .learning || $0.masteryLevel == .reviewing }.count
+
+        for (label, value) in [
+            ("Sessions totales", "\(totalSessions)"),
+            ("Temps total", "\(totalMinutes) min"),
+            ("Taux de réussite moyen", "\(Int(avgSuccess * 100)) %"),
+            ("Étoiles gagnées", "\(child.totalStars) ⭐️"),
+            ("Série actuelle", "\(child.currentStreak) jours 🔥"),
+            ("Mots maîtrisés", "\(mastered) ⭐️"),
+            ("Mots en cours", "\(inProgress) 📚"),
+        ] {
+            y = drawRow(ctx: ctx, label: label, value: value, y: y, margin: margin, pageWidth: rect.width)
+        }
+
+        // Pied de page
+        let footerAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 10), .foregroundColor: UIColor.gray
+        ]
+        "Rapport généré par ABA Homeschooling — Méthode ABA adaptée TSA".draw(
+            at: CGPoint(x: margin, y: 810), withAttributes: footerAttr)
+    }
+
+    @discardableResult
+    private static func drawSection(ctx: CGContext, title: String, y: CGFloat, margin: CGFloat, pageWidth: CGFloat) -> CGFloat {
+        ctx.setFillColor(UIColor(red: 0.93, green: 0.95, blue: 1.0, alpha: 1).cgColor)
+        ctx.fill(CGRect(x: margin - 8, y: y, width: pageWidth - margin * 2 + 16, height: 26))
+        let attr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 13, weight: .semibold),
+            .foregroundColor: UIColor(red: 0.30, green: 0.47, blue: 0.90, alpha: 1)
+        ]
+        title.draw(at: CGPoint(x: margin, y: y + 6), withAttributes: attr)
+        return y + 36
+    }
+
+    @discardableResult
+    private static func drawRow(ctx: CGContext, label: String, value: String, y: CGFloat, margin: CGFloat, pageWidth: CGFloat) -> CGFloat {
+        let lAttr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 12), .foregroundColor: UIColor.darkGray]
+        let vAttr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 12, weight: .medium), .foregroundColor: UIColor.black]
+        label.draw(at: CGPoint(x: margin, y: y), withAttributes: lAttr)
+        let vx = pageWidth - margin - CGFloat(value.count) * 6.5
+        value.draw(at: CGPoint(x: max(vx, margin + 200), y: y), withAttributes: vAttr)
+        ctx.setStrokeColor(UIColor.lightGray.withAlphaComponent(0.4).cgColor)
+        ctx.setLineWidth(0.4)
+        ctx.move(to: CGPoint(x: margin, y: y + 18))
+        ctx.addLine(to: CGPoint(x: pageWidth - margin, y: y + 18))
+        ctx.strokePath()
+        return y + 24
+    }
+}
+
+// MARK: - Bouton export PDF (app primaire)
+struct ABAPDFShareButton: View {
+    let child: ChildProfile
+    @State private var showShareSheet = false
+    @State private var pdfData: Data? = nil
+
+    var body: some View {
+        Button {
+            pdfData = ABAProgressPDFReport.generate(for: child)
+            showShareSheet = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "doc.richtext").font(.system(size: 16))
+                Text("Exporter rapport PDF").font(.system(size: 15, weight: .medium))
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity).frame(height: 48)
+            .background(Color("accentBlue")).cornerRadius(14)
+        }
+        .sheet(isPresented: $showShareSheet) {
+            if let data = pdfData {
+                ABAShareSheet(data: data, fileName: "rapport_\(child.firstName).pdf")
+            }
+        }
+    }
+}
+
+struct ABAShareSheet: UIViewControllerRepresentable {
+    let data: Data; let fileName: String
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        try? data.write(to: url)
+        return UIActivityViewController(activityItems: [url], applicationActivities: nil)
+    }
+    func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
+}
+
+// MARK: - Avis App Store + Exercice bonus
+import StoreKit
+
+struct ABAReviewService {
+    private static let reviewRequestedKey = "abaReviewRequested"
+    static let bonusUnlockedKey = "abaBonusUnlocked"
+
+    static func checkAndRequestReview(totalSessions: Int, scene: UIWindowScene?) {
+        guard !UserDefaults.standard.bool(forKey: reviewRequestedKey) else { return }
+        guard totalSessions >= 3 else { return }
+        UserDefaults.standard.set(true, forKey: reviewRequestedKey)
+        if let scene { SKStoreReviewController.requestReview(in: scene) }
+    }
+
+    static var isBonusUnlocked: Bool {
+        get { UserDefaults.standard.bool(forKey: bonusUnlockedKey) }
+        set { UserDefaults.standard.set(newValue, forKey: bonusUnlockedKey) }
+    }
+}
+
+// MARK: - Modal déblocage exercice bonus (app primaire)
+struct ABABonusUnlockView: View {
+    @Binding var isPresented: Bool
+    let childName: String
+    @State private var bonusUnlocked = ABAReviewService.isBonusUnlocked
+    @State private var countdown: Int = 10
+    @State private var timerStarted = false
+    @State private var timer: Timer? = nil
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text("🎁").font(.system(size: 56)).padding(.top, 36)
+            Text("Jeu bonus spécial")
+                .font(.system(size: 22, weight: .semibold)).foregroundColor(Color("textPrimary"))
+            Text("Débloquez le Mot Mystère pour \(childName) !")
+                .font(.system(size: 14)).foregroundColor(Color("textSecondary"))
+                .multilineTextAlignment(.center).padding(.horizontal, 28).padding(.top, 6)
+
+            VStack(alignment: .leading, spacing: 10) {
+                BonusRowPrimary(emoji: "🔤", text: "Mot mystère — retrouvez le mot lettre par lettre")
+                BonusRowPrimary(emoji: "🌟", text: "Adapté au niveau de l'enfant automatiquement")
+                BonusRowPrimary(emoji: "🎵", text: "Chaque bonne lettre = animation + son joyeux")
+                BonusRowPrimary(emoji: "🔓", text: "Débloqué définitivement après votre avis")
+            }
+            .padding(16)
+            .background(RoundedRectangle(cornerRadius: 14).fill(Color("accentBlue").opacity(0.07)))
+            .padding(.horizontal, 24).padding(.top, 20)
+
+            if bonusUnlocked {
+                VStack(spacing: 10) {
+                    Text("✅ Jeu bonus déjà débloqué !").font(.system(size: 15, weight: .medium))
+                        .foregroundColor(Color("accentGreen"))
+                    Button("Jouer") { isPresented = false }
+                        .font(.system(size: 17, weight: .medium)).foregroundColor(.white)
+                        .frame(maxWidth: .infinity).frame(height: 52)
+                        .background(Color("accentGreen")).cornerRadius(16)
+                }
+                .padding(.horizontal, 24).padding(.top, 20)
+            } else {
+                VStack(spacing: 12) {
+                    Text("Laissez un avis ⭐️⭐️⭐️⭐️⭐️\n(10 secondes !)")
+                        .font(.system(size: 14)).foregroundColor(Color("textPrimary"))
+                        .multilineTextAlignment(.center).lineSpacing(4).padding(.top, 16)
+
+                    if !timerStarted {
+                        Button {
+                            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                                SKStoreReviewController.requestReview(in: scene)
+                            }
+                            timerStarted = true
+                            countdown = 10
+                            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { t in
+                                if countdown > 0 { countdown -= 1 } else { t.invalidate() }
+                            }
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "star.fill").foregroundColor(.yellow)
+                                Text("Laisser un avis").font(.system(size: 16, weight: .medium))
+                            }
+                            .foregroundColor(.white).frame(maxWidth: .infinity).frame(height: 52)
+                            .background(Color("accentBlue")).cornerRadius(16)
+                        }
+                    } else if countdown > 0 {
+                        ProgressView(value: Double(10 - countdown), total: 10).tint(Color("accentBlue"))
+                        Text("Déblocage dans \(countdown)s…").font(.system(size: 13))
+                            .foregroundColor(Color("textSecondary"))
+                    } else {
+                        VStack(spacing: 10) {
+                            Text("🎉 Merci ! Jeu bonus débloqué !").font(.system(size: 15, weight: .medium))
+                                .foregroundColor(Color("accentGreen"))
+                            Button("Jouer") {
+                                ABAReviewService.isBonusUnlocked = true
+                                bonusUnlocked = true
+                                isPresented = false
+                            }
+                            .font(.system(size: 17, weight: .medium)).foregroundColor(.white)
+                            .frame(maxWidth: .infinity).frame(height: 52)
+                            .background(Color("accentGreen")).cornerRadius(16)
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+            Button("Plus tard") { isPresented = false }
+                .font(.system(size: 14)).foregroundColor(Color("textSecondary"))
+                .padding(.top, 16).padding(.bottom, 32)
+        }
+        .background(Color("backgroundSoft"))
+        .presentationDetents([.medium, .large])
+        .onDisappear { timer?.invalidate() }
+    }
+}
+
+private struct BonusRowPrimary: View {
+    let emoji: String; let text: String
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(emoji).font(.system(size: 16))
+            Text(text).font(.system(size: 13)).foregroundColor(Color("textPrimary")).lineSpacing(3)
+        }
+    }
+}
