@@ -40,49 +40,114 @@ class SpeechService: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     }
 }
 
-// MARK: - Service abonnements (RevenueCat stub)
-// Remplacer par l'intégration RevenueCat SDK en production
+// MARK: - Service abonnements StoreKit 2
+import StoreKit
+
+@MainActor
 class SubscriptionService: ObservableObject {
+    static let productID = "com.abalearning.autilearn.lifetime"
+
     @Published var isSubscribed: Bool = false
     @Published var trialDaysRemaining: Int = 21
     @Published var trialExpired: Bool = false
+    @Published var product: Product? = nil
+    @Published var isPurchasing: Bool = false
+    @Published var purchaseError: String? = nil
 
     private let trialStartKey = "trialStartDate"
     private let subscriptionKey = "isSubscribed"
+    private var transactionListenerTask: Task<Void, Never>?
+
+    init() {
+        transactionListenerTask = listenForTransactions()
+        Task { await loadProduct() }
+    }
+
+    deinit { transactionListenerTask?.cancel() }
+
+    func loadProduct() async {
+        do {
+            let products = try await Product.products(for: [Self.productID])
+            self.product = products.first
+        } catch { }
+    }
 
     func checkSubscriptionStatus() {
-        // Vérifier achat (RevenueCat en prod)
-        isSubscribed = UserDefaults.standard.bool(forKey: subscriptionKey)
-        if isSubscribed { return }
-
-        // Calculer jours de trial restants
+        if UserDefaults.standard.bool(forKey: subscriptionKey) {
+            isSubscribed = true; return
+        }
         if let startDate = UserDefaults.standard.object(forKey: trialStartKey) as? Date {
-            let daysPassed = Calendar.current.dateComponents(
-                [.day], from: startDate, to: Date()).day ?? 0
+            let daysPassed = Calendar.current.dateComponents([.day], from: startDate, to: Date()).day ?? 0
             trialDaysRemaining = max(0, 21 - daysPassed)
             trialExpired = trialDaysRemaining <= 0
         } else {
-            // Première ouverture → démarrer trial
             UserDefaults.standard.set(Date(), forKey: trialStartKey)
             trialDaysRemaining = 21
+        }
+        Task { await verifyEntitlement() }
+    }
+
+    func verifyEntitlement() async {
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let tx) = result, tx.productID == Self.productID,
+               tx.revocationDate == nil {
+                isSubscribed = true
+                UserDefaults.standard.set(true, forKey: subscriptionKey)
+                return
+            }
         }
     }
 
     func purchaseLifetime() async {
-        // TODO: Intégrer RevenueCat purchase
-        // Packages.lifetime à configurer dans le dashboard RevenueCat
-        await MainActor.run {
-            isSubscribed = true
-            UserDefaults.standard.set(true, forKey: subscriptionKey)
+        guard let product else {
+            purchaseError = "Produit non disponible. Vérifiez votre connexion."
+            return
+        }
+        isPurchasing = true
+        purchaseError = nil
+        defer { isPurchasing = false }
+        do {
+            let result = try await product.purchase()
+            switch result {
+            case .success(let verification):
+                guard case .verified(let transaction) = verification else {
+                    purchaseError = "Transaction non vérifiée."; return
+                }
+                await transaction.finish()
+                isSubscribed = true
+                UserDefaults.standard.set(true, forKey: subscriptionKey)
+            case .userCancelled: break
+            case .pending:
+                purchaseError = "Achat en attente (contrôle parental activé)."
+            @unknown default: break
+            }
+        } catch StoreKitError.userCancelled {
+        } catch {
+            purchaseError = "Erreur : \(error.localizedDescription)"
         }
     }
 
     func restorePurchases() async {
-        // TODO: RevenueCat restore
-        await MainActor.run {
-            isSubscribed = UserDefaults.standard.bool(forKey: subscriptionKey)
+        do {
+            try await AppStore.sync()
+            await verifyEntitlement()
+        } catch {
+            purchaseError = "Restauration échouée : \(error.localizedDescription)"
         }
     }
+
+    private func listenForTransactions() -> Task<Void, Never> {
+        Task.detached(priority: .background) { [weak self] in
+            for await result in Transaction.updates {
+                if case .verified(let tx) = result {
+                    await tx.finish()
+                    await self?.verifyEntitlement()
+                }
+            }
+        }
+    }
+
+    var formattedPrice: String { product?.displayPrice ?? "199,99 €" }
 }
 
 // MARK: - Exercice de respiration (cohérence cardiaque)

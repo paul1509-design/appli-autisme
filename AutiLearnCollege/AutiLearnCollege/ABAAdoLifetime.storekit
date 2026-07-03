@@ -1,0 +1,41 @@
+{
+  "identifier" : "ABA Ado Lifetime",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "149.99",
+      "familyShareable" : true,
+      "internalID" : "col_lifetime_001",
+      "localizations" : [
+        {
+          "description" : "Accès à vie au programme ABA Homeschooling Ado (6ème → Terminale). Aucun abonnement, paiement unique.",
+          "displayName" : "ABA Homeschooling Ado — Accès à vie",
+          "locale" : "fr_FR"
+        },
+        {
+          "description" : "Lifetime access to ABA Homeschooling Ado (Year 7 → A-Level). One-time payment, no subscription.",
+          "displayName" : "ABA Homeschooling Ado — Lifetime Access",
+          "locale" : "en_GB"
+        },
+        {
+          "description" : "Acceso de por vida al programa ABA Homeschooling Ado (ESO → Bachillerato). Pago único, sin suscripción.",
+          "displayName" : "ABA Homeschooling Ado — Acceso de por vida",
+          "locale" : "es_ES"
+        }
+      ],
+      "productID" : "com.abalearning.college.lifetime",
+      "referenceName" : "ABA Ado Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "col_app_001",
+    "_developerTeamID" : "TEAMIDHERE",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}

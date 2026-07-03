@@ -713,11 +713,11 @@ struct TrialBadge: View {
 struct PaywallView: View {
     @EnvironmentObject var subscriptionService: SubscriptionService
     @EnvironmentObject var appState: AppState
-    @State private var isPurchasing = false
     @State private var showRestoreConfirm = false
 
     var isTrialActive: Bool { !subscriptionService.trialExpired }
     var daysLeft: Int { subscriptionService.trialDaysRemaining }
+    var isPurchasing: Bool { subscriptionService.isPurchasing }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -781,7 +781,7 @@ struct PaywallView: View {
                 // Ancrage prix
                 VStack(spacing: 6) {
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text("199 €")
+                        Text(subscriptionService.formattedPrice)
                             .font(.system(size: 44, weight: .medium))
                             .foregroundColor(Color("textPrimary"))
                         Text("une fois")
@@ -822,15 +822,19 @@ struct PaywallView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
 
+                // Erreur achat
+                if let err = subscriptionService.purchaseError {
+                    Text(err)
+                        .font(.system(size: 12)).foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24).padding(.top, 8)
+                }
+
                 // Bouton principal
                 Button {
-                    isPurchasing = true
                     Task {
                         await subscriptionService.purchaseLifetime()
-                        isPurchasing = false
-                        if subscriptionService.isSubscribed {
-                            appState.currentScreen = .home
-                        }
+                        if subscriptionService.isSubscribed { appState.currentScreen = .home }
                     }
                 } label: {
                     HStack(spacing: 10) {
@@ -839,7 +843,7 @@ struct PaywallView: View {
                         } else {
                             Image(systemName: "lock.open.fill")
                                 .font(.system(size: 16))
-                            Text("Débloquer — 199 €")
+                            Text("Débloquer — \(subscriptionService.formattedPrice)")
                                 .font(.system(size: 18, weight: .medium))
                         }
                     }

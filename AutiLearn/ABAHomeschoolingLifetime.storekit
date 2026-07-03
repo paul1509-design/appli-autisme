@@ -1,0 +1,41 @@
+{
+  "identifier" : "ABA Homeschooling Lifetime",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "199.99",
+      "familyShareable" : true,
+      "internalID" : "aut_lifetime_001",
+      "localizations" : [
+        {
+          "description" : "Accès à vie au programme ABA Homeschooling (maternelle → CM2). Paiement unique, sans abonnement.",
+          "displayName" : "ABA Homeschooling — Accès à vie",
+          "locale" : "fr_FR"
+        },
+        {
+          "description" : "Lifetime access to ABA Homeschooling (nursery → primary school). One-time payment, no subscription.",
+          "displayName" : "ABA Homeschooling — Lifetime Access",
+          "locale" : "en_GB"
+        },
+        {
+          "description" : "Acceso de por vida al programa ABA Homeschooling (infantil → primaria). Pago único, sin suscripción.",
+          "displayName" : "ABA Homeschooling — Acceso de por vida",
+          "locale" : "es_ES"
+        }
+      ],
+      "productID" : "com.abalearning.autilearn.lifetime",
+      "referenceName" : "ABA Homeschooling Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "aut_app_001",
+    "_developerTeamID" : "TEAMIDHERE",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}

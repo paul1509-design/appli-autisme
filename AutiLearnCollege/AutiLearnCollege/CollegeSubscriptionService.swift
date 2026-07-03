@@ -1,19 +1,49 @@
 import SwiftUI
-import Combine
+import StoreKit
 
-// MARK: - Service abonnement (même logique que l'app primaire)
+// MARK: - Service abonnement StoreKit 2
+@MainActor
 class CollegeSubscriptionService: ObservableObject {
+    static let productID = "com.abalearning.college.lifetime"
+
     @Published var isSubscribed: Bool = false
     @Published var trialDaysRemaining: Int = 21
     @Published var trialExpired: Bool = false
+    @Published var product: Product? = nil
+    @Published var isPurchasing: Bool = false
+    @Published var purchaseError: String? = nil
 
     private let trialStartKey = "collegeTrialStartDate"
     private let subscriptionKey = "collegeIsSubscribed"
+    private var transactionListenerTask: Task<Void, Never>?
 
+    init() {
+        transactionListenerTask = listenForTransactions()
+        Task { await loadProduct() }
+    }
+
+    deinit {
+        transactionListenerTask?.cancel()
+    }
+
+    // MARK: - Chargement produit App Store Connect
+    func loadProduct() async {
+        do {
+            let products = try await Product.products(for: [Self.productID])
+            self.product = products.first
+        } catch {
+            // Hors ligne ou sandbox : silencieux
+        }
+    }
+
+    // MARK: - Vérification statut (appelée au lancement)
     func checkSubscriptionStatus() {
-        isSubscribed = UserDefaults.standard.bool(forKey: subscriptionKey)
-        if isSubscribed { return }
-
+        // 1. Vérifier cache local (offline-first)
+        if UserDefaults.standard.bool(forKey: subscriptionKey) {
+            isSubscribed = true
+            return
+        }
+        // 2. Vérifier la période d'essai
         if let startDate = UserDefaults.standard.object(forKey: trialStartKey) as? Date {
             let daysPassed = Calendar.current.dateComponents([.day], from: startDate, to: Date()).day ?? 0
             trialDaysRemaining = max(0, 21 - daysPassed)
@@ -22,19 +52,86 @@ class CollegeSubscriptionService: ObservableObject {
             UserDefaults.standard.set(Date(), forKey: trialStartKey)
             trialDaysRemaining = 21
         }
+        // 3. Vérifier les transactions StoreKit actuelles
+        Task { await verifyEntitlement() }
     }
 
+    // MARK: - Vérification entitlement StoreKit 2
+    func verifyEntitlement() async {
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let tx) = result, tx.productID == Self.productID,
+               tx.revocationDate == nil {
+                isSubscribed = true
+                UserDefaults.standard.set(true, forKey: subscriptionKey)
+                return
+            }
+        }
+    }
+
+    // MARK: - Achat
     func purchaseLifetime() async {
-        await MainActor.run {
-            isSubscribed = true
-            UserDefaults.standard.set(true, forKey: subscriptionKey)
+        guard let product else {
+            // Fallback sandbox si produit non chargé
+            purchaseError = "Produit non disponible. Vérifiez votre connexion."
+            return
+        }
+        isPurchasing = true
+        purchaseError = nil
+        defer { isPurchasing = false }
+
+        do {
+            let result = try await product.purchase()
+            switch result {
+            case .success(let verification):
+                guard case .verified(let transaction) = verification else {
+                    purchaseError = "Transaction non vérifiée."
+                    return
+                }
+                await transaction.finish()
+                isSubscribed = true
+                UserDefaults.standard.set(true, forKey: subscriptionKey)
+
+            case .userCancelled:
+                break
+
+            case .pending:
+                purchaseError = "Achat en attente d'approbation (achat parental activé)."
+
+            @unknown default:
+                break
+            }
+        } catch StoreKitError.userCancelled {
+            // Silencieux
+        } catch {
+            purchaseError = "Erreur : \(error.localizedDescription)"
         }
     }
 
+    // MARK: - Restaurer les achats
     func restorePurchases() async {
-        await MainActor.run {
-            isSubscribed = UserDefaults.standard.bool(forKey: subscriptionKey)
+        do {
+            try await AppStore.sync()
+            await verifyEntitlement()
+        } catch {
+            purchaseError = "Restauration échouée : \(error.localizedDescription)"
         }
+    }
+
+    // MARK: - Écoute des transactions en arrière-plan
+    private func listenForTransactions() -> Task<Void, Never> {
+        Task.detached(priority: .background) { [weak self] in
+            for await result in Transaction.updates {
+                if case .verified(let transaction) = result {
+                    await transaction.finish()
+                    await self?.verifyEntitlement()
+                }
+            }
+        }
+    }
+
+    // MARK: - Prix formaté pour affichage
+    var formattedPrice: String {
+        product?.displayPrice ?? "149,99 €"
     }
 }
 
@@ -42,11 +139,11 @@ class CollegeSubscriptionService: ObservableObject {
 struct CollegePaywallView: View {
     @EnvironmentObject var sub: CollegeSubscriptionService
     @EnvironmentObject var appState: CollegeAppState
-    @State private var isPurchasing = false
     @State private var showRestoreConfirm = false
 
     var isTrialActive: Bool { !sub.trialExpired }
     var daysLeft: Int { sub.trialDaysRemaining }
+    var isPurchasing: Bool { sub.isPurchasing }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -94,7 +191,7 @@ struct CollegePaywallView: View {
                 // Prix
                 VStack(spacing: 6) {
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text("149 €").font(.system(size: 44, weight: .medium)).foregroundColor(Color("textPrimary"))
+                        Text(sub.formattedPrice).font(.system(size: 44, weight: .medium)).foregroundColor(Color("textPrimary"))
                         Text("une fois").font(.system(size: 16)).foregroundColor(Color("textSecondary"))
                     }
                     Text("Accès à vie — aucun abonnement — 6ème à Terminale")
@@ -125,12 +222,20 @@ struct CollegePaywallView: View {
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color("accentGreen").opacity(0.2), lineWidth: 0.5)))
                 .padding(.horizontal, 20).padding(.top, 16)
 
-                // Bouton
+                // Erreur achat
+                if let err = sub.purchaseError {
+                    Text(err)
+                        .font(.system(size: 12))
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                }
+
+                // Bouton achat
                 Button {
-                    isPurchasing = true
                     Task {
                         await sub.purchaseLifetime()
-                        isPurchasing = false
                         if sub.isSubscribed { appState.screen = .home }
                     }
                 } label: {
@@ -138,7 +243,7 @@ struct CollegePaywallView: View {
                         if isPurchasing { ProgressView().tint(.white) }
                         else {
                             Image(systemName: "lock.open.fill").font(.system(size: 16))
-                            Text("Débloquer — 149 €").font(.system(size: 18, weight: .medium))
+                            Text("Débloquer — \(sub.formattedPrice)").font(.system(size: 18, weight: .medium))
                         }
                     }
                     .foregroundColor(.white).frame(maxWidth: .infinity).frame(height: 58)
