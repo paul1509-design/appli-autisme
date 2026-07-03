@@ -72,9 +72,9 @@ struct HomeView: View {
 
                     DailyStoryTeaser(child: child)
 
-                    // Accès espace parents
+                    // Accès espace parents (protégé par PIN)
                     NavigationLink {
-                        ParentDashboardView(child: child)
+                        ParentPINView(child: child)
                     } label: {
                         HStack(spacing: 12) {
                             Text("📊").font(.system(size: 22))

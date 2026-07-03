@@ -11,6 +11,9 @@ struct LearningSessionView: View {
 
     @StateObject private var vm: LearningSessionVM
     @State private var sessionComplete = false
+    @State private var timeRemaining: Int = 30
+    @State private var timerActive = false
+    let exerciseTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     init(child: ChildProfile, moduleType: ModuleType, language: AppLanguage = .french) {
         self.child = child
@@ -43,6 +46,8 @@ struct LearningSessionView: View {
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(Color("textPrimary"))
                         }
+                        Spacer()
+                        CountdownTimer(timeRemaining: timeRemaining, total: 30)
                         Spacer()
                         Button {
                             vm.saveSession(modelContext: modelContext)
@@ -103,8 +108,59 @@ struct LearningSessionView: View {
             }
         }
         .navigationBarHidden(true)
-        .onAppear { vm.startSession() }
+        .onAppear {
+            vm.startSession()
+            resetTimer()
+        }
         .onDisappear { vm.saveSession(modelContext: modelContext) }
+        .onReceive(exerciseTimer) { _ in
+            guard timerActive && !vm.hasAnswered else { return }
+            if timeRemaining > 0 {
+                timeRemaining -= 1
+            } else {
+                timerActive = false
+                vm.requestHint()
+            }
+        }
+        .onChange(of: vm.currentIndex) { _, _ in resetTimer() }
+        .onChange(of: vm.hasAnswered) { _, answered in
+            if answered { timerActive = false }
+        }
+    }
+
+    private func resetTimer() {
+        timeRemaining = 30
+        timerActive = true
+    }
+}
+
+// MARK: - Compte à rebours circulaire
+struct CountdownTimer: View {
+    let timeRemaining: Int
+    let total: Int
+
+    var progress: Double { Double(timeRemaining) / Double(total) }
+    var color: Color {
+        if timeRemaining > 15 { return Color("accentGreen") }
+        if timeRemaining > 8  { return Color("accentOrange") }
+        return .red
+    }
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(color.opacity(0.2), lineWidth: 3)
+                .frame(width: 36, height: 36)
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(color, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .frame(width: 36, height: 36)
+                .animation(.linear(duration: 1), value: timeRemaining)
+            Text("\(timeRemaining)")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(color)
+        }
     }
 }
 
