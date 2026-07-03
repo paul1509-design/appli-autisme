@@ -9,9 +9,8 @@ struct SplashView: View {
 
     var body: some View {
         ZStack {
-            // Gradient fond doux
             LinearGradient(
-                colors: [Color("accentPurple").opacity(0.12), Color("backgroundSoft")],
+                colors: [Color("accentPurple").opacity(0.10), Color("backgroundSoft")],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
@@ -19,58 +18,49 @@ struct SplashView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
 
-                    // MARK: Hero
+                    // MARK: Hero — promesse principale
                     VStack(spacing: 20) {
-                        Spacer().frame(height: 48)
+                        Spacer().frame(height: 52)
 
-                        // Logo + titre
                         ZStack {
                             Circle()
                                 .fill(Color("accentPurple").opacity(0.12))
                                 .frame(width: 110, height: 110)
-                            Text("🌟")
-                                .font(.system(size: 64))
+                            Text("🏠")
+                                .font(.system(size: 58))
                         }
                         .scaleEffect(logoScale)
                         .animation(.spring(response: 0.7, dampingFraction: 0.6).delay(0.1),
                                    value: logoScale)
 
-                        VStack(spacing: 8) {
-                            Text("ABA Kids")
-                                .font(.system(size: 34, weight: .medium))
+                        VStack(spacing: 10) {
+                            Text("ABA Homeschooling")
+                                .font(.system(size: 30, weight: .medium))
                                 .foregroundColor(Color("textPrimary"))
+                                .multilineTextAlignment(.center)
 
-                            Text("Créée par des spécialistes de l'autisme")
-                                .font(.system(size: 15, weight: .medium))
+                            // Tag line — le vrai différenciateur
+                            Text("Le programme scolaire complet\nà la maison pour votre enfant autiste")
+                                .font(.system(size: 17, weight: .medium))
                                 .foregroundColor(Color("accentPurple"))
                                 .multilineTextAlignment(.center)
+                                .lineSpacing(4)
                         }
                     }
                     .opacity(contentOpacity)
 
-                    // MARK: Accroche principale
-                    VStack(spacing: 16) {
-                        Text("L'application qui s'adapte\nau rythme de votre enfant")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(Color("textPrimary"))
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(4)
-
-                        Text("Votre enfant autiste mérite un parcours académique pensé pour lui — sans pression, sans jugement, avec les meilleurs outils éducatifs de la méthode ABA.")
-                            .font(.system(size: 15))
-                            .foregroundColor(Color("textSecondary"))
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(5)
+                    // MARK: Problème que l'app résout
+                    VStack(spacing: 0) {
+                        ProblemStatement()
                     }
-                    .padding(.horizontal, 28)
                     .padding(.top, 32)
                     .opacity(contentOpacity)
 
                     // MARK: Badges de confiance
                     HStack(spacing: 10) {
-                        TrustBadge(emoji: "🔬", text: "Validé\nABA")
+                        TrustBadge(emoji: "📚", text: "Programme\nscolaire")
+                        TrustBadge(emoji: "🧠", text: "Méthode\nABA")
                         TrustBadge(emoji: "🌍", text: "8\nlangues")
-                        TrustBadge(emoji: "🎯", text: "Adapté\nTSA")
                         TrustBadge(emoji: "📊", text: "Suivi\nparents")
                     }
                     .padding(.horizontal, 20)
@@ -78,53 +68,53 @@ struct SplashView: View {
                     .opacity(badgesOpacity)
                     .animation(.easeOut(duration: 0.5).delay(0.4), value: badgesOpacity)
 
-                    // MARK: Points forts
+                    // MARK: Arguments détaillés
                     VStack(spacing: 12) {
                         SplashFeature(
-                            emoji: "🗣️",
-                            title: "Parole en priorité",
-                            description: "Le personnage Léo parle avec votre enfant. Il répète, il répond — à son rythme.",
-                            color: "accentOrange"
-                        )
-                        SplashFeature(
-                            emoji: "📐",
-                            title: "Programme scolaire complet",
-                            description: "De la maternelle au CM2 : lecture, écriture, maths, sciences — tout le curriculum national.",
+                            emoji: "🏫",
+                            title: "Tout le programme scolaire à la maison",
+                            description: "De la maternelle au CM2 : lecture, écriture, maths, sciences, vie sociale — structuré comme à l'école, adapté à l'autisme.",
                             color: "accentPurple"
                         )
                         SplashFeature(
+                            emoji: "🗣️",
+                            title: "La parole avant tout",
+                            description: "Léo, votre compagnon virtuel, parle à votre enfant. Il répète, il répond, il progresse — chaque jour un peu plus.",
+                            color: "accentOrange"
+                        )
+                        SplashFeature(
                             emoji: "🧠",
-                            title: "Méthode ABA structurée",
-                            description: "Hiérarchie de prompts, renforcement positif, révision espacée — comme avec un thérapeute.",
+                            title: "Stratégies ABA intégrées",
+                            description: "Hiérarchie de prompts, renforcement positif, révision espacée, suivi des compétences — les meilleures pratiques éducatives pour TSA.",
                             color: "accentBlue"
                         )
                         SplashFeature(
-                            emoji: "📊",
-                            title: "Tableau de bord parents",
-                            description: "Suivez chaque compétence acquise, les taux de réussite et les mots maîtrisés semaine après semaine.",
+                            emoji: "⏱️",
+                            title: "Sessions courtes, adaptées",
+                            description: "8 exercices par session, 10 à 15 minutes. Pause récompense toutes les 10 étoiles. Votre enfant ne se fatigue pas.",
                             color: "accentGreen"
                         )
                         SplashFeature(
-                            emoji: "⭐️",
-                            title: "Récompenses & motivation",
-                            description: "Après 10 étoiles : une pause de 5 minutes avec des jeux et mini-films éducatifs.",
-                            color: "accentYellow"
+                            emoji: "📊",
+                            title: "Tableau de bord parents complet",
+                            description: "Suivez chaque compétence acquise, taux de réussite, mots maîtrisés et progression ABA semaine après semaine.",
+                            color: "accentPink"
                         )
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 28)
                     .opacity(contentOpacity)
 
-                    // MARK: Témoignage fictif (à remplacer en prod)
+                    // MARK: Témoignage
                     VStack(alignment: .leading, spacing: 10) {
                         Text("❝")
                             .font(.system(size: 36))
                             .foregroundColor(Color("accentPurple").opacity(0.4))
-                        Text("Mon fils ne répétait aucun mot. En 3 semaines avec ABA Kids, il dit bonjour et merci chaque jour.")
+                        Text("Mon fils est déscolarisé depuis ses 6 ans. Avec ABA Homeschooling, il suit enfin un vrai programme à son rythme. En 2 mois, il lit ses premières syllabes.")
                             .font(.system(size: 15, weight: .medium))
                             .foregroundColor(Color("textPrimary"))
                             .lineSpacing(4)
-                        Text("— Marie, maman de Lucas (5 ans)")
+                        Text("— Sophie, maman de Nathan (8 ans, TSA niveau 2)")
                             .font(.system(size: 13))
                             .foregroundColor(Color("textSecondary"))
                     }
@@ -143,17 +133,17 @@ struct SplashView: View {
                     VStack(spacing: 14) {
                         Button(action: onGetStarted) {
                             HStack(spacing: 10) {
-                                Text("Commencer gratuitement")
-                                    .font(.system(size: 18, weight: .medium))
+                                Text("Commencer le programme gratuitement")
+                                    .font(.system(size: 17, weight: .medium))
                                 Image(systemName: "arrow.right")
-                                    .font(.system(size: 16, weight: .medium))
+                                    .font(.system(size: 15, weight: .medium))
                             }
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)
                             .background(
                                 LinearGradient(
-                                    colors: [Color("accentPurple"), Color("accentPurple").opacity(0.8)],
+                                    colors: [Color("accentPurple"), Color("accentPurple").opacity(0.82)],
                                     startPoint: .leading, endPoint: .trailing
                                 )
                             )
@@ -161,13 +151,14 @@ struct SplashView: View {
                             .shadow(color: Color("accentPurple").opacity(0.3), radius: 12, y: 4)
                         }
 
-                        Text("7 jours gratuits · Pas de carte bancaire")
-                            .font(.system(size: 13))
+                        Text("7 jours gratuits · Sans carte bancaire · 199 € accès à vie")
+                            .font(.system(size: 12))
                             .foregroundColor(Color("textSecondary"))
+                            .multilineTextAlignment(.center)
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 32)
-                    .padding(.bottom, 48)
+                    .padding(.bottom, 52)
                     .opacity(contentOpacity)
                 }
             }
@@ -180,6 +171,45 @@ struct SplashView: View {
     }
 }
 
+// MARK: - Bloc problème / solution
+struct ProblemStatement: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            VStack(spacing: 8) {
+                Text("Votre enfant n'est plus à l'école ?")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(Color("textPrimary"))
+                    .multilineTextAlignment(.center)
+
+                Text("Des milliers d'enfants autistes sont déscolarisés ou en inclusion partielle. Ils n'ont pas accès à un vrai suivi académique adapté à leurs besoins.")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color("textSecondary"))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+
+            // Flèche solution
+            VStack(spacing: 8) {
+                Image(systemName: "arrow.down.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(Color("accentPurple").opacity(0.5))
+
+                Text("ABA Homeschooling est la réponse")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(Color("accentPurple"))
+                    .multilineTextAlignment(.center)
+
+                Text("Un programme scolaire complet, structuré selon la méthode ABA, que vous pouvez suivre à la maison — sans être spécialiste.")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color("textSecondary"))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+        }
+        .padding(.horizontal, 28)
+    }
+}
+
 // MARK: - Badge de confiance
 struct TrustBadge: View {
     let emoji: String
@@ -189,7 +219,7 @@ struct TrustBadge: View {
         VStack(spacing: 6) {
             Text(emoji).font(.system(size: 26))
             Text(text)
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 10, weight: .medium))
                 .foregroundColor(Color("textSecondary"))
                 .multilineTextAlignment(.center)
                 .lineSpacing(2)
