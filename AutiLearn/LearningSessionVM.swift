@@ -16,6 +16,7 @@ struct Question {
 class LearningSessionVM: ObservableObject {
     let child: ChildProfile
     let moduleType: ModuleType
+    let language: AppLanguage
 
     @Published var exercises: [CurriculumExercise] = []
     @Published var currentIndex: Int = 0
@@ -43,15 +44,17 @@ class LearningSessionVM: ObservableObject {
 
     var isSessionComplete: Bool { currentIndex >= exercises.count }
 
-    init(child: ChildProfile, moduleType: ModuleType) {
+    init(child: ChildProfile, moduleType: ModuleType, language: AppLanguage = .french) {
         self.child = child
         self.moduleType = moduleType
+        self.language = language
     }
 
     func startSession() {
         sessionStartTime = Date()
         exercises = ContentLibrary.exercises(for: moduleType,
                                              level: child.schoolLevel,
+                                             language: language,
                                              count: 8)
         currentIndex = 0
         speakCurrentExercise()
@@ -65,7 +68,7 @@ class LearningSessionVM: ObservableObject {
     func speak(_ text: String) {
         speech.stopSpeaking(at: .immediate)
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: "fr-FR")
+        utterance.voice = AVSpeechSynthesisVoice(language: language.voiceLocale)
         utterance.rate = 0.42
         utterance.pitchMultiplier = 1.1
         isSpeaking = true

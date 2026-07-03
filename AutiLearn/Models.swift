@@ -298,22 +298,158 @@ class WeeklyReport {
     }
 }
 
-// MARK: - Langue de l'application
+// MARK: - Langue de l'application (8 langues)
 enum AppLanguage: String, Codable, CaseIterable {
-    case french = "fr"
-    case english = "en"
+    case french     = "fr"
+    case english    = "en"
+    case spanish    = "es"
+    case portuguese = "pt"
+    case italian    = "it"
+    case german     = "de"
+    case arabic     = "ar"
+    case dutch      = "nl"
 
     var displayName: String {
         switch self {
-        case .french:  return "Français"
-        case .english: return "English"
+        case .french:     return "Français"
+        case .english:    return "English"
+        case .spanish:    return "Español"
+        case .portuguese: return "Português"
+        case .italian:    return "Italiano"
+        case .german:     return "Deutsch"
+        case .arabic:     return "العربية"
+        case .dutch:      return "Nederlands"
         }
     }
 
     var flag: String {
         switch self {
-        case .french:  return "🇫🇷"
-        case .english: return "🇬🇧"
+        case .french:     return "🇫🇷"
+        case .english:    return "🇬🇧"
+        case .spanish:    return "🇪🇸"
+        case .portuguese: return "🇧🇷"
+        case .italian:    return "🇮🇹"
+        case .german:     return "🇩🇪"
+        case .arabic:     return "🇸🇦"
+        case .dutch:      return "🇳🇱"
+        }
+    }
+
+    var voiceLocale: String {
+        switch self {
+        case .french:     return "fr-FR"
+        case .english:    return "en-GB"
+        case .spanish:    return "es-ES"
+        case .portuguese: return "pt-BR"
+        case .italian:    return "it-IT"
+        case .german:     return "de-DE"
+        case .arabic:     return "ar-SA"
+        case .dutch:      return "nl-NL"
+        }
+    }
+
+    // Noms des niveaux scolaires selon le pays
+    var levelNames: (l0: String, l1: String, l2: String) {
+        switch self {
+        case .french:     return ("Maternelle", "CP – CE1", "CE2 – CM2")
+        case .english:    return ("Early Years", "KS1 (Y1–Y2)", "KS2 (Y3–Y6)")
+        case .spanish:    return ("Infantil", "1°–2° Primaria", "3°–6° Primaria")
+        case .portuguese: return ("Ed. Infantil", "1°–3° Ano", "4°–6° Ano")
+        case .italian:    return ("Infanzia", "1°–2° Elementare", "3°–5° Elementare")
+        case .german:     return ("Vorschule", "1.–2. Klasse", "3.–4. Klasse")
+        case .arabic:     return ("روضة الأطفال", "الصفوف ١–٣", "الصفوف ٤–٦")
+        case .dutch:      return ("Kleuterschool", "Groep 1–3", "Groep 4–6")
+        }
+    }
+
+    // Traductions UI essentielles
+    var ui: UIStrings { UIStrings(language: self) }
+
+    struct UIStrings {
+        let language: AppLanguage
+        var repeatTitle: String {
+            switch language {
+            case .french:     return "Répète à voix haute !"
+            case .english:    return "Repeat out loud!"
+            case .spanish:    return "¡Repite en voz alta!"
+            case .portuguese: return "Repita em voz alta!"
+            case .italian:    return "Ripeti ad alta voce!"
+            case .german:     return "Laut wiederholen!"
+            case .arabic:     return "أعد القول بصوت عالٍ!"
+            case .dutch:      return "Herhaal hardop!"
+            }
+        }
+        var repeatButton: String {
+            switch language {
+            case .french:     return "J'ai répété à voix haute ✓"
+            case .english:    return "I repeated out loud ✓"
+            case .spanish:    return "Lo repetí en voz alta ✓"
+            case .portuguese: return "Eu repeti em voz alta ✓"
+            case .italian:    return "Ho ripetuto ad alta voce ✓"
+            case .german:     return "Ich habe laut wiederholt ✓"
+            case .arabic:     return "لقد أعدت القول ✓"
+            case .dutch:      return "Ik heb het hardop herhaald ✓"
+            }
+        }
+        var validateButton: String {
+            switch language {
+            case .french:     return "Valider ma réponse"
+            case .english:    return "Submit my answer"
+            case .spanish:    return "Enviar mi respuesta"
+            case .portuguese: return "Enviar minha resposta"
+            case .italian:    return "Invia la mia risposta"
+            case .german:     return "Meine Antwort senden"
+            case .arabic:     return "إرسال إجابتي"
+            case .dutch:      return "Mijn antwoord indienen"
+            }
+        }
+        var nextExercise: String {
+            switch language {
+            case .french:     return "Exercice suivant →"
+            case .english:    return "Next exercise →"
+            case .spanish:    return "Siguiente ejercicio →"
+            case .portuguese: return "Próximo exercício →"
+            case .italian:    return "Prossimo esercizio →"
+            case .german:     return "Nächste Übung →"
+            case .arabic:     return "التمرين التالي →"
+            case .dutch:      return "Volgende oefening →"
+            }
+        }
+        var writeHere: String {
+            switch language {
+            case .french:     return "Écris ta réponse ici..."
+            case .english:    return "Write your answer here..."
+            case .spanish:    return "Escribe tu respuesta aquí..."
+            case .portuguese: return "Escreva sua resposta aqui..."
+            case .italian:    return "Scrivi la tua risposta qui..."
+            case .german:     return "Schreibe deine Antwort hier..."
+            case .arabic:     return "اكتب إجابتك هنا..."
+            case .dutch:      return "Schrijf je antwoord hier..."
+            }
+        }
+        var bravo: String {
+            switch language {
+            case .french:     return "🎉 Excellent !"
+            case .english:    return "🎉 Excellent!"
+            case .spanish:    return "🎉 ¡Excelente!"
+            case .portuguese: return "🎉 Excelente!"
+            case .italian:    return "🎉 Eccellente!"
+            case .german:     return "🎉 Ausgezeichnet!"
+            case .arabic:     return "🎉 ممتاز!"
+            case .dutch:      return "🎉 Uitstekend!"
+            }
+        }
+        var almostTitle: String {
+            switch language {
+            case .french:     return "💪 Presque !"
+            case .english:    return "💪 Almost!"
+            case .spanish:    return "💪 ¡Casi!"
+            case .portuguese: return "💪 Quase!"
+            case .italian:    return "💪 Quasi!"
+            case .german:     return "💪 Fast!"
+            case .arabic:     return "💪 تقريباً!"
+            case .dutch:      return "💪 Bijna!"
+            }
         }
     }
 }

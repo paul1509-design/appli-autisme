@@ -211,7 +211,7 @@ struct LevelStep: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 VStack(spacing: 10) {
-                    ForEach(SchoolLevel.allCases, id: \.self) { level in
+                    ForEach(SchoolLevel.allCases.filter { $0 != .level3 }, id: \.self) { level in
                         LevelCard(level: level, isSelected: selectedLevel == level)
                             .onTapGesture { selectedLevel = level }
                     }

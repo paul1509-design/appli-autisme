@@ -153,7 +153,7 @@ struct LevelPickerSheet: View {
                     .foregroundColor(Color("textPrimary"))
                     .padding(.top, 8)
 
-                ForEach(SchoolLevel.allCases, id: \.self) { level in
+                ForEach(SchoolLevel.allCases.filter { $0 != .level3 }, id: \.self) { level in
                     Button {
                         child.schoolLevel = level
                         try? modelContext.save()

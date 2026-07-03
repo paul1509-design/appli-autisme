@@ -21,7 +21,7 @@ struct RootView: View {
                 }
             case .learning:
                 if let child = appState.selectedChild ?? children.first {
-                    LearningSessionView(child: child, moduleType: appState.selectedModule)
+                    LearningSessionView(child: child, moduleType: appState.selectedModule, language: appState.currentLanguage)
                 } else {
                     OnboardingView()
                 }

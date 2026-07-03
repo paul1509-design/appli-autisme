@@ -4,6 +4,7 @@ import AVFoundation
 struct LearningSessionView: View {
     let child: ChildProfile
     let moduleType: ModuleType
+    let language: AppLanguage
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -11,10 +12,11 @@ struct LearningSessionView: View {
     @StateObject private var vm: LearningSessionVM
     @State private var sessionComplete = false
 
-    init(child: ChildProfile, moduleType: ModuleType) {
+    init(child: ChildProfile, moduleType: ModuleType, language: AppLanguage = .french) {
         self.child = child
         self.moduleType = moduleType
-        _vm = StateObject(wrappedValue: LearningSessionVM(child: child, moduleType: moduleType))
+        self.language = language
+        _vm = StateObject(wrappedValue: LearningSessionVM(child: child, moduleType: moduleType, language: language))
     }
 
     var body: some View {
