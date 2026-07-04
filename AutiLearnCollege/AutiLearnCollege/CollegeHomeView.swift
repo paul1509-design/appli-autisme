@@ -28,139 +28,116 @@ struct CollegeHomeView: View {
         return recent.map { $0.successRate }.reduce(0, +) / Double(recent.count)
     }
 
+    @ViewBuilder
+    private var homeScroll: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 20) {
+                if !sub.isSubscribed && sub.trialDaysRemaining <= 7 {
+                    CollegeTrialBanner(daysLeft: sub.trialDaysRemaining) {
+                        appState.screen = .paywall
+                    }
+                }
+                CollegeHeader(student: student, onLevelTap: { showLevelPicker = true })
+                statsRow
+                AdoPeerCard(student: student, starsUntilReward: starsUntilReward)
+                CollegeDailySchedule(completedSteps: completedSteps) { idx in
+                    withAnimation(.spring(response: 0.3)) { completedSteps.insert(idx) }
+                }
+                subjectGrid
+                bonusButton
+                parentLink
+                Spacer(minLength: 80)
+            }
+            .padding(.vertical, 16)
+        }
+        .background(Color("backgroundSoft"))
+    }
+
+    @ViewBuilder private var statsRow: some View {
+        HStack(spacing: 12) {
+            CollegeStatCard(value: "\(student.currentStreak)", label: "jours streak", emoji: "🔥")
+            CollegeStatCard(value: "\(student.totalStars)", label: "étoiles", emoji: "⭐️")
+            CollegeStatCard(value: "\(Int(recentRate * 100))%", label: "réussite récente", emoji: "🎯")
+        }
+        .padding(.horizontal, 20)
+    }
+
+    @ViewBuilder private var subjectGrid: some View {
+        Text("Choisir une matière")
+            .font(.system(size: 18, weight: .medium))
+            .foregroundColor(Color("textPrimary"))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
+            ForEach(CollegeSubject.allCases, id: \.self) { subject in
+                NavigationLink {
+                    CollegeSessionView(student: student, subject: subject)
+                } label: {
+                    CollegeSubjectCard(subject: subject, student: student)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+
+    @ViewBuilder private var bonusButton: some View {
+        Button {
+            if CollegeReviewService.isBonusUnlocked { showChampionsQuiz = true }
+            else { showBonusUnlock = true }
+        } label: {
+            HStack(spacing: 12) {
+                Text("🏆").font(.system(size: 22))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(CollegeReviewService.isBonusUnlocked ? "Champions Quiz 🎯" : "Débloquer l'exercice bonus 🎁")
+                        .font(.system(size: 15, weight: .medium)).foregroundColor(Color("textPrimary"))
+                    Text(CollegeReviewService.isBonusUnlocked ? "Quiz chronométré — toutes matières" : "Laisser un avis 5⭐ pour débloquer")
+                        .font(.system(size: 12)).foregroundColor(Color("textSecondary"))
+                }
+                Spacer()
+                Image(systemName: CollegeReviewService.isBonusUnlocked ? "play.circle.fill" : "lock.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(CollegeReviewService.isBonusUnlocked ? Color("accentGreen") : Color("accentOrange"))
+            }
+            .padding(16)
+            .background(RoundedRectangle(cornerRadius: 14).fill(Color("cardBackground"))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color("accentOrange").opacity(0.3), lineWidth: 1)))
+            .padding(.horizontal, 20)
+        }
+    }
+
+    @ViewBuilder private var parentLink: some View {
+        NavigationLink {
+            CollegeParentPINView(student: student)
+        } label: {
+            HStack(spacing: 12) {
+                Text("📊").font(.system(size: 22))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Espace Parents")
+                        .font(.system(size: 15, weight: .medium)).foregroundColor(Color("textPrimary"))
+                    Text("Suivi des matières, progression, rapport ABA")
+                        .font(.system(size: 12)).foregroundColor(Color("textSecondary"))
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13)).foregroundColor(Color("textSecondary"))
+            }
+            .padding(16)
+            .background(RoundedRectangle(cornerRadius: 14).fill(Color("cardBackground"))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color("borderLight"), lineWidth: 0.5)))
+            .padding(.horizontal, 20)
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
-            ScrollView(.vertical) {
-                VStack(spacing: 20) {
-
-                    // Bandeau trial si ≤ 7 jours restants
-                    if !sub.isSubscribed && sub.trialDaysRemaining <= 7 {
-                        CollegeTrialBanner(daysLeft: sub.trialDaysRemaining) {
-                            appState.screen = .paywall
-                        }
-                    }
-
-                    // En-tête
-                    CollegeHeader(student: student, onLevelTap: { showLevelPicker = true })
-
-                    // Stats rapides
-                    HStack(spacing: 12) {
-                        CollegeStatCard(value: "\(student.currentStreak)", label: "jours streak", emoji: "🔥")
-                        CollegeStatCard(value: "\(student.totalStars)", label: "étoiles", emoji: "⭐️")
-                        CollegeStatCard(value: "\(Int(recentRate * 100))%", label: "réussite récente", emoji: "🎯")
-                    }
-                    .padding(.horizontal, 20)
-
-                    // Compagnon pair (Léo ado)
-                    AdoPeerCard(student: student, starsUntilReward: starsUntilReward)
-
-                    // Planning visuel journalier
-                    CollegeDailySchedule(completedSteps: completedSteps) { idx in
-                        withAnimation(.spring(response: 0.3)) { completedSteps.insert(idx) }
-                    }
-
-                    // Stats rapides
-                    HStack(spacing: 12) {
-                        CollegeStatCard(value: "\(student.currentStreak)", label: "jours streak", emoji: "🔥")
-                        CollegeStatCard(value: "\(student.totalStars)", label: "étoiles", emoji: "⭐️")
-                        CollegeStatCard(value: "\(Int(recentRate * 100))%", label: "réussite récente", emoji: "🎯")
-                    }
-                    .padding(.horizontal, 20)
-
-                    // Matières
-                    Text("Choisir une matière")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Color("textPrimary"))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 20)
-
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                        ForEach(CollegeSubject.allCases, id: \.self) { subject in
-                            NavigationLink {
-                                CollegeSessionView(student: student, subject: subject)
-                            } label: {
-                                CollegeSubjectCard(subject: subject, student: student)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 20)
-
-                    // Exercice bonus Champions Quiz
-                    Button {
-                        if CollegeReviewService.isBonusUnlocked {
-                            showChampionsQuiz = true
-                        } else {
-                            showBonusUnlock = true
-                        }
-                    } label: {
-                        HStack(spacing: 12) {
-                            Text("🏆").font(.system(size: 22))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(CollegeReviewService.isBonusUnlocked ? "Champions Quiz 🎯" : "Débloquer l'exercice bonus 🎁")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(Color("textPrimary"))
-                                Text(CollegeReviewService.isBonusUnlocked ? "Quiz chronométré — toutes matières" : "Laisser un avis 5⭐ pour débloquer")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(Color("textSecondary"))
-                            }
-                            Spacer()
-                            Image(systemName: CollegeReviewService.isBonusUnlocked ? "play.circle.fill" : "lock.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(CollegeReviewService.isBonusUnlocked ? Color("accentGreen") : Color("accentOrange"))
-                        }
-                        .padding(16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color("cardBackground"))
-                                .overlay(RoundedRectangle(cornerRadius: 14)
-                                    .stroke(Color("accentOrange").opacity(0.3), lineWidth: 1))
-                        )
-                        .padding(.horizontal, 20)
-                    }
-
-                    // Espace parents (avec PIN)
-                    NavigationLink {
-                        CollegeParentPINView(student: student)
-                    } label: {
-                        HStack(spacing: 12) {
-                            Text("📊").font(.system(size: 22))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Espace Parents")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(Color("textPrimary"))
-                                Text("Suivi des matières, progression, rapport ABA")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(Color("textSecondary"))
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13))
-                                .foregroundColor(Color("textSecondary"))
-                        }
-                        .padding(16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color("cardBackground"))
-                                .overlay(RoundedRectangle(cornerRadius: 14)
-                                    .stroke(Color("borderLight"), lineWidth: 0.5))
-                        )
-                        .padding(.horizontal, 20)
-                    }
-
-                    Spacer(minLength: 24)
-                }
-                .padding(.vertical, 16)
+                homeScroll
+                LeoBubbleView(leo: leo)
+                    .padding(.bottom, 8)
+                    .allowsHitTesting(false)
             }
-            .background(Color("backgroundSoft"))
-            // Léo flottant en bas
-            LeoBubbleView(leo: leo)
-                .padding(.bottom, 8)
-            } // ZStack
             .navigationBarHidden(true)
-            .sheet(isPresented: $showLevelPicker) {
-                CollegeLevelPicker(student: student)
-            }
+            .sheet(isPresented: $showLevelPicker) { CollegeLevelPicker(student: student) }
             .sheet(isPresented: $showBonusUnlock) {
                 CollegeBonusUnlockView(isPresented: $showBonusUnlock, studentName: student.firstName)
             }
