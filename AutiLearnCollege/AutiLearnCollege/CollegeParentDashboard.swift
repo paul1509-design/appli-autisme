@@ -26,7 +26,7 @@ struct CollegeParentDashboard: View {
                 .background(Color("cardBackground"))
                 .overlay(Divider(), alignment: .bottom)
 
-                ScrollView {
+                ScrollView(.vertical) {
                     VStack(spacing: 20) {
                         if selectedTab == 0 {
                             OverallSummaryCard(student: student)

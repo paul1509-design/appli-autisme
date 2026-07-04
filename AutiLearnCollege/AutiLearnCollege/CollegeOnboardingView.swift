@@ -95,7 +95,7 @@ struct CollegeOnboardingView: View {
                                 .font(.system(size: 13))
                                 .foregroundColor(Color("textSecondary"))
                         }
-                        ScrollView {
+                        ScrollView(.vertical) {
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 10) {
                                 ForEach(CollegeLanguage.allCases, id: \.self) { lang in
                                     Button {
@@ -142,7 +142,7 @@ struct CollegeOnboardingView: View {
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(Color("textPrimary"))
                             .multilineTextAlignment(.center)
-                        ScrollView {
+                        ScrollView(.vertical) {
                             VStack(spacing: 10) {
                                 ForEach(CollegeLevel.allCases, id: \.self) { level in
                                     Button {

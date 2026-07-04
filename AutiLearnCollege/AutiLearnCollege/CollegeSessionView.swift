@@ -61,7 +61,7 @@ struct CollegeSessionView: View {
                     }
                     .padding(.top, 16)
 
-                    ScrollView {
+                    ScrollView(.vertical) {
                         VStack(spacing: 20) {
                             // Question
                             QuestionCard(exercise: exercise, vm: vm)
