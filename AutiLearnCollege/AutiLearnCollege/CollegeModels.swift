@@ -347,12 +347,3 @@ class CollegeExerciseProgress {
     }
 }
 
-// MARK: - Couleurs (identiques à l'app primaire pour cohérence)
-extension Color {
-    static let accentPurple = Color("accentPurple")
-    static let accentBlue   = Color("accentBlue")
-    static let accentGreen  = Color("accentGreen")
-    static let accentOrange = Color("accentOrange")
-    static let accentPink   = Color("accentPink")
-    static let accentYellow = Color("accentYellow")
-}
