@@ -75,7 +75,7 @@ struct CollegeHomeView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 20)
 
-                    LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 2), spacing: 12) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
                         ForEach(CollegeSubject.allCases, id: \.self) { subject in
                             NavigationLink {
                                 CollegeSessionView(student: student, subject: subject)
@@ -535,7 +535,7 @@ struct CollegeParentPINView: View {
                 }
                 let currentPIN = phase == .confirming ? confirmPIN : enteredPIN
                 HStack(spacing: 18) {
-                    ForEach(0..<4, id: \.self) { i in
+                    ForEach(0..<4) { i in
                         Circle().fill(i < currentPIN.count ? Color("accentPurple") : Color("borderLight"))
                             .frame(width: 16, height: 16)
                             .scaleEffect(wrongAttempt ? 1.3 : 1.0).animation(.spring(response: 0.2), value: wrongAttempt)
@@ -653,5 +653,28 @@ struct CollegeLevelPicker: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Clavier PIN (partagé dans cette app)
+private struct PINKey: View {
+    let label: String
+    var isAction: Bool = false
+    var disabled: Bool = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: isAction ? 20 : 24, weight: .medium))
+                .foregroundColor(disabled ? Color("textSecondary").opacity(0.4) : Color("textPrimary"))
+                .frame(width: 72, height: 72)
+                .background(
+                    Circle()
+                        .fill(Color("cardBackground"))
+                        .overlay(Circle().stroke(Color("borderLight"), lineWidth: 0.5))
+                )
+        }
+        .disabled(disabled)
     }
 }
