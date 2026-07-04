@@ -21,7 +21,7 @@ struct CollegeOnboardingView: View {
             VStack(spacing: 32) {
                 // Indicateur d'étape
                 HStack(spacing: 8) {
-                    ForEach(0..<totalSteps) { i in
+                    ForEach(0..<totalSteps, id: \.self) { i in
                         Circle()
                             .fill(i <= step ? Color("accentPurple") : Color("borderLight"))
                             .frame(width: 8, height: 8)

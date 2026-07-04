@@ -508,6 +508,8 @@ struct CollegeParentPINView: View {
 
     enum PINPhase { case checking, setting, confirming, entering, authenticated }
 
+    private var currentPIN: String { phase == .confirming ? confirmPIN : enteredPIN }
+
     var body: some View {
         Group {
             if phase == .authenticated {
@@ -533,7 +535,6 @@ struct CollegeParentPINView: View {
                          : "Entrez votre code à 4 chiffres.")
                         .font(.system(size: 14)).foregroundColor(Color("textSecondary")).multilineTextAlignment(.center)
                 }
-                let currentPIN = phase == .confirming ? confirmPIN : enteredPIN
                 HStack(spacing: 18) {
                     ForEach(0..<4) { i in
                         Circle().fill(i < currentPIN.count ? Color("accentPurple") : Color("borderLight"))
