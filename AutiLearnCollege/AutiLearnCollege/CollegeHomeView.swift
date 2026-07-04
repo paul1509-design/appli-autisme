@@ -41,7 +41,7 @@ struct CollegeHomeView: View {
                 statsRow
                 AdoPeerCard(student: student, starsUntilReward: starsUntilReward)
                 CollegeDailySchedule(completedSteps: completedSteps) { idx in
-                    withAnimation(.spring(response: 0.3)) { completedSteps.insert(idx) }
+                    withAnimation(.spring(response: 0.3)) { _ = completedSteps.insert(idx) }
                 }
                 subjectGrid
                 bonusButton
