@@ -61,7 +61,7 @@ struct CollegeOnboardingView: View {
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(Color("textPrimary"))
                             .multilineTextAlignment(.center)
-                        LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 4), spacing: 16) {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 16) {
                             ForEach(avatars, id: \.self) { avatar in
                                 Button {
                                     selectedAvatar = avatar
@@ -96,7 +96,7 @@ struct CollegeOnboardingView: View {
                                 .foregroundColor(Color("textSecondary"))
                         }
                         ScrollView {
-                            LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 2), spacing: 10) {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 10) {
                                 ForEach(CollegeLanguage.allCases, id: \.self) { lang in
                                     Button {
                                         selectedLanguage = lang

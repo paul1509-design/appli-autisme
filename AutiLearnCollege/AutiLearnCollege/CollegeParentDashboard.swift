@@ -343,7 +343,7 @@ struct SubjectProgressGrid: View {
     let student: CollegeProfile
 
     var body: some View {
-        LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 2), spacing: 12) {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
             ForEach(CollegeSubject.allCases, id: \.self) { subject in
                 SubjectProgressCard(subject: subject, student: student)
             }
