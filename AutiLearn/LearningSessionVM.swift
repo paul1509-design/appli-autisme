@@ -62,7 +62,7 @@ class LearningSessionVM: ObservableObject {
     let leo = LeoPrimary()
     private var correctStreak = 0
 
-    private let speech = AVSpeechSynthesizer()
+    // Léo gère toute la synthèse vocale — pas de second synthesizer
     private var sessionStartTime = Date()
 
     var currentExercise: CurriculumExercise? {
@@ -142,13 +142,7 @@ class LearningSessionVM: ObservableObject {
     }
 
     func speak(_ text: String) {
-        speech.stopSpeaking(at: .immediate)
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: language.voiceLocale)
-        utterance.rate = 0.42
-        utterance.pitchMultiplier = 1.1
-        isSpeaking = true
-        speech.speak(utterance)
+        leo.speakText(text)
         let delay = Double(text.count) * 0.065 + 0.5
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             self.isSpeaking = false
