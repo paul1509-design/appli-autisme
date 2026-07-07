@@ -852,36 +852,53 @@ struct LeoAvatarView: View {
     static let gender    = "female"
     static let tutorName = gender == "female" ? "Léa" : "Léo"
 
+    private static let assetName   = gender == "female" ? "LeoAvatarFemale" : "LeoAvatarMale"
+    private static let loadedImage: UIImage? = UIImage(named: assetName)
+
     @State private var pulse = false
 
     var body: some View {
         ZStack {
             Circle()
-                .stroke(accentColor.opacity(isSpeaking ? 0.7 : 0.25), lineWidth: isSpeaking ? 3 : 1.5)
+                .stroke(accentColor.opacity(isSpeaking ? 0.7 : 0.25),
+                        lineWidth: isSpeaking ? 3 : 1.5)
                 .frame(width: 58, height: 58)
                 .scaleEffect(pulse ? 1.10 : 1.0)
-                .animation(isSpeaking
-                    ? .easeInOut(duration: 0.55).repeatForever(autoreverses: true)
-                    : .easeOut(duration: 0.2),
-                           value: pulse)
+                .animation(
+                    isSpeaking
+                        ? .easeInOut(duration: 0.55).repeatForever(autoreverses: true)
+                        : .easeOut(duration: 0.2),
+                    value: pulse
+                )
 
-            let imgName = Self.gender == "female" ? "LeoAvatarFemale" : "LeoAvatarMale"
-            if UIImage(named: imgName) != nil {
-                Image(imgName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 52, height: 52)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
-            } else {
-                LeoFaceView(isSpeaking: isSpeaking, accentColor: accentColor)
-                    .frame(width: 52, height: 52)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
-            }
+            avatarContent
+                .frame(width: 52, height: 52)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
         }
         .onChange(of: isSpeaking) { speaking in pulse = speaking }
+    }
+
+    @ViewBuilder
+    private var avatarContent: some View {
+        if let img = Self.loadedImage {
+            Image(uiImage: img)
+                .resizable()
+                .scaledToFill()
+        } else {
+            ZStack {
+                LinearGradient(
+                    colors: [Color(red: 0.29, green: 0.56, blue: 0.89),
+                             Color(red: 0.18, green: 0.38, blue: 0.72)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                Text("L")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+            }
+        }
     }
 }
 
