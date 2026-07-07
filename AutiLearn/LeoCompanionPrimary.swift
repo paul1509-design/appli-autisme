@@ -58,14 +58,29 @@ class LeoPrimary: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         isSpeaking = true
         for (i, sentence) in sentences.enumerated() {
             let utt = AVSpeechUtterance(string: sentence)
-            utt.voice = AVSpeechSynthesisVoice(language: "fr-FR")
-            utt.rate = 0.42          // naturel et clair pour 3-10 ans
-            utt.pitchMultiplier = 1.2
+            utt.voice = Self.preferredVoice()
+            utt.rate = 0.42
+            utt.pitchMultiplier = LeoAvatarView.gender == "female" ? 1.15 : 0.95
             utt.volume = 0.95
             utt.preUtteranceDelay = i == 0 ? 0 : 0.22
             utt.postUtteranceDelay = 0.06
             synthesizer.speak(utt)
         }
+    }
+
+    /// Sélectionne la meilleure voix française selon le genre du professeur
+    private static func preferredVoice() -> AVSpeechSynthesisVoice? {
+        let isFemale = LeoAvatarView.gender == "female"
+        let all = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix("fr") }
+        // Recherche par nom connu
+        let femaleIds = ["amelie", "marie", "audrey", "aurelie", "florence"]
+        let maleIds   = ["thomas", "nicolas", "pierre", "romain"]
+        let preferred = isFemale ? femaleIds : maleIds
+        for id in preferred {
+            if let v = all.first(where: { $0.identifier.lowercased().contains(id) }) { return v }
+        }
+        // Fallback : première voix française disponible
+        return all.first ?? AVSpeechSynthesisVoice(language: "fr-FR")
     }
 
     private func display(_ message: String, emotion: LeoEmotionP) {
@@ -253,7 +268,7 @@ private extension Animation {
     }
 }
 
-// MARK: - Avatar photo du professeur
+// MARK: - Avatar photo du professeur avec animation de parole
 struct LeoAvatarView: View {
     let isSpeaking: Bool
     let accentColor: Color
@@ -262,32 +277,84 @@ struct LeoAvatarView: View {
     static let gender    = "female"
     static let tutorName = gender == "female" ? "Léa" : "Léo"
 
-    private static let assetName = gender == "female" ? "LeoAvatarFemale" : "LeoAvatarMale"
+    private static let assetName   = gender == "female" ? "LeoAvatarFemale" : "LeoAvatarMale"
     private static let loadedImage: UIImage? = UIImage(named: assetName)
 
-    @State private var pulse = false
+    @State private var headOffset: CGFloat = 0
+    @State private var headScale: CGFloat = 1.0
+    @State private var ringScale: CGFloat = 1.0
+    @State private var barHeights: [CGFloat] = [4, 6, 4, 8, 4]
 
     var body: some View {
-        ZStack {
-            Circle()
-                .stroke(accentColor.opacity(isSpeaking ? 0.7 : 0.25),
-                        lineWidth: isSpeaking ? 3 : 1.5)
-                .frame(width: 62, height: 62)
-                .scaleEffect(pulse ? 1.10 : 1.0)
-                .animation(
-                    isSpeaking
-                        ? .easeInOut(duration: 0.55).repeatForever(autoreverses: true)
-                        : .easeOut(duration: 0.2),
-                    value: pulse
-                )
+        VStack(spacing: 4) {
+            ZStack {
+                // Anneau pulsant
+                Circle()
+                    .stroke(accentColor.opacity(isSpeaking ? 0.55 : 0.20),
+                            lineWidth: isSpeaking ? 3 : 1.5)
+                    .frame(width: 64, height: 64)
+                    .scaleEffect(ringScale)
+                    .animation(
+                        isSpeaking
+                            ? .easeInOut(duration: 0.6).repeatForever(autoreverses: true)
+                            : .easeOut(duration: 0.3),
+                        value: ringScale
+                    )
 
-            avatarContent
-                .frame(width: 56, height: 56)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+                // Photo avec légère animation de tête
+                avatarContent
+                    .frame(width: 58, height: 58)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                    .shadow(color: .black.opacity(0.18), radius: 5, y: 2)
+                    .scaleEffect(headScale)
+                    .offset(y: headOffset)
+                    .animation(
+                        isSpeaking
+                            ? .easeInOut(duration: 0.38).repeatForever(autoreverses: true)
+                            : .easeOut(duration: 0.25),
+                        value: headOffset
+                    )
+                    .animation(
+                        isSpeaking
+                            ? .easeInOut(duration: 0.45).repeatForever(autoreverses: true)
+                            : .easeOut(duration: 0.25),
+                        value: headScale
+                    )
+            }
+
+            // Barres de son animées (visibles uniquement quand il parle)
+            if isSpeaking {
+                HStack(spacing: 2) {
+                    ForEach(0..<5) { i in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(accentColor.opacity(0.75))
+                            .frame(width: 3, height: barHeights[i])
+                            .animation(
+                                .easeInOut(duration: Double.random(in: 0.18...0.32))
+                                    .repeatForever(autoreverses: true)
+                                    .delay(Double(i) * 0.07),
+                                value: barHeights[i]
+                            )
+                    }
+                }
+                .frame(height: 12)
+                .transition(.opacity.combined(with: .scale))
+            }
         }
-        .onChange(of: isSpeaking) { speaking in pulse = speaking }
+        .onChange(of: isSpeaking) { speaking in
+            if speaking {
+                headOffset = -2.5
+                headScale  = 1.025
+                ringScale  = 1.12
+                barHeights = [8, 12, 6, 14, 8]
+            } else {
+                headOffset = 0
+                headScale  = 1.0
+                ringScale  = 1.0
+                barHeights = [4, 6, 4, 8, 4]
+            }
+        }
     }
 
     @ViewBuilder
@@ -297,7 +364,6 @@ struct LeoAvatarView: View {
                 .resizable()
                 .scaledToFill()
         } else {
-            // Fallback visible : dégradé + initiale
             ZStack {
                 LinearGradient(
                     colors: [Color(red: 0.29, green: 0.56, blue: 0.89),
