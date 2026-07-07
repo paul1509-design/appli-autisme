@@ -59,10 +59,9 @@ class LearningSessionVM: ObservableObject {
         }
     }
 
-    let leo = LeoPrimary()
+    let leo: LeoPrimary
     private var correctStreak = 0
 
-    // Léo gère toute la synthèse vocale — pas de second synthesizer
     private var sessionStartTime = Date()
 
     var currentExercise: CurriculumExercise? {
@@ -77,10 +76,11 @@ class LearningSessionVM: ObservableObject {
 
     var isSessionComplete: Bool { currentIndex >= exercises.count }
 
-    init(child: ChildProfile, moduleType: ModuleType, language: AppLanguage = .french) {
+    init(child: ChildProfile, moduleType: ModuleType, language: AppLanguage = .french, leo: LeoPrimary? = nil) {
         self.child = child
         self.moduleType = moduleType
         self.language = language
+        self.leo = leo ?? LeoPrimary()
     }
 
     func startSession() {

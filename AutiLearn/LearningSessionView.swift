@@ -15,11 +15,11 @@ struct LearningSessionView: View {
     @State private var timerActive = false
     let exerciseTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    init(child: ChildProfile, moduleType: ModuleType, language: AppLanguage = .french) {
+    init(child: ChildProfile, moduleType: ModuleType, language: AppLanguage = .french, leo: LeoPrimary? = nil) {
         self.child = child
         self.moduleType = moduleType
         self.language = language
-        _vm = StateObject(wrappedValue: LearningSessionVM(child: child, moduleType: moduleType, language: language))
+        _vm = StateObject(wrappedValue: LearningSessionVM(child: child, moduleType: moduleType, language: language, leo: leo))
     }
 
     var body: some View {
