@@ -865,13 +865,21 @@ struct LeoAvatarView: View {
                     : .easeOut(duration: 0.2),
                            value: pulse)
 
-            Image(Self.gender == "female" ? "LeoAvatarFemale" : "LeoAvatarMale")
-                .resizable()
-                .scaledToFill()
-                .frame(width: 52, height: 52)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+            let imgName = Self.gender == "female" ? "LeoAvatarFemale" : "LeoAvatarMale"
+            if UIImage(named: imgName) != nil {
+                Image(imgName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 52, height: 52)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+            } else {
+                LeoFaceView(isSpeaking: isSpeaking, accentColor: accentColor)
+                    .frame(width: 52, height: 52)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+            }
         }
         .onChange(of: isSpeaking) { speaking in pulse = speaking }
     }

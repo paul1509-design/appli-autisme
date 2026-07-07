@@ -44,6 +44,12 @@ class LeoPrimary: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     func stop() { synthesizer.stopSpeaking(at: .immediate) }
 
+    /// Lit un texte libre sans passer par un contexte prédéfini
+    func speakText(_ text: String) {
+        display(text, emotion: .neutral)
+        say(text)
+    }
+
     private func say(_ text: String) {
         synthesizer.stopSpeaking(at: .immediate)
         let sentences = text.components(separatedBy: CharacterSet(charactersIn: ".!?"))
@@ -270,14 +276,22 @@ struct LeoAvatarView: View {
                     : .easeOut(duration: 0.2),
                            value: pulse)
 
-            // Photo du professeur
-            Image(Self.gender == "female" ? "LeoAvatarFemale" : "LeoAvatarMale")
-                .resizable()
-                .scaledToFill()
-                .frame(width: 56, height: 56)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+            // Photo du professeur (fallback: visage Canvas si image absente)
+            let imgName = Self.gender == "female" ? "LeoAvatarFemale" : "LeoAvatarMale"
+            if UIImage(named: imgName) != nil {
+                Image(imgName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 56, height: 56)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+            } else {
+                LeoFaceView(isSpeaking: isSpeaking, accentColor: accentColor)
+                    .frame(width: 56, height: 56)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+            }
         }
         .onChange(of: isSpeaking) { speaking in pulse = speaking }
     }
