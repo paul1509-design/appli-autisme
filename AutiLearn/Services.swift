@@ -5,7 +5,7 @@ import Combine
 
 // MARK: - Service synthèse vocale (orthophoniste)
 class SpeechService: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
-    private let synthesizer = AVSpeechSynthesizer()
+    nonisolated(unsafe) private let synthesizer = AVSpeechSynthesizer()
     @Published var isSpeaking: Bool = false
 
     override init() {

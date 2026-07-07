@@ -247,7 +247,7 @@ class WordProgress {
     }
 }
 
-enum MasteryLevel: String, Codable {
+enum MasteryLevel: String, Codable, CaseIterable {
     case new        = "nouveau"
     case learning   = "en_cours"
     case reviewing  = "révision"
