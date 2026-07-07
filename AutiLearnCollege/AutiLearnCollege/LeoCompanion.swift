@@ -852,61 +852,19 @@ private extension Animation {
     }
 }
 
-// MARK: - Visage dessiné de Léo (SwiftUI pur, léger)
+// MARK: - Visage humain de Léo (prof bienveillant, SwiftUI Canvas)
 struct LeoFaceView: View {
     let isSpeaking: Bool
     let accentColor: Color
 
     @State private var isBlinking = false
-    @State private var mouthOpen = false
+    @State private var mouthOpen  = false
 
     var body: some View {
         Canvas { ctx, size in
-            let w = size.width, h = size.height
-            let cx = w / 2, cy = h / 2
-
-            // Tête
-            var headPath = Path()
-            headPath.addEllipse(in: CGRect(x: 0, y: 0, width: w, height: h))
-            ctx.fill(headPath, with: .color(Color(red: 0.98, green: 0.85, blue: 0.72)))
-            ctx.stroke(headPath, with: .color(accentColor.opacity(0.35)), lineWidth: 1.5)
-
-            // Joues légèrement rosées
-            for dx: CGFloat in [-w * 0.23, w * 0.23] {
-                var cheek = Path()
-                cheek.addEllipse(in: CGRect(x: cx + dx - w * 0.10,
-                                            y: cy + h * 0.08,
-                                            width: w * 0.20, height: h * 0.13))
-                ctx.fill(cheek, with: .color(Color(red: 1.0, green: 0.72, blue: 0.72).opacity(0.30)))
-            }
-
-            // Yeux (capsule aplatie si clignement)
-            let eyeH: CGFloat = isBlinking ? 1.5 : h * 0.12
-            for dx: CGFloat in [-w * 0.18, w * 0.18] {
-                var eye = Path()
-                eye.addRoundedRect(in: CGRect(x: cx + dx - w * 0.06,
-                                              y: cy - h * 0.14 - eyeH / 2,
-                                              width: w * 0.12, height: eyeH),
-                                   cornerSize: CGSize(width: 3, height: 3))
-                ctx.fill(eye, with: .color(Color(red: 0.20, green: 0.13, blue: 0.08)))
-            }
-
-            // Sourire (arc)
-            var smile = Path()
-            let smileY = cy + h * 0.12
-            smile.move(to: CGPoint(x: cx - w * 0.18, y: smileY - h * 0.02))
-            smile.addQuadCurve(to: CGPoint(x: cx + w * 0.18, y: smileY - h * 0.02),
-                               control: CGPoint(x: cx, y: smileY + h * 0.10))
-            ctx.stroke(smile, with: .color(Color(red: 0.55, green: 0.25, blue: 0.15)),
-                       style: StrokeStyle(lineWidth: 1.8, lineCap: .round))
-
-            // Bouche ouverte quand Léo parle
-            if mouthOpen {
-                var mouth = Path()
-                mouth.addEllipse(in: CGRect(x: cx - w * 0.08, y: smileY - h * 0.01,
-                                            width: w * 0.16, height: h * 0.10))
-                ctx.fill(mouth, with: .color(Color(red: 0.60, green: 0.20, blue: 0.15)))
-            }
+            leoFaceDraw(ctx: ctx, size: size,
+                        isBlinking: isBlinking, mouthOpen: mouthOpen,
+                        accentColor: accentColor)
         }
         .onAppear { scheduleBlink() }
         .onChange(of: isSpeaking) { speaking in
@@ -916,11 +874,11 @@ struct LeoFaceView: View {
     }
 
     private func scheduleBlink() {
-        let delay = Double.random(in: 2.5...4.5)
+        let delay = Double.random(in: 2.8...5.0)
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(.easeInOut(duration: 0.08)) { isBlinking = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                withAnimation(.easeInOut(duration: 0.08)) { isBlinking = false }
+            withAnimation(.linear(duration: 0.07)) { isBlinking = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.13) {
+                withAnimation(.linear(duration: 0.07)) { isBlinking = false }
                 scheduleBlink()
             }
         }
@@ -928,7 +886,178 @@ struct LeoFaceView: View {
 
     private func animateMouth() {
         guard isSpeaking else { return }
-        withAnimation(.easeInOut(duration: 0.22)) { mouthOpen.toggle() }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) { animateMouth() }
+        withAnimation(.easeInOut(duration: 0.20)) { mouthOpen.toggle() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.26) { animateMouth() }
+    }
+}
+
+private func leoFaceDraw(ctx: GraphicsContext, size: CGSize,
+                          isBlinking: Bool, mouthOpen: Bool, accentColor: Color) {
+    let w = size.width, h = size.height
+    let cx = w / 2
+
+    // ── Col de chemise ──
+    var shirt = Path()
+    shirt.move(to: CGPoint(x: cx - w*0.40, y: h))
+    shirt.addLine(to: CGPoint(x: cx - w*0.16, y: h*0.88))
+    shirt.addLine(to: CGPoint(x: cx - w*0.05, y: h*0.86))
+    shirt.addLine(to: CGPoint(x: cx + w*0.05, y: h*0.86))
+    shirt.addLine(to: CGPoint(x: cx + w*0.16, y: h*0.88))
+    shirt.addLine(to: CGPoint(x: cx + w*0.40, y: h))
+    shirt.closeSubpath()
+    ctx.fill(shirt, with: .color(Color(red: 0.88, green: 0.92, blue: 1.0)))
+
+    var collarL = Path()
+    collarL.move(to: CGPoint(x: cx - w*0.05, y: h*0.86))
+    collarL.addLine(to: CGPoint(x: cx - w*0.16, y: h*0.88))
+    collarL.addLine(to: CGPoint(x: cx - w*0.40, y: h))
+    var collarR = Path()
+    collarR.move(to: CGPoint(x: cx + w*0.05, y: h*0.86))
+    collarR.addLine(to: CGPoint(x: cx + w*0.16, y: h*0.88))
+    collarR.addLine(to: CGPoint(x: cx + w*0.40, y: h))
+    let collarStyle = StrokeStyle(lineWidth: max(1, w*0.025), lineCap: .round, lineJoin: .round)
+    ctx.stroke(collarL, with: .color(Color(red: 0.60, green: 0.68, blue: 0.85)), style: collarStyle)
+    ctx.stroke(collarR, with: .color(Color(red: 0.60, green: 0.68, blue: 0.85)), style: collarStyle)
+
+    // ── Cou ──
+    var neck = Path()
+    neck.addRect(CGRect(x: cx - w*0.13, y: h*0.76, width: w*0.26, height: h*0.14))
+    ctx.fill(neck, with: .color(Color(red: 0.95, green: 0.80, blue: 0.66)))
+
+    // ── Tête ──
+    var head = Path()
+    head.addEllipse(in: CGRect(x: w*0.07, y: h*0.03, width: w*0.86, height: h*0.82))
+    ctx.fill(head, with: .color(Color(red: 0.97, green: 0.83, blue: 0.68)))
+
+    // ── Cheveux ──
+    var hairMass = Path()
+    hairMass.addEllipse(in: CGRect(x: w*0.08, y: h*0.03, width: w*0.84, height: h*0.44))
+    ctx.fill(hairMass, with: .color(Color(red: 0.28, green: 0.17, blue: 0.07)))
+
+    var parting = Path()
+    parting.move(to: CGPoint(x: cx - w*0.08, y: h*0.03))
+    parting.addQuadCurve(to: CGPoint(x: cx - w*0.12, y: h*0.28),
+                          control: CGPoint(x: cx - w*0.14, y: h*0.14))
+    ctx.stroke(parting, with: .color(Color(red: 0.97, green: 0.83, blue: 0.68).opacity(0.45)),
+               style: StrokeStyle(lineWidth: max(1, w*0.025), lineCap: .round))
+
+    for sign: CGFloat in [-1, 1] {
+        var sideHair = Path()
+        let sx: CGFloat = sign < 0 ? w*0.07 : w*0.93
+        let mx: CGFloat = sign < 0 ? w*0.04 : w*0.96
+        sideHair.move(to: CGPoint(x: sx, y: h*0.25))
+        sideHair.addQuadCurve(to: CGPoint(x: sx, y: h*0.46),
+                               control: CGPoint(x: mx, y: h*0.36))
+        ctx.stroke(sideHair, with: .color(Color(red: 0.28, green: 0.17, blue: 0.07)),
+                   style: StrokeStyle(lineWidth: max(2, w*0.09), lineCap: .round))
+    }
+
+    // ── Joues ──
+    for sign: CGFloat in [-1, 1] {
+        var cheek = Path()
+        cheek.addEllipse(in: CGRect(x: cx + sign*w*0.22 - w*0.11, y: h*0.54,
+                                    width: w*0.22, height: h*0.14))
+        ctx.fill(cheek, with: .color(Color(red: 1.0, green: 0.72, blue: 0.68).opacity(0.28)))
+    }
+
+    // ── Sourcils ──
+    let browY = h * 0.41
+    for sign: CGFloat in [-1, 1] {
+        let bcx = cx + sign * w*0.22
+        var brow = Path()
+        brow.move(to: CGPoint(x: bcx - w*0.12, y: browY + h*0.01))
+        brow.addQuadCurve(to: CGPoint(x: bcx + w*0.12, y: browY),
+                           control: CGPoint(x: bcx, y: browY - h*0.028))
+        ctx.stroke(brow, with: .color(Color(red: 0.23, green: 0.14, blue: 0.05)),
+                   style: StrokeStyle(lineWidth: max(1.5, w*0.038), lineCap: .round))
+    }
+
+    // ── Yeux ──
+    let eyeY = h * 0.52
+    let eyeW = w * 0.20
+    let eyeH: CGFloat = isBlinking ? max(1.0, h*0.015) : h*0.13
+
+    for sign: CGFloat in [-1, 1] {
+        let ecx = cx + sign * w*0.22
+        let eyeRect = CGRect(x: ecx - eyeW/2, y: eyeY - eyeH/2, width: eyeW, height: eyeH)
+
+        var sclera = Path(); sclera.addEllipse(in: eyeRect)
+        ctx.fill(sclera, with: .color(.white))
+
+        if !isBlinking {
+            let ir = min(eyeW, eyeH) * 0.44
+            var iris = Path()
+            iris.addEllipse(in: CGRect(x: ecx - ir, y: eyeY - ir, width: ir*2, height: ir*2))
+            ctx.fill(iris, with: .color(Color(red: 0.42, green: 0.26, blue: 0.10)))
+
+            let pr = ir * 0.54
+            var pupil = Path()
+            pupil.addEllipse(in: CGRect(x: ecx - pr, y: eyeY - pr, width: pr*2, height: pr*2))
+            ctx.fill(pupil, with: .color(.black))
+
+            var glint = Path()
+            glint.addEllipse(in: CGRect(x: ecx - ir*0.22, y: eyeY - ir*0.50,
+                                         width: ir*0.34, height: ir*0.34))
+            ctx.fill(glint, with: .color(.white.opacity(0.90)))
+        }
+
+        var lid = Path(); lid.addEllipse(in: eyeRect.insetBy(dx: -0.5, dy: -0.5))
+        ctx.stroke(lid, with: .color(Color(red: 0.18, green: 0.10, blue: 0.04)),
+                   lineWidth: max(1.0, w*0.030))
+    }
+
+    // ── Nez ──
+    let noseBaseY = h * 0.66
+    var noseBridge = Path()
+    noseBridge.move(to: CGPoint(x: cx + w*0.01, y: eyeY + h*0.07))
+    noseBridge.addQuadCurve(to: CGPoint(x: cx - w*0.04, y: noseBaseY),
+                             control: CGPoint(x: cx - w*0.07, y: noseBaseY - h*0.04))
+    ctx.stroke(noseBridge, with: .color(Color(red: 0.72, green: 0.52, blue: 0.40).opacity(0.55)),
+               style: StrokeStyle(lineWidth: 0.9, lineCap: .round))
+
+    for sign: CGFloat in [-1, 1] {
+        var nostril = Path()
+        nostril.addEllipse(in: CGRect(x: cx + sign*w*0.055 - w*0.025,
+                                      y: noseBaseY - h*0.008,
+                                      width: w*0.05, height: h*0.028))
+        ctx.fill(nostril, with: .color(Color(red: 0.65, green: 0.45, blue: 0.35).opacity(0.50)))
+    }
+
+    // ── Bouche ──
+    let mouthY = h * 0.77
+    let lipColor = Color(red: 0.75, green: 0.38, blue: 0.28)
+    let lipStyle = StrokeStyle(lineWidth: max(1.5, w*0.032), lineCap: .round)
+
+    if !mouthOpen {
+        var smile = Path()
+        smile.move(to: CGPoint(x: cx - w*0.16, y: mouthY))
+        smile.addQuadCurve(to: CGPoint(x: cx + w*0.16, y: mouthY),
+                            control: CGPoint(x: cx, y: mouthY + h*0.07))
+        ctx.stroke(smile, with: .color(lipColor), style: lipStyle)
+
+        for sign: CGFloat in [-1, 1] {
+            var dimple = Path()
+            let dx = cx + sign * w*0.175
+            dimple.addEllipse(in: CGRect(x: dx - w*0.018, y: mouthY - h*0.005,
+                                          width: w*0.036, height: h*0.028))
+            ctx.fill(dimple, with: .color(Color(red: 0.85, green: 0.65, blue: 0.55).opacity(0.35)))
+        }
+    } else {
+        var mouthPath = Path()
+        mouthPath.move(to: CGPoint(x: cx - w*0.15, y: mouthY))
+        mouthPath.addQuadCurve(to: CGPoint(x: cx + w*0.15, y: mouthY),
+                                control: CGPoint(x: cx, y: mouthY + h*0.10))
+        mouthPath.addQuadCurve(to: CGPoint(x: cx - w*0.15, y: mouthY),
+                                control: CGPoint(x: cx, y: mouthY + h*0.01))
+        mouthPath.closeSubpath()
+        ctx.fill(mouthPath, with: .color(Color(red: 0.52, green: 0.14, blue: 0.14)))
+
+        var teeth = Path()
+        teeth.addRoundedRect(in: CGRect(x: cx - w*0.12, y: mouthY + h*0.004,
+                                         width: w*0.24, height: h*0.038),
+                             cornerSize: CGSize(width: 2, height: 2))
+        ctx.fill(teeth, with: .color(Color(red: 0.97, green: 0.97, blue: 0.97)))
+
+        ctx.stroke(mouthPath, with: .color(lipColor), style: lipStyle)
     }
 }
