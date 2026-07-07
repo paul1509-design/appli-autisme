@@ -61,53 +61,7 @@ struct LearningSessionView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
 
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            LeoPrimaryBubble(leo: vm.leo)
-                                .padding(.horizontal, 0)
-                                .padding(.top, 12)
-
-                            CharacterBubble(exercise: exercise,
-                                            isSpeaking: vm.isSpeaking,
-                                            onReplay: { vm.speakCurrentExercise() })
-                            .padding(.top, 8)
-
-                            if !vm.hasAnswered {
-                                switch exercise.type {
-                                case .repeatAfterMe:
-                                    RepeatResponseView(vm: vm)
-                                case .answerQuestion, .writeResponse:
-                                    WriteResponseView(vm: vm)
-                                }
-                            }
-
-                            if vm.hasAnswered {
-                                FeedbackCard(correct: vm.lastAnswerCorrect,
-                                             expected: exercise.expectedAnswer)
-
-                                Button {
-                                    if vm.currentIndex + 1 >= vm.exercises.count {
-                                        vm.saveSession(modelContext: modelContext)
-                                        sessionComplete = true
-                                    } else {
-                                        vm.nextExercise()
-                                    }
-                                } label: {
-                                    Text(vm.currentIndex + 1 >= vm.exercises.count
-                                         ? "Voir mon résultat !" : "Exercice suivant →")
-                                        .font(.system(size: 17, weight: .medium))
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                        .background(Color("accentPurple"))
-                                        .cornerRadius(16)
-                                }
-                                .padding(.horizontal, 20)
-                            }
-
-                            Spacer(minLength: 40)
-                        }
-                    }
+                    exerciseContent(exercise: exercise)
                 }
             }
         }
@@ -126,7 +80,13 @@ struct LearningSessionView: View {
                 vm.requestHint()
             }
         }
-        .onChange(of: vm.currentIndex) { _, _ in resetTimer() }
+        .onChange(of: vm.currentIndex) { _, _ in
+            resetTimer()
+            if vm.isSessionComplete {
+                vm.saveSession(modelContext: modelContext)
+                sessionComplete = true
+            }
+        }
         .onChange(of: vm.hasAnswered) { _, answered in
             if answered { timerActive = false }
         }
@@ -135,6 +95,105 @@ struct LearningSessionView: View {
     private func resetTimer() {
         timeRemaining = 30
         timerActive = true
+    }
+
+    @ViewBuilder
+    private func exerciseContent(exercise: CurriculumExercise) -> some View {
+        switch exercise.type {
+        case .lesson:
+            LessonSlideView(vm: vm, exercise: exercise)
+                .padding(.top, 8)
+
+        case .diction:
+            ScrollView {
+                VStack(spacing: 16) {
+                    LeoPrimaryBubble(leo: vm.leo).padding(.top, 12)
+                    DictionView(vm: vm, exercise: exercise)
+                    Spacer(minLength: 40)
+                }
+            }
+
+        case .writeWord:
+            ScrollView {
+                VStack(spacing: 16) {
+                    LeoPrimaryBubble(leo: vm.leo).padding(.top, 12)
+                    WriteWordView(vm: vm, exercise: exercise)
+                    Spacer(minLength: 40)
+                }
+            }
+
+        case .fillBlank:
+            ScrollView {
+                VStack(spacing: 16) {
+                    LeoPrimaryBubble(leo: vm.leo).padding(.top, 12)
+                    FillBlankView(vm: vm, exercise: exercise)
+                    Spacer(minLength: 40)
+                }
+            }
+
+        case .multipleChoice:
+            ScrollView {
+                VStack(spacing: 16) {
+                    LeoPrimaryBubble(leo: vm.leo).padding(.top, 12)
+                    CharacterBubble(exercise: exercise,
+                                    isSpeaking: vm.isSpeaking,
+                                    onReplay: { vm.speakCurrentExercise() })
+                    MultipleChoiceView(vm: vm, exercise: exercise)
+                    Spacer(minLength: 40)
+                }
+            }
+
+        default:
+            ScrollView {
+                VStack(spacing: 24) {
+                    LeoPrimaryBubble(leo: vm.leo).padding(.top, 12)
+                    CharacterBubble(exercise: exercise,
+                                    isSpeaking: vm.isSpeaking,
+                                    onReplay: { vm.speakCurrentExercise() })
+                        .padding(.top, 8)
+
+                    if !vm.hasAnswered {
+                        switch exercise.type {
+                        case .repeatAfterMe:
+                            RepeatResponseView(vm: vm)
+                        default:
+                            WriteResponseView(vm: vm)
+                        }
+                    }
+
+                    if vm.hasAnswered {
+                        FeedbackCard(correct: vm.lastAnswerCorrect,
+                                     expected: exercise.expectedAnswer)
+                        nextButton
+                    }
+                    Spacer(minLength: 40)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var nextButton: some View {
+        if vm.hasAnswered {
+            Button {
+                if vm.currentIndex + 1 >= vm.exercises.count {
+                    vm.saveSession(modelContext: modelContext)
+                    sessionComplete = true
+                } else {
+                    vm.nextExercise()
+                }
+            } label: {
+                Text(vm.currentIndex + 1 >= vm.exercises.count
+                     ? "Voir mon résultat !" : "Exercice suivant →")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color("accentPurple"))
+                    .cornerRadius(16)
+            }
+            .padding(.horizontal, 20)
+        }
     }
 }
 

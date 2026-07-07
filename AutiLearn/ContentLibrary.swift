@@ -1,54 +1,248 @@
 import Foundation
 
-// MARK: - Exercice pédagogique
-struct CurriculumExercise {
-    let characterSays: String
-    let prompt: String
-    let expectedAnswer: String
-    let emoji: String
-    let type: ExerciseMode
-    let subject: CurriculumSubject
-    let useGirl: Bool
-
-    enum ExerciseMode: String {
-        case repeatAfterMe = "repeat"
-        case answerQuestion = "answer"
-        case writeResponse  = "write"
-    }
-
-    enum CurriculumSubject: String {
-        case oral, reading, writing, math, science, social, arts
-    }
-}
+// CurriculumExercise is defined in CurriculumModels.swift
 
 struct ContentLibrary {
 
+    // Returns lessons first (in order), then shuffled practice, then shuffled evaluation
     static func exercises(for module: ModuleType,
                           level: SchoolLevel,
                           language: AppLanguage = .french,
-                          count: Int = 8) -> [CurriculumExercise] {
-        let pool: [CurriculumExercise]
-        switch language {
-        case .french:     pool = french(level, module)
-        case .english:    pool = english(level, module)
-        case .spanish:    pool = spanish(level, module)
-        case .portuguese: pool = portuguese(level, module)
-        case .italian:    pool = italian(level, module)
-        case .german:     pool = german(level, module)
-        case .arabic:     pool = arabic(level, module)
-        case .dutch:      pool = dutch(level, module)
-        }
-        return Array(pool.shuffled().prefix(count))
+                          count: Int = 10) -> [CurriculumExercise] {
+        let lessons    = lessonSlides(language: language, level: level)
+        let practicePool = practiceExercises(language: language, level: level)
+        let evalPool     = evaluationExercises(language: language, level: level)
+        let practiceCount = min(3, practicePool.count)
+        let evalCount     = min(max(0, count - lessons.count - practiceCount), evalPool.count)
+        return lessons
+            + Array(practicePool.shuffled().prefix(practiceCount))
+            + Array(evalPool.shuffled().prefix(evalCount))
     }
 
-    // MARK: - Helper
+    // MARK: - Helpers
+
+    // Backward-compat exercise helper
     private static func e(_ says: String, _ prompt: String, _ answer: String,
                            _ emoji: String, _ type: CurriculumExercise.ExerciseMode,
                            _ subject: CurriculumExercise.CurriculumSubject,
-                           _ girl: Bool) -> CurriculumExercise {
+                           _ girl: Bool,
+                           phase: CurriculumExercise.SessionPhase = .evaluation) -> CurriculumExercise {
         CurriculumExercise(characterSays: says, prompt: prompt,
                            expectedAnswer: answer, emoji: emoji,
-                           type: type, subject: subject, useGirl: girl)
+                           type: type, subject: subject, useGirl: girl,
+                           phase: phase)
+    }
+
+    private static func qcm(_ says: String, _ answer: String, _ emoji: String,
+                             _ choices: [String],
+                             _ subject: CurriculumExercise.CurriculumSubject = .oral) -> CurriculumExercise {
+        CurriculumExercise(characterSays: says, prompt: "Choisis la bonne réponse",
+                           expectedAnswer: answer, emoji: emoji,
+                           type: .multipleChoice, subject: subject, useGirl: true,
+                           choices: choices, phase: .evaluation)
+    }
+
+    private static func write(_ says: String, _ answer: String, _ emoji: String,
+                               _ writingPrompt: String = "",
+                               _ subject: CurriculumExercise.CurriculumSubject = .writing) -> CurriculumExercise {
+        CurriculumExercise(characterSays: says, prompt: "Écris le mot",
+                           expectedAnswer: answer, emoji: emoji,
+                           type: .writeWord, subject: subject, useGirl: true,
+                           writingPrompt: writingPrompt, phase: .practice)
+    }
+
+    private static func blank(_ says: String, _ answer: String, _ emoji: String,
+                               _ sentence: String,
+                               _ subject: CurriculumExercise.CurriculumSubject = .reading) -> CurriculumExercise {
+        CurriculumExercise(characterSays: says, prompt: "Complète la phrase",
+                           expectedAnswer: answer, emoji: emoji,
+                           type: .fillBlank, subject: subject, useGirl: true,
+                           blankSentence: sentence, phase: .practice)
+    }
+
+    // MARK: - Lesson slides dispatcher
+    private static func lessonSlides(language: AppLanguage, level: SchoolLevel) -> [CurriculumExercise] {
+        switch language {
+        case .french: return frLessons(level)
+        default:      return genericLessons(language: language, level: level)
+        }
+    }
+
+    // MARK: - Practice dispatcher
+    private static func practiceExercises(language: AppLanguage, level: SchoolLevel) -> [CurriculumExercise] {
+        switch language {
+        case .french: return frPractice(level)
+        default:      return []
+        }
+    }
+
+    // MARK: - Evaluation dispatcher
+    private static func evaluationExercises(language: AppLanguage, level: SchoolLevel) -> [CurriculumExercise] {
+        switch language {
+        case .french:     return french(level, .reading)
+        case .english:    return english(level, .reading)
+        case .spanish:    return spanish(level, .reading)
+        case .portuguese: return portuguese(level, .reading)
+        case .italian:    return italian(level, .reading)
+        case .german:     return german(level, .reading)
+        case .arabic:     return arabic(level, .reading)
+        case .dutch:      return dutch(level, .reading)
+        }
+    }
+
+    // MARK: - French Lesson Slides
+
+    private static func frLessons(_ level: SchoolLevel) -> [CurriculumExercise] {
+        switch level {
+        case .level0: return frLessons0()
+        case .level1: return frLessons1()
+        case .level2: return frLessons2()
+        case .level3: return frLessons3()
+        }
+    }
+
+    private static func frLessons0() -> [CurriculumExercise] { [
+        .lesson(emoji: "👋", title: "Dire bonjour",
+                body: "Quand tu arrives quelque part, tu dis **Bonjour** ! C'est très poli et ça rend les gens heureux. Le soir, on dit **Bonsoir**. Quand on part, on dit **Au revoir** !",
+                narration: "Aujourd'hui on apprend à dire bonjour. C'est super important pour être poli et faire des amis !",
+                subject: .social),
+        .lesson(emoji: "🎨", title: "Les couleurs",
+                body: "Les couleurs c'est magique ! 🔴 **Rouge** comme une pomme. 🔵 **Bleu** comme le ciel. 🟡 **Jaune** comme le soleil. 🟢 **Vert** comme l'herbe.",
+                narration: "Regarde autour de toi, il y a plein de couleurs ! Apprends leurs noms avec moi.",
+                subject: .arts),
+        .lesson(emoji: "🔢", title: "Compter jusqu'à 5",
+                body: "Les chiffres nous aident à compter. **1** — un doigt. **2** — deux yeux. **3** — trois roues de vélo. **4** — quatre pattes du chien. **5** — cinq doigts de la main !",
+                narration: "Je vais t'apprendre à compter jusqu'à 5 ! C'est facile et amusant.",
+                subject: .math),
+    ] }
+
+    private static func frLessons1() -> [CurriculumExercise] { [
+        .lesson(emoji: "📖", title: "Lire des syllabes",
+                body: "Une **syllabe** c'est un petit morceau de mot. MA-MAN a deux syllabes : **MA** et **MAN**. SOL-EIL a deux syllabes : **SOL** et **EIL**. Bravo si tu les lis !",
+                narration: "Pour lire, on découpe les mots en petits morceaux qu'on appelle des syllabes. Écoute bien !",
+                subject: .reading),
+        .lesson(emoji: "➕", title: "Addition simple",
+                body: "**Additionner** veut dire mettre ensemble. 2 pommes 🍎🍎 plus 3 pommes 🍎🍎🍎 font **5 pommes** ! Pour additionner, on compte tout ce qu'on a.",
+                narration: "L'addition, c'est quand on met des choses ensemble pour savoir combien on en a !",
+                subject: .math),
+        .lesson(emoji: "🌍", title: "La nature autour de nous",
+                body: "La **nature** c'est tout ce que l'Homme n'a pas fabriqué : les arbres 🌳, les fleurs 🌸, les animaux 🐦, les rivières 💧 et le soleil ☀️. On doit en prendre soin !",
+                narration: "La nature est magnifique et il faut la protéger. Je vais te raconter tout ce qu'on peut trouver dehors !",
+                subject: .science),
+    ] }
+
+    private static func frLessons2() -> [CurriculumExercise] { [
+        .lesson(emoji: "✏️", title: "Le nom et le verbe",
+                body: "Dans une phrase, le **nom** désigne une personne, un animal ou une chose. Le **verbe** dit ce qu'on fait. Exemple : **Le chat** (nom) **mange** (verbe) une souris.",
+                narration: "La grammaire c'est comme les règles d'un jeu ! Aujourd'hui on apprend les noms et les verbes.",
+                subject: .reading),
+        .lesson(emoji: "🔬", title: "Les plantes",
+                body: "Les plantes ont besoin de **trois choses** pour pousser : de l'**eau** 💧, de la **lumière** ☀️ et de la **terre** 🌱. Elles fabriquent leur nourriture grâce au soleil. C'est la **photosynthèse** !",
+                narration: "Sais-tu comment poussent les plantes ? Elles ont un secret incroyable que je vais te révéler !",
+                subject: .science),
+        .lesson(emoji: "🗺️", title: "La France",
+                body: "La **France** est un pays en Europe. Sa capitale est **Paris** 🗼. Elle est traversée par plusieurs fleuves dont la **Seine** et la **Loire**. Le drapeau français est **Bleu, Blanc, Rouge** 🇫🇷.",
+                narration: "Partons en voyage ! Je vais te parler de notre beau pays, la France.",
+                subject: .science),
+    ] }
+
+    private static func frLessons3() -> [CurriculumExercise] { [
+        .lesson(emoji: "📜", title: "La démocratie",
+                body: "Dans une **démocratie**, les citoyens choisissent leurs représentants en **votant**. En France, les élections ont lieu régulièrement. La **République française** est fondée sur la liberté, l'égalité et la fraternité.",
+                narration: "Comprendre comment fonctionne notre société est très important. Parlons de la démocratie !",
+                subject: .social),
+        .lesson(emoji: "⚛️", title: "La matière",
+                body: "Tout ce qui nous entoure est fait de **matière**. La matière est composée d'**atomes**, des particules minuscules. La matière peut être **solide**, **liquide** ou **gazeuse**. L'eau est liquide, la glace est solide, la vapeur est gazeuse.",
+                narration: "La physique-chimie nous explique de quoi est fait l'univers. C'est fascinant !",
+                subject: .science),
+    ] }
+
+    // MARK: - Generic lesson slides (non-French)
+    private static func genericLessons(language: AppLanguage, level: SchoolLevel) -> [CurriculumExercise] {
+        // Basic welcome lesson in original language
+        let (emoji, title, body, narration): (String, String, String, String)
+        switch language {
+        case .english:
+            (emoji, title, body, narration) = ("👋", "Greetings", "When you arrive somewhere, say **Hello**! It's very polite. In the evening, say **Good evening**. When leaving, say **Goodbye**!", "Today we learn how to greet people!")
+        case .spanish:
+            (emoji, title, body, narration) = ("👋", "Los saludos", "Cuando llegas a algún lugar, di **¡Hola**! Es muy educado. Por la noche di **Buenas noches**. Al marcharte di **¡Adiós**!", "¡Hoy aprendemos a saludar!")
+        case .portuguese:
+            (emoji, title, body, narration) = ("👋", "Saudações", "Quando você chega em algum lugar, diga **Olá**! É muito educado. À noite diga **Boa noite**. Ao sair diga **Tchau**!", "Hoje aprendemos a cumprimentar!")
+        case .italian:
+            (emoji, title, body, narration) = ("👋", "I saluti", "Quando arrivi da qualche parte, di' **Ciao**! È molto educato. La sera di' **Buona sera**. Quando parti di' **Arrivederci**!", "Oggi impariamo a salutare!")
+        case .german:
+            (emoji, title, body, narration) = ("👋", "Begrüßungen", "Wenn du irgendwo ankommst, sage **Hallo**! Das ist sehr höflich. Abends sage **Guten Abend**. Beim Abschied sage **Auf Wiedersehen**!", "Heute lernen wir, wie man grüßt!")
+        case .arabic:
+            (emoji, title, body, narration) = ("👋", "التحيات", "عندما تصل إلى مكان ما، قل **مرحباً**! هذا مهذب جداً. في المساء قل **مساء الخير**. عند المغادرة قل **مع السلامة**!", "اليوم نتعلم كيف نحيي الناس!")
+        case .dutch:
+            (emoji, title, body, narration) = ("👋", "Begroetingen", "Als je ergens aankomt, zeg **Hallo**! Dat is heel beleefd. 's Avonds zeg je **Goedenavond**. Bij het weggaan zeg je **Tot ziens**!", "Vandaag leren we hoe we mensen begroeten!")
+        case .french:
+            return frLessons(level)
+        }
+        return [.lesson(emoji: emoji, title: title, body: body, narration: narration)]
+    }
+
+    // MARK: - French Practice Exercises (write + fill-blank + diction)
+
+    private static func frPractice(_ level: SchoolLevel) -> [CurriculumExercise] {
+        switch level {
+        case .level0: return frPractice0()
+        case .level1: return frPractice1()
+        case .level2: return frPractice2()
+        case .level3: return frPractice3()
+        }
+    }
+
+    private static func frPractice0() -> [CurriculumExercise] { [
+        write("Écris le mot que tu entends : CHAT", "chat", "🐱", "Écris le mot..."),
+        write("Écris le mot que tu entends : CHIEN", "chien", "🐶", "Écris le mot..."),
+        write("Écris le mot que tu entends : SOLEIL", "soleil", "☀️", "Écris le mot..."),
+        write("Quelle couleur est-ce ? Écris-le.", "rouge", "🔴", "Écris la couleur..."),
+        write("Quelle couleur est-ce ? Écris-le.", "bleu", "🔵", "Écris la couleur..."),
+        blank("Complète la phrase : Le ___ dit miaou.", "chat", "🐱", "Le ___ dit miaou."),
+        blank("Complète la phrase : Le ___ est rouge.", "ballon", "🔴", "Le ___ est rouge."),
+        blank("Complète la phrase : J'ai ___ ans.", "cinq", "🎂", "J'ai ___ ans."),
+        e("Dis le mot SOLEIL à voix haute !", "Prononce bien", "soleil", "☀️", .diction, .oral, true, phase: .practice),
+        e("Dis le mot BONJOUR à voix haute !", "Prononce bien", "bonjour", "👋", .diction, .oral, true, phase: .practice),
+    ] }
+
+    private static func frPractice1() -> [CurriculumExercise] { [
+        write("Écris le mot : MAISON", "maison", "🏠", "Écris le mot..."),
+        write("Écris le mot : PAPILLON", "papillon", "🦋", "Écris le mot..."),
+        write("Écris le résultat : 2 + 3 =", "5", "🔢", "Écris le chiffre..."),
+        write("Écris le résultat : 4 + 4 =", "8", "🔢", "Écris le chiffre..."),
+        blank("Complète : Le soleil ___ dans le ciel.", "brille", "☀️", "Le soleil ___ dans le ciel."),
+        blank("Complète : La ___ mange une pomme.", "fille", "🍎", "La ___ mange une pomme."),
+        blank("Complète : J'aime ___ le vélo.", "faire", "🚴", "J'aime ___ le vélo."),
+        e("Dis la phrase : Le chat mange.", "Prononce bien", "Le chat mange", "🐱", .diction, .oral, true, phase: .practice),
+        e("Dis le mot : ÉLÉPHANT", "Prononce bien", "éléphant", "🐘", .diction, .oral, true, phase: .practice),
+    ] }
+
+    private static func frPractice2() -> [CurriculumExercise] { [
+        write("Écris le pluriel de CHEVAL", "chevaux", "🐴"),
+        write("Écris le féminin de BOULANGER", "boulangère", "🍞"),
+        write("Quel est le synonyme de CONTENT ? Écris-le.", "heureux", "😊"),
+        blank("Conjugue : Je ___ à l'école. (aller)", "vais", "🏫", "Je ___ à l'école."),
+        blank("Conjugue : Il ___ médecin. (être)", "est", "👨‍⚕️", "Il ___ médecin."),
+        blank("Complète : La photosynthèse permet aux plantes de ___.", "se nourrir", "🌿", "La photosynthèse permet aux plantes de ___."),
+        e("Dis la phrase : Nous avons un chien.", "Prononce bien", "Nous avons un chien", "🐶", .diction, .oral, true, phase: .practice),
+    ] }
+
+    private static func frPractice3() -> [CurriculumExercise] { [
+        write("Écris le conditionnel de VOULOIR à la 1ère personne", "je voudrais", "📝"),
+        blank("Complète l'équation : 2x + 6 = 14, donc x = ___", "4", "🔢", "2x + 6 = 14, donc x = ___."),
+        blank("La cellule est ___ de base du vivant.", "l'unité", "🔬", "La cellule est ___ de base du vivant."),
+        e("Explique ce qu'est une métaphore.", "Donne un exemple", "Une image sans comme", "📖", .diction, .oral, true, phase: .practice),
+    ] }
+
+    // MARK: - FRENCH (evaluation QCM + repeat)
+    private static func french(_ level: SchoolLevel, _ module: ModuleType) -> [CurriculumExercise] {
+        switch level {
+        case .level0: return frLevel0()
+        case .level1: return frLevel1()
+        case .level2: return frLevel2()
+        case .level3: return frLevel3()
+        }
     }
 
     // MARK: - FRENCH
@@ -62,6 +256,14 @@ struct ContentLibrary {
     }
 
     private static func frLevel0() -> [CurriculumExercise] { [
+        qcm("Comment dit-on bonjour en entrant ?", "Bonjour", "👋", ["Bonjour", "Au revoir", "Merci", "Dors bien"], .social),
+        qcm("Quelle couleur est la pomme ?", "Rouge", "🍎", ["Rouge", "Bleu", "Vert", "Jaune"], .arts),
+        qcm("Quelle couleur est le ciel ?", "Bleu", "☀️", ["Rouge", "Bleu", "Jaune", "Vert"], .arts),
+        qcm("Combien font 2 + 1 ?", "3", "🔢", ["2", "3", "4", "5"], .math),
+        qcm("Quel animal dit miaou ?", "Le chat", "🐱", ["Le chat", "Le chien", "L'oiseau", "Le poisson"], .science),
+        qcm("Quel animal dit ouaf ?", "Le chien", "🐶", ["Le chat", "Le lapin", "Le chien", "La vache"], .science),
+        qcm("Comment dit-on quand on part ?", "Au revoir", "👋", ["Bonjour", "Merci", "Au revoir", "S'il te plaît"], .social),
+        qcm("Quelle couleur est l'herbe ?", "Vert", "🌿", ["Rouge", "Bleu", "Jaune", "Vert"], .arts),
         e("Dis bonjour !", "Répète ce mot", "Bonjour", "👋", .repeatAfterMe, .oral, true),
         e("Au revoir !", "Répète ce mot", "Au revoir", "👋", .repeatAfterMe, .oral, false),
         e("Merci !", "Répète ce mot", "Merci", "🙏", .repeatAfterMe, .oral, true),
@@ -95,6 +297,12 @@ struct ContentLibrary {
     ] }
 
     private static func frLevel1() -> [CurriculumExercise] { [
+        qcm("Combien font 2 + 3 ?", "5", "🔢", ["3", "4", "5", "6"], .math),
+        qcm("Quel est le sujet dans : Le chat mange ?", "Le chat", "🐱", ["Le chat", "Mange", "Une souris", "Le"], .reading),
+        qcm("Quel est le pluriel de CHEVAL ?", "Chevaux", "🐴", ["Chevals", "Chevaux", "Chevales", "Cheval"], .reading),
+        qcm("Quel son commence le mot ARBRE ?", "A", "🌳", ["O", "A", "I", "U"], .reading),
+        qcm("Combien font 5 - 2 ?", "3", "🔢", ["2", "3", "4", "7"], .math),
+        qcm("Qu'est-ce qu'on dit en arrivant à l'école ?", "Bonjour", "🏫", ["Bonjour", "Bonne nuit", "Au revoir", "Merci"], .social),
         e("Répète : Le chat mange une souris.", "Répète la phrase", "Le chat mange une souris", "🐱", .repeatAfterMe, .oral, true),
         e("Répète : La fille joue dans le jardin.", "Répète la phrase", "La fille joue dans le jardin", "🌸", .repeatAfterMe, .oral, false),
         e("Répète : Le soleil brille aujourd'hui.", "Répète la phrase", "Le soleil brille aujourd'hui", "☀️", .repeatAfterMe, .oral, true),
