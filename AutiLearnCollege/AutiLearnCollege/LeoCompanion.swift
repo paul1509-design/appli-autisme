@@ -44,13 +44,21 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     func speakText(_ text: String) {
         synthesizer.stopSpeaking(at: .immediate)
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: language.voiceLocale)
-        utterance.rate = 0.42
-        utterance.pitchMultiplier = 1.15   // légèrement plus haut = plus chaleureux
-        utterance.volume = 0.95
+        // Découper en phrases pour des pauses naturelles entre elles
+        let sentences = text.components(separatedBy: CharacterSet(charactersIn: ".!?"))
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
         isSpeaking = true
-        synthesizer.speak(utterance)
+        for (i, sentence) in sentences.enumerated() {
+            let utterance = AVSpeechUtterance(string: sentence)
+            utterance.voice = AVSpeechSynthesisVoice(language: language.voiceLocale)
+            utterance.rate = 0.48          // plus naturel que 0.42
+            utterance.pitchMultiplier = 1.08  // chaleureux sans être robotique
+            utterance.volume = 1.0
+            utterance.preUtteranceDelay = i == 0 ? 0 : 0.18   // pause entre phrases
+            utterance.postUtteranceDelay = 0.08
+            synthesizer.speak(utterance)
+        }
     }
 
     func stop() { synthesizer.stopSpeaking(at: .immediate) }
@@ -783,15 +791,16 @@ struct LeoBubbleView: View {
         if leo.showBubble {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .bottom, spacing: 10) {
-                    // Avatar Léo animé
+                    // Avatar Léo dessiné
                     ZStack {
                         Circle()
-                            .fill(Color(leo.emotion.color).opacity(0.15))
-                            .frame(width: 44, height: 44)
-                        Text(leo.emotion.emoji)
-                            .font(.system(size: 24))
+                            .fill(Color(leo.emotion.color).opacity(0.12))
+                            .frame(width: 50, height: 50)
+                        LeoFaceView(isSpeaking: leo.isSpeaking,
+                                    accentColor: Color(leo.emotion.color))
+                            .frame(width: 40, height: 40)
                     }
-                    .scaleEffect(leo.isSpeaking ? 1.1 : 1.0)
+                    .scaleEffect(leo.isSpeaking ? 1.08 : 1.0)
                     .animation(.easeInOut(duration: 0.4).repeatWhileTrue(leo.isSpeaking), value: leo.isSpeaking)
 
                     // Bulle message
@@ -840,5 +849,86 @@ struct LeoBubbleView: View {
 private extension Animation {
     func repeatWhileTrue(_ condition: Bool) -> Animation {
         condition ? self.repeatForever(autoreverses: true) : self
+    }
+}
+
+// MARK: - Visage dessiné de Léo (SwiftUI pur, léger)
+struct LeoFaceView: View {
+    let isSpeaking: Bool
+    let accentColor: Color
+
+    @State private var isBlinking = false
+    @State private var mouthOpen = false
+
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            let cx = w / 2, cy = h / 2
+
+            // Tête
+            var headPath = Path()
+            headPath.addEllipse(in: CGRect(x: 0, y: 0, width: w, height: h))
+            ctx.fill(headPath, with: .color(Color(red: 0.98, green: 0.85, blue: 0.72)))
+            ctx.stroke(headPath, with: .color(accentColor.opacity(0.35)), lineWidth: 1.5)
+
+            // Joues légèrement rosées
+            for dx: CGFloat in [-w * 0.23, w * 0.23] {
+                var cheek = Path()
+                cheek.addEllipse(in: CGRect(x: cx + dx - w * 0.10,
+                                            y: cy + h * 0.08,
+                                            width: w * 0.20, height: h * 0.13))
+                ctx.fill(cheek, with: .color(Color(red: 1.0, green: 0.72, blue: 0.72).opacity(0.30)))
+            }
+
+            // Yeux (capsule aplatie si clignement)
+            let eyeH: CGFloat = isBlinking ? 1.5 : h * 0.12
+            for dx: CGFloat in [-w * 0.18, w * 0.18] {
+                var eye = Path()
+                eye.addRoundedRect(in: CGRect(x: cx + dx - w * 0.06,
+                                              y: cy - h * 0.14 - eyeH / 2,
+                                              width: w * 0.12, height: eyeH),
+                                   cornerSize: CGSize(width: 3, height: 3))
+                ctx.fill(eye, with: .color(Color(red: 0.20, green: 0.13, blue: 0.08)))
+            }
+
+            // Sourire (arc)
+            var smile = Path()
+            let smileY = cy + h * 0.12
+            smile.move(to: CGPoint(x: cx - w * 0.18, y: smileY - h * 0.02))
+            smile.addQuadCurve(to: CGPoint(x: cx + w * 0.18, y: smileY - h * 0.02),
+                               control: CGPoint(x: cx, y: smileY + h * 0.10))
+            ctx.stroke(smile, with: .color(Color(red: 0.55, green: 0.25, blue: 0.15)),
+                       style: StrokeStyle(lineWidth: 1.8, lineCap: .round))
+
+            // Bouche ouverte quand Léo parle
+            if mouthOpen {
+                var mouth = Path()
+                mouth.addEllipse(in: CGRect(x: cx - w * 0.08, y: smileY - h * 0.01,
+                                            width: w * 0.16, height: h * 0.10))
+                ctx.fill(mouth, with: .color(Color(red: 0.60, green: 0.20, blue: 0.15)))
+            }
+        }
+        .onAppear { scheduleBlink() }
+        .onChange(of: isSpeaking) { speaking in
+            if speaking { animateMouth() }
+            else { withAnimation(.easeOut(duration: 0.15)) { mouthOpen = false } }
+        }
+    }
+
+    private func scheduleBlink() {
+        let delay = Double.random(in: 2.5...4.5)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            withAnimation(.easeInOut(duration: 0.08)) { isBlinking = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                withAnimation(.easeInOut(duration: 0.08)) { isBlinking = false }
+                scheduleBlink()
+            }
+        }
+    }
+
+    private func animateMouth() {
+        guard isSpeaking else { return }
+        withAnimation(.easeInOut(duration: 0.22)) { mouthOpen.toggle() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) { animateMouth() }
     }
 }
