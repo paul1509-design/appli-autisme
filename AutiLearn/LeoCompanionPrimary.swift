@@ -199,21 +199,13 @@ struct LeoPrimaryBubble: View {
     var body: some View {
         if leo.showBubble {
             HStack(alignment: .bottom, spacing: 10) {
-                // Avatar dessiné
-                ZStack {
-                    Circle()
-                        .fill(Color(leo.emotion.color).opacity(0.12))
-                        .frame(width: 56, height: 56)
-                    LeoFaceView(isSpeaking: leo.isSpeaking,
-                                accentColor: Color(leo.emotion.color))
-                        .frame(width: 46, height: 46)
-                }
-                .scaleEffect(leo.isSpeaking ? 1.08 : 1.0)
-                .animation(.easeInOut(duration: 0.45).repeatWhileTrue(leo.isSpeaking), value: leo.isSpeaking)
+                // Avatar photo
+                LeoAvatarView(isSpeaking: leo.isSpeaking,
+                              accentColor: Color(leo.emotion.color))
 
                 // Bulle
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Léo")
+                    Text(LeoAvatarView.tutorName)
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(Color(leo.emotion.color))
                     Text(leo.currentMessage)
@@ -255,7 +247,43 @@ private extension Animation {
     }
 }
 
-// MARK: - Visage humain de Léo (prof bienveillant, SwiftUI Canvas)
+// MARK: - Avatar photo du professeur
+struct LeoAvatarView: View {
+    let isSpeaking: Bool
+    let accentColor: Color
+
+    /// Changer "female" en "male" pour afficher M. Léo (ou laisser "female" pour Mme Léa)
+    static let gender   = "female"
+    static let tutorName = gender == "female" ? "Léa" : "Léo"
+
+    @State private var pulse = false
+
+    var body: some View {
+        ZStack {
+            // Anneau de couleur animé quand le prof parle
+            Circle()
+                .stroke(accentColor.opacity(isSpeaking ? 0.7 : 0.25), lineWidth: isSpeaking ? 3 : 1.5)
+                .frame(width: 62, height: 62)
+                .scaleEffect(pulse ? 1.10 : 1.0)
+                .animation(isSpeaking
+                    ? .easeInOut(duration: 0.55).repeatForever(autoreverses: true)
+                    : .easeOut(duration: 0.2),
+                           value: pulse)
+
+            // Photo du professeur
+            Image(Self.gender == "female" ? "LeoAvatarFemale" : "LeoAvatarMale")
+                .resizable()
+                .scaledToFill()
+                .frame(width: 56, height: 56)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+        }
+        .onChange(of: isSpeaking) { speaking in pulse = speaking }
+    }
+}
+
+// MARK: - Visage humain de Léo (prof bienveillant, SwiftUI Canvas) — GARDÉ EN FALLBACK
 struct LeoFaceView: View {
     let isSpeaking: Bool
     let accentColor: Color

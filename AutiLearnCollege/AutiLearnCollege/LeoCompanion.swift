@@ -791,21 +791,13 @@ struct LeoBubbleView: View {
         if leo.showBubble {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .bottom, spacing: 10) {
-                    // Avatar Léo dessiné
-                    ZStack {
-                        Circle()
-                            .fill(Color(leo.emotion.color).opacity(0.12))
-                            .frame(width: 50, height: 50)
-                        LeoFaceView(isSpeaking: leo.isSpeaking,
-                                    accentColor: Color(leo.emotion.color))
-                            .frame(width: 40, height: 40)
-                    }
-                    .scaleEffect(leo.isSpeaking ? 1.08 : 1.0)
-                    .animation(.easeInOut(duration: 0.4).repeatWhileTrue(leo.isSpeaking), value: leo.isSpeaking)
+                    // Avatar photo
+                    LeoAvatarView(isSpeaking: leo.isSpeaking,
+                                  accentColor: Color(leo.emotion.color))
 
                     // Bulle message
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Léo")
+                        Text(LeoAvatarView.tutorName)
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(leo.emotion.color))
                         Text(leo.currentMessage)
@@ -849,6 +841,39 @@ struct LeoBubbleView: View {
 private extension Animation {
     func repeatWhileTrue(_ condition: Bool) -> Animation {
         condition ? self.repeatForever(autoreverses: true) : self
+    }
+}
+
+// MARK: - Avatar photo du professeur
+struct LeoAvatarView: View {
+    let isSpeaking: Bool
+    let accentColor: Color
+
+    static let gender    = "female"
+    static let tutorName = gender == "female" ? "Léa" : "Léo"
+
+    @State private var pulse = false
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(accentColor.opacity(isSpeaking ? 0.7 : 0.25), lineWidth: isSpeaking ? 3 : 1.5)
+                .frame(width: 58, height: 58)
+                .scaleEffect(pulse ? 1.10 : 1.0)
+                .animation(isSpeaking
+                    ? .easeInOut(duration: 0.55).repeatForever(autoreverses: true)
+                    : .easeOut(duration: 0.2),
+                           value: pulse)
+
+            Image(Self.gender == "female" ? "LeoAvatarFemale" : "LeoAvatarMale")
+                .resizable()
+                .scaledToFill()
+                .frame(width: 52, height: 52)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+        }
+        .onChange(of: isSpeaking) { speaking in pulse = speaking }
     }
 }
 
