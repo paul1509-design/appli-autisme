@@ -496,14 +496,17 @@ struct ABAProgressPDFReport {
 // MARK: - Bouton export PDF (app primaire)
 struct ABAPDFShareButton: View {
     let child: ChildProfile
-    @State private var showShareSheet = false
-    @State private var pdfData: Data? = nil
+
+    private var pdfURL: URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("rapport_\(child.firstName).pdf")
+        let data = ABAProgressPDFReport.generate(for: child)
+        try? data.write(to: url)
+        return url
+    }
 
     var body: some View {
-        Button {
-            pdfData = ABAProgressPDFReport.generate(for: child)
-            showShareSheet = true
-        } label: {
+        ShareLink(item: pdfURL) {
             HStack(spacing: 10) {
                 Image(systemName: "doc.richtext").font(.system(size: 16))
                 Text("Exporter rapport PDF").font(.system(size: 15, weight: .medium))
@@ -512,22 +515,7 @@ struct ABAPDFShareButton: View {
             .frame(maxWidth: .infinity).frame(height: 48)
             .background(Color("accentBlue")).cornerRadius(14)
         }
-        .sheet(isPresented: $showShareSheet) {
-            if let data = pdfData {
-                ABAShareSheet(data: data, fileName: "rapport_\(child.firstName).pdf")
-            }
-        }
     }
-}
-
-struct ABAShareSheet: UIViewControllerRepresentable {
-    let data: Data; let fileName: String
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-        try? data.write(to: url)
-        return UIActivityViewController(activityItems: [url], applicationActivities: nil)
-    }
-    func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
 }
 
 // MARK: - Avis App Store + Exercice bonus

@@ -145,14 +145,17 @@ struct CollegePDFReport {
 // MARK: - Bouton partage PDF (utilisé dans le dashboard)
 struct CollegePDFShareButton: View {
     let student: CollegeProfile
-    @State private var showShareSheet = false
-    @State private var pdfData: Data? = nil
+
+    private var pdfURL: URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("rapport_\(student.firstName).pdf")
+        let data = CollegePDFReport.generate(for: student)
+        try? data.write(to: url)
+        return url
+    }
 
     var body: some View {
-        Button {
-            pdfData = CollegePDFReport.generate(for: student)
-            showShareSheet = true
-        } label: {
+        ShareLink(item: pdfURL) {
             HStack(spacing: 10) {
                 Image(systemName: "doc.richtext")
                     .font(.system(size: 16))
@@ -165,23 +168,5 @@ struct CollegePDFShareButton: View {
             .background(Color("accentPurple"))
             .cornerRadius(14)
         }
-        .sheet(isPresented: $showShareSheet) {
-            if let data = pdfData {
-                CollegeShareSheet(data: data, fileName: "rapport_\(student.firstName).pdf")
-            }
-        }
     }
-}
-
-struct CollegeShareSheet: UIViewControllerRepresentable {
-    let data: Data
-    let fileName: String
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-        try? data.write(to: url)
-        return UIActivityViewController(activityItems: [url], applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
