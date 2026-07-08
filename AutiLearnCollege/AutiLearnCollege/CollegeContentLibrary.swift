@@ -3,13 +3,149 @@ import Foundation
 // MARK: - Bibliothèque d'exercices collège/lycée
 struct CollegeContentLibrary {
 
+    // Retourne : slides de cours (ordre fixe) + exercices mélangés
     static func exercises(for subject: CollegeSubject,
                           level: CollegeLevel,
                           language: CollegeLanguage = .french,
-                          count: Int = 8) -> [CollegeExercise] {
-        let pool = allExercises(subject: subject, level: level, language: language)
-        return Array(pool.shuffled().prefix(count))
+                          count: Int = 10) -> [CollegeExercise] {
+        let lessons = lessonSlides(subject: subject, level: level, language: language)
+        let pool    = allExercises(subject: subject, level: level, language: language)
+        let evalCount = min(count - lessons.count, pool.count)
+        return lessons + Array(pool.shuffled().prefix(max(0, evalCount)))
     }
+
+    // MARK: - Slides de cours par matière
+    private static func lessonSlides(subject: CollegeSubject, level: CollegeLevel, language: CollegeLanguage) -> [CollegeExercise] {
+        guard language == .french else { return [] }
+        switch subject {
+        case .francais:      return francaisLessons(level: level)
+        case .maths:         return mathsLessons(level: level)
+        case .anglais:       return anglaisLessons(level: level)
+        case .histoire:      return histoireLessons(level: level)
+        case .sciences:      return sciencesLessons(level: level)
+        case .communication: return communicationLessons(level: level)
+        }
+    }
+
+    // MARK: - Cours Français
+    private static func francaisLessons(level: CollegeLevel) -> [CollegeExercise] {
+        if level.isLycee {
+            return [
+                .lesson(subject: .francais, emoji: "📜",
+                        title: "Les figures de style",
+                        body: "Une **métaphore** compare sans « comme » (ex: *il est un lion*). Une **comparaison** utilise « comme » ou « tel » (ex: *il est courageux comme un lion*). La **personnification** attribue des traits humains à un objet.",
+                        narration: "Aujourd'hui on explore les figures de style, essentielles pour l'analyse littéraire au lycée."),
+                .lesson(subject: .francais, emoji: "✍️",
+                        title: "La dissertation",
+                        body: "Une dissertation comporte **trois parties** : introduction (accroche + problématique + annonce du plan), **développement** (thèse, antithèse, synthèse), et **conclusion** (réponse à la problématique + ouverture).",
+                        narration: "La dissertation est l'exercice phare du bac de français. Je t'explique la structure parfaite."),
+            ]
+        }
+        return [
+            .lesson(subject: .francais, emoji: "📝",
+                    title: "Le nom et le groupe nominal",
+                    body: "Un **nom** désigne une personne, un animal, une chose ou une idée. Il peut être **propre** (Paris, Marie) ou **commun** (chat, maison). Le **groupe nominal** est formé d'un déterminant + un nom (ex: *le chat*, *une belle maison*).",
+                    narration: "Parlons grammaire ! Le nom est la brique de base de la phrase française."),
+            .lesson(subject: .francais, emoji: "🔤",
+                    title: "Les temps du passé",
+                    body: "L'**imparfait** décrit une action habituelle ou un état (ex: *il jouait*). Le **passé composé** exprime une action terminée (ex: *il a joué*). Le **passé simple** s'utilise surtout à l'écrit pour des actions courtes (ex: *il joua*).",
+                    narration: "Les temps du passé sont souvent confondus. Je vais t'aider à les distinguer facilement !"),
+        ]
+    }
+
+    // MARK: - Cours Maths
+    private static func mathsLessons(level: CollegeLevel) -> [CollegeExercise] {
+        if level.isLycee {
+            return [
+                .lesson(subject: .maths, emoji: "📐",
+                        title: "Les fonctions du second degré",
+                        body: "Une fonction **trinôme** s'écrit f(x) = ax² + bx + c. Son **discriminant** est Δ = b² − 4ac. Si Δ > 0 : deux racines. Si Δ = 0 : une racine double. Si Δ < 0 : pas de racine réelle.",
+                        narration: "Les fonctions du second degré sont au cœur du programme de seconde. Voici la méthode pas à pas."),
+                .lesson(subject: .maths, emoji: "∫",
+                        title: "Les dérivées",
+                        body: "La **dérivée** d'une fonction mesure son taux de variation. Si f(x) = xⁿ alors **f'(x) = n·xⁿ⁻¹**. La dérivée d'une constante est **0**. La dérivée de sin(x) est **cos(x)**.",
+                        narration: "La dérivation est une notion fondamentale en terminale. Apprenons les règles essentielles !"),
+            ]
+        }
+        return [
+            .lesson(subject: .maths, emoji: "🔢",
+                    title: "Les fractions",
+                    body: "Une **fraction** représente une division : **numérateur** ÷ **dénominateur**. Pour additionner des fractions, il faut le même dénominateur (dénominateur **commun**). Ex : 1/3 + 1/6 = 2/6 + 1/6 = **3/6 = 1/2**.",
+                    narration: "Les fractions font peur à beaucoup d'élèves, mais avec la bonne méthode c'est simple !"),
+            .lesson(subject: .maths, emoji: "📐",
+                    title: "Le théorème de Pythagore",
+                    body: "Dans un **triangle rectangle**, le carré de l'**hypoténuse** (le côté le plus long) est égal à la somme des carrés des deux autres côtés. **a² + b² = c²** où c est l'hypoténuse.",
+                    narration: "Le théorème de Pythagore est l'un des théorèmes les plus célèbres des maths. Découvrons-le ensemble !"),
+        ]
+    }
+
+    // MARK: - Cours Anglais
+    private static func anglaisLessons(level: CollegeLevel) -> [CollegeExercise] { [
+        .lesson(subject: .anglais, emoji: "🇬🇧",
+                title: "Le prétérit simple",
+                body: "Le **prétérit simple** exprime une action passée et terminée. Pour les verbes **réguliers**, on ajoute **-ed** (ex: *play → played*). Pour les verbes **irréguliers**, il faut les apprendre (ex: *go → went*, *see → saw*).",
+                narration: "Today we learn the past simple tense in English! It's very useful to talk about what happened."),
+        .lesson(subject: .anglais, emoji: "💬",
+                title: "Les modaux",
+                body: "Les **modaux** expriment des nuances : **can** = pouvoir/savoir, **must** = devoir (obligation), **should** = devoir (conseil), **may/might** = pouvoir (possibilité). Ils sont toujours suivis de l'**infinitif sans to**.",
+                narration: "Modal verbs are essential in English! Let me explain how each one works."),
+    ] }
+
+    // MARK: - Cours Histoire-Géo
+    private static func histoireLessons(level: CollegeLevel) -> [CollegeExercise] {
+        if level.isLycee {
+            return [
+                .lesson(subject: .histoire, emoji: "🌍",
+                        title: "La mondialisation",
+                        body: "La **mondialisation** est l'intensification des échanges économiques, culturels et humains à l'échelle planétaire. Elle est portée par le **libre-échange**, les **multinationales** et les nouvelles technologies. Elle crée à la fois des richesses et des **inégalités**.",
+                        narration: "La mondialisation est un sujet central en géographie au lycée. Analysons ses mécanismes."),
+            ]
+        }
+        return [
+            .lesson(subject: .histoire, emoji: "🏛️",
+                    title: "La Révolution française",
+                    body: "En **1789**, le peuple français se soulève contre le roi Louis XVI. Le **14 juillet 1789**, la Bastille est prise. La **Déclaration des droits de l'Homme** est rédigée. La devise **Liberté, Égalité, Fraternité** naît à cette époque.",
+                    narration: "La Révolution française est un moment clé de notre histoire. Découvrons ensemble ce qui s'est passé !"),
+            .lesson(subject: .histoire, emoji: "⚔️",
+                    title: "La Première Guerre mondiale",
+                    body: "La **Première Guerre mondiale** (1914-1918) oppose les **Alliés** (France, Royaume-Uni, Russie, puis États-Unis) aux **Empires centraux** (Allemagne, Autriche-Hongrie). C'est une guerre de **tranchées**. Elle cause plus de **18 millions** de morts.",
+                    narration: "La Grande Guerre a bouleversé le monde entier. Voici les faits essentiels à connaître."),
+        ]
+    }
+
+    // MARK: - Cours Sciences
+    private static func sciencesLessons(level: CollegeLevel) -> [CollegeExercise] {
+        if level.isLycee {
+            return [
+                .lesson(subject: .sciences, emoji: "⚛️",
+                        title: "La structure de l'atome",
+                        body: "L'**atome** est composé d'un **noyau** (protons + neutrons) entouré d'**électrons**. Le **numéro atomique Z** = nombre de protons. La **masse atomique A** = protons + neutrons. Un **ion** est un atome ayant gagné ou perdu des électrons.",
+                        narration: "La chimie atomique est fondamentale pour comprendre la matière. Voici les bases indispensables !"),
+            ]
+        }
+        return [
+            .lesson(subject: .sciences, emoji: "🔬",
+                    title: "La cellule vivante",
+                    body: "Tous les **êtres vivants** sont composés de **cellules**. La cellule contient un **noyau** (avec l'ADN), une **membrane** (qui l'entoure) et du **cytoplasme**. Les cellules végétales ont en plus une **paroi** et des **chloroplastes**.",
+                    narration: "La cellule est l'unité fondamentale du vivant. Découvrons sa structure fascinante !"),
+            .lesson(subject: .sciences, emoji: "🌡️",
+                    title: "Les états de la matière",
+                    body: "La matière existe en **trois états** : **solide** (forme fixe), **liquide** (forme variable, volume fixe), **gazeux** (forme et volume variables). Le passage entre ces états s'appelle un **changement d'état** : fusion, solidification, vaporisation, condensation.",
+                    narration: "L'eau peut être glace, liquide ou vapeur. Apprenons pourquoi et comment !"),
+        ]
+    }
+
+    // MARK: - Cours Communication
+    private static func communicationLessons(level: CollegeLevel) -> [CollegeExercise] { [
+        .lesson(subject: .communication, emoji: "🗣️",
+                title: "Exprimer ses émotions",
+                body: "Reconnaître et exprimer ses **émotions** est important. Les émotions de base sont : **joie**, **tristesse**, **colère**, **peur**, **dégoût** et **surprise**. Dire « **Je me sens** ... » est plus précis que « ça va » ou « ça va pas ».",
+                narration: "Parler de ce qu'on ressent, c'est une compétence qui s'apprend. Voyons comment bien exprimer ses émotions."),
+        .lesson(subject: .communication, emoji: "🤝",
+                title: "La communication non-violente",
+                body: "La **Communication Non-Violente** (CNV) suit 4 étapes : **Observer** (les faits sans jugement), **Ressentir** (nommer l'émotion), **Besoin** (identifier ce qu'on souhaite), **Demander** (une action concrète et réalisable).",
+                narration: "La communication non-violente permet de mieux se comprendre et éviter les conflits. C'est très utile au quotidien !"),
+    ] }
 
     private static func allExercises(subject: CollegeSubject, level: CollegeLevel, language: CollegeLanguage) -> [CollegeExercise] {
         switch subject {

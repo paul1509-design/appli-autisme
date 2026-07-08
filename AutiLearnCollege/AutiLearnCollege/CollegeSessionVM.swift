@@ -43,6 +43,8 @@ class CollegeSessionVM: ObservableObject {
         return Double(currentIndex) / Double(exercises.count)
     }
 
+    var isSessionComplete: Bool { currentIndex >= exercises.count }
+
     func startSession() {
         leo.configure(language: student.language)
         exercises = CollegeContentLibrary.exercises(for: subject, level: student.level, language: student.language, count: 8)

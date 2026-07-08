@@ -103,31 +103,68 @@ class LeoPrimary: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         case .welcome(let fn): return (pick([
             "Bonjour \(fn) ! Je suis tellement content de te voir !",
             "Salut \(fn) ! On va apprendre plein de choses ensemble !",
-            "\(fn) ! Tu es là ! C'est super !"
+            "\(fn) ! Tu es là ! C'est super !",
+            "Coucou \(fn) ! J'espère que tu vas bien aujourd'hui !",
+            "Oh \(fn) ! Quelle belle journée pour apprendre !",
+            "Bonjour bonjour \(fn) ! Je t'attendais avec impatience !",
+            "Salut \(fn) ! T'es prêt(e) ? Moi je suis super impatient(e) !",
+            "\(fn), tu es arrivé(e) ! La journée va être géniale !",
+            "Hey \(fn) ! Ça fait plaisir de te revoir !",
+            "Bienvenue \(fn) ! On va passer un super moment ensemble !"
         ]), .excited)
 
         case .returnAfterDays(let fn, let d):
-            if d == 1 { return ("Tu m'as manqué hier \(fn) ! Contente que tu sois là !", .caring) }
-            return ("Ça fait \(d) jours \(fn) ! J'avais vraiment hâte de te revoir !", .caring)
+            if d == 1 { return (pick([
+                "Tu m'as manqué hier \(fn) ! Content(e) que tu sois là !",
+                "Te revoilà \(fn) ! J'ai pensé à toi hier !",
+                "\(fn) ! Contente de te revoir aujourd'hui !"
+            ]), .caring) }
+            if d <= 3 { return (pick([
+                "Ça fait \(d) jours \(fn) ! J'avais vraiment hâte de te revoir !",
+                "\(d) jours sans toi \(fn) ! Je suis tellement contente que tu reviennes !"
+            ]), .caring) }
+            return (pick([
+                "Wow \(fn), ça fait longtemps ! \(d) jours ! Je suis si content(e) que tu sois là !",
+                "\(fn) ! \(d) jours passés ! On reprend ensemble, pas de pression !"
+            ]), .caring)
 
         case .moduleStart(let module, let fn): return (pick([
             "On va faire \(module) ! Tu vas adorer \(fn) !",
             "\(module) aujourd'hui \(fn) ! On y va ensemble !",
-            "Prêt(e) pour \(module) ? Moi oui \(fn) !"
+            "Prêt(e) pour \(module) ? Moi oui \(fn) !",
+            "C'est l'heure de \(module) \(fn) ! J'adore cette matière !",
+            "Allez \(fn), on se lance dans \(module) ! Tu vas voir c'est super !",
+            "\(fn) et moi, on fait \(module) — en route !",
+            "Oh j'adore \(module) ! On y va \(fn) !",
+            "Aujourd'hui \(module) avec \(fn) ! Ça va être fantastique !"
         ]), .excited)
 
         case .correct(let streak):
+            if streak >= 5 { return (pick([
+                "\(streak) d'affilée ! \(streak) ! Tu es une LÉGENDE \(streak) !",
+                "INCROYABLE ! \(streak) bonnes réponses ! T'es le/la meilleur(e) !",
+                "WOAH \(streak) ! Je n'en reviens pas ! Tu es brillant(e) !"
+            ]), .celebrating) }
             if streak >= 3 { return (pick([
                 "\(streak) bonnes réponses ! Tu es une star !",
                 "Wow \(streak) d'affilée ! T'es incroyable !",
-                "\(streak) ! Super champion !"
+                "\(streak) ! Super champion(ne) !",
+                "Oh la la, \(streak) de suite ! Tu carttonnes !",
+                "Tu vois ? \(streak) bonnes réponses ! Je le savais !"
             ]), .celebrating) }
             return (pick([
                 "Bravo ! C'est exactement ça !",
                 "Oui ! Bien joué !",
                 "Super ! Tu es très fort(e) !",
                 "Excellent ! Continue !",
-                "Génial ! T'as tout compris !"
+                "Génial ! T'as tout compris !",
+                "Parfait ! Tu es trop fort(e) !",
+                "Wouhou ! Bonne réponse !",
+                "C'est ça ! Je savais que tu pouvais !",
+                "Trop bien ! Continue comme ça !",
+                "Magnifique ! Tu progresses vraiment !",
+                "Oh oui ! Exactement ça !",
+                "Super boulot ! Je suis fière de toi !"
             ]), .happy)
 
         case .wrong(let attempt):
@@ -135,49 +172,79 @@ class LeoPrimary: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
                 "Presque ! On réessaie ensemble.",
                 "Pas grave du tout ! Je t'aide.",
                 "C'est difficile. Regarde bien !",
-                "Ne t'inquiète pas — on va y arriver !"
+                "Ne t'inquiète pas — on va y arriver !",
+                "Oh ! Essaie encore, tu es capable !",
+                "Hmm, pas tout à fait. Réfléchis encore !",
+                "Ce n'est pas grave du tout ! Regarde à nouveau.",
+                "Tout le monde fait des erreurs ! Réessaie !",
+                "Tu y es presque ! Une autre tentative ?",
+                "Pas de panique ! On regarde ensemble."
             ]), .caring) }
             return (pick([
                 "Relis doucement. La réponse est là !",
                 "Je suis là avec toi. Essaie encore !",
-                "Tu peux demander un indice, c'est normal !"
+                "Tu peux demander un indice, c'est normal !",
+                "Prends ton temps. Je t'attends.",
+                "Regarde bien les indices — tu vas trouver !",
+                "Je crois en toi ! Une dernière tentative ?"
             ]), .supportive)
 
         case .hint: return (pick([
             "Je t'aide ! Voilà un indice.",
             "Bien sûr ! On est une équipe.",
-            "C'est courageux de demander de l'aide !"
+            "C'est courageux de demander de l'aide !",
+            "Bien sûr \\ ! Voilà un petit coup de pouce.",
+            "Pas de problème ! C'est ça apprendre ensemble.",
+            "Super d'avoir demandé ! Voici de l'aide.",
+            "On est là pour ça ! Tiens, regarde ceci."
         ]), .helpful)
 
         case .sessionEnd(let correct, let total, let fn):
             let rate = total > 0 ? correct * 100 / total : 0
             if rate >= 80 { return (pick([
                 "\(correct) sur \(total) \(fn) ! Tu es un génie !",
-                "Magnifique \(fn) ! \(rate)% ! Je suis si fier de toi !",
-                "Wow \(fn) ! Quelle super session !"
+                "Magnifique \(fn) ! \(rate)% ! Je suis si fière de toi !",
+                "Wow \(fn) ! Quelle super session !",
+                "CHAMPION(NE) ! \(correct)/\(total) ! Tu as été fabuleux(se) \(fn) !",
+                "Incroyable \(fn) ! \(rate)% — tu es une étoile !",
+                "\(fn), tu as brillé aujourd'hui ! \(correct) sur \(total), bravo !"
             ]), .celebrating) }
             if rate >= 50 { return (pick([
                 "\(correct) sur \(total) — bien joué \(fn) !",
                 "Bonne session \(fn) ! Tu t'améliores !",
-                "Super travail \(fn) ! On continue !"
+                "Super travail \(fn) ! On continue !",
+                "\(fn), tu as bien travaillé ! \(correct)/\(total), pas mal du tout !",
+                "Bel effort \(fn) ! Chaque session te rend plus fort(e) !",
+                "C'est bien \(fn) ! On voit que tu fais des progrès !"
             ]), .happy) }
             return (pick([
                 "\(fn), tu as essayé et c'est ce qui compte !",
                 "Bravo pour l'effort \(fn) ! La prochaine sera meilleure.",
-                "Tu as travaillé dur \(fn). Je suis fier de toi !"
+                "Tu as travaillé dur \(fn). Je suis fière de toi !",
+                "\(fn), les erreurs font partie de l'apprentissage. Tu t'en sors !",
+                "Courage \(fn) ! Chaque jour on s'améliore un peu !",
+                "Ce qui compte c'est d'avoir essayé \(fn) ! Je suis fière de toi !"
             ]), .encouraging)
 
         case .streakCelebration(let days, let fn):
             return (pick([
                 "\(days) jours de suite \(fn) ! Tu es fantastique !",
                 "Incroyable ! \(days) jours ! \(fn), tu es mon héros !",
-                "\(days) jours \(fn) ! On est une super équipe !"
+                "\(days) jours \(fn) ! On est une super équipe !",
+                "Waouh \(days) jours consécutifs \(fn) ! C'est remarquable !",
+                "\(fn) \(days) jours d'affilée ! Tu es si régulier(ère), je suis fière !",
+                "\(days) jours sans manquer \(fn) ! Tu es extraordinaire !"
             ]), .celebrating)
 
         case .encouragement(let fn): return (pick([
             "Allez \(fn), on peut le faire !",
             "\(fn), je crois en toi !",
-            "Pas de pression \(fn), on y va doucement."
+            "Pas de pression \(fn), on y va doucement.",
+            "Tu es capable \(fn) ! Je suis là avec toi.",
+            "\(fn), prends ton temps. On n'est pas pressé(e)s.",
+            "Respire et concentre-toi \(fn) ! Tu vas y arriver.",
+            "Je sais que tu peux \(fn) ! Fais confiance à toi-même.",
+            "\(fn), chaque effort compte. Continue !"
         ]), .neutral)
         }
     }

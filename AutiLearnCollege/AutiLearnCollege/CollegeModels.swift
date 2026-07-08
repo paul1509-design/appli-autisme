@@ -197,6 +197,7 @@ enum CollegeSubject: String, CaseIterable, Codable {
 
 // MARK: - Mode d'exercice
 enum CollegeExerciseMode: String, Codable {
+    case lesson           // 📖 Slide de cours illustrée (pas d'évaluation)
     case multipleChoice   // QCM
     case shortAnswer      // Réponse courte
     case trueFalse        // Vrai/Faux
@@ -215,6 +216,34 @@ struct CollegeExercise: Identifiable {
     let explanation: String        // Explication pédagogique après réponse
     let emoji: String
     let difficulty: Int            // 1-3 : facile, moyen, difficile
+    // Champs spécifiques aux slides de cours
+    let lessonTitle: String
+    let lessonBody: String         // Texte avec **mots** en gras
+
+    init(subject: CollegeSubject, mode: CollegeExerciseMode, question: String,
+         choices: [String], correctAnswer: String, explanation: String,
+         emoji: String, difficulty: Int,
+         lessonTitle: String = "", lessonBody: String = "") {
+        self.subject = subject
+        self.mode = mode
+        self.question = question
+        self.choices = choices
+        self.correctAnswer = correctAnswer
+        self.explanation = explanation
+        self.emoji = emoji
+        self.difficulty = difficulty
+        self.lessonTitle = lessonTitle
+        self.lessonBody = lessonBody
+    }
+
+    // Initialiseur simplifié pour les slides de cours
+    static func lesson(subject: CollegeSubject, emoji: String,
+                       title: String, body: String, narration: String) -> CollegeExercise {
+        CollegeExercise(subject: subject, mode: .lesson,
+                        question: narration, choices: [], correctAnswer: "",
+                        explanation: "", emoji: emoji, difficulty: 1,
+                        lessonTitle: title, lessonBody: body)
+    }
 }
 
 // MARK: - Profil élève collège

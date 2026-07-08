@@ -144,12 +144,20 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         case .french: return [
             "Salut \(firstName) ! On attaque \(subject) ensemble. Je suis là !",
             "C'est parti \(firstName) ! \(subject) aujourd'hui — t'as assuré la dernière fois !",
-            "\(firstName), prêt(e) ? Moi oui ! On va se régaler en \(subject) !"
+            "\(firstName), prêt(e) ? Moi oui ! On va se régaler en \(subject) !",
+            "Bonjour \(firstName) ! \(subject) ce matin — on va cartonner !",
+            "\(firstName), j'adore \(subject) ! On y va ensemble !",
+            "Allez \(firstName), on se lance en \(subject) ! Tu es capable !",
+            "\(subject) avec \(firstName) aujourd'hui — parfait !",
+            "Coucou \(firstName) ! Je t'attendais ! Cap sur \(subject) !"
         ]
         case .english: return [
             "Hey \(firstName)! Let's do \(subject) together. I'm right here!",
             "Ready \(firstName)? \(subject) time! You did great last time!",
-            "\(firstName), let's go! \(subject) is going to be fun today!"
+            "\(firstName), let's go! \(subject) is going to be fun today!",
+            "Hello \(firstName)! I love \(subject) — let's nail it together!",
+            "\(firstName), you're going to do great in \(subject) today!",
+            "Welcome back \(firstName)! Time for \(subject) — I believe in you!"
         ]
         case .spanish: return [
             "¡Hola \(firstName)! Vamos a \(subject) juntos. ¡Estoy aquí contigo!",
@@ -191,14 +199,26 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "Oui ! Je savais que tu y arriverais !",
             "Parfait ! Continue comme ça !",
             "Bravo ! Tu maîtrises bien !",
-            "Super réponse ! T'as assuré !"
+            "Super réponse ! T'as assuré !",
+            "Excellent ! Tu es vraiment doué(e) !",
+            "C'est ça ! Je suis impressionné(e) !",
+            "Magnifique ! Tu progresses vraiment !",
+            "Oh oui ! Exactement la bonne réponse !",
+            "Top ! Tu as bien compris le cours !",
+            "Très bien raisonné ! Je suis fière de toi !",
+            "Brillant(e) ! Quelle logique impeccable !"
         ]
         case .english: return [
             "Correct! Well done!",
             "Yes! I knew you could do it!",
             "Perfect! Keep going!",
             "Great answer! You're nailing it!",
-            "Brilliant! That's the way!"
+            "Brilliant! That's the way!",
+            "Excellent! You really understood that!",
+            "Outstanding! I'm impressed!",
+            "Spot on! Great thinking!",
+            "That's it! You're doing amazing!",
+            "Fantastic! You've mastered this!"
         ]
         case .spanish: return [
             "¡Correcto! ¡Muy bien!",
@@ -249,8 +269,11 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         switch language {
         case .french: return [
             "\(streak) bonnes réponses d'affilée ! Tu es en feu !",
-            "Incroyable ! \(streak) à la suite ! Je suis impressionné !",
-            "Wow \(streak) ! Tu cartonnes aujourd'hui !"
+            "Incroyable ! \(streak) à la suite ! Je suis impressionné(e) !",
+            "Wow \(streak) ! Tu cartonnes aujourd'hui !",
+            "\(streak) d'affilée ! Tu es une vraie machine !",
+            "INCROYABLE ! \(streak) bonnes réponses ! Continue !",
+            "\(streak) ! C'est ta meilleure série — je suis bluffé(e) !"
         ]
         case .english: return [
             "\(streak) in a row! You're on fire!",

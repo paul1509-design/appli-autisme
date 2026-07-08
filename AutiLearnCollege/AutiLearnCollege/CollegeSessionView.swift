@@ -61,49 +61,53 @@ struct CollegeSessionView: View {
                     }
                     .padding(.top, 16)
 
-                    ScrollView(.vertical) {
-                        VStack(spacing: 20) {
-                            // Question
-                            QuestionCard(exercise: exercise, vm: vm)
-                                .padding(.top, 16)
+                    if exercise.mode == .lesson {
+                        CollegeLessonSlideView(vm: vm, exercise: exercise)
+                            .padding(.top, 8)
+                    } else {
+                        ScrollView(.vertical) {
+                            VStack(spacing: 20) {
+                                QuestionCard(exercise: exercise, vm: vm)
+                                    .padding(.top, 16)
 
-                            // Zone réponse
-                            if !vm.hasAnswered {
-                                switch exercise.mode {
-                                case .multipleChoice, .trueFalse:
-                                    MultipleChoiceView(exercise: exercise, vm: vm)
-                                case .fillBlank, .shortAnswer:
-                                    ShortAnswerView(vm: vm)
-                                case .oral:
-                                    OralResponseView(vm: vm)
-                                }
-                            }
-
-                            // Feedback + explication
-                            if vm.hasAnswered {
-                                ExplanationCard(exercise: exercise, correct: vm.lastAnswerCorrect)
-
-                                Button {
-                                    if vm.currentIndex + 1 >= vm.exercises.count {
-                                        vm.saveSession(modelContext: modelContext)
-                                        sessionComplete = true
-                                    } else {
-                                        vm.nextExercise()
+                                if !vm.hasAnswered {
+                                    switch exercise.mode {
+                                    case .multipleChoice, .trueFalse:
+                                        MultipleChoiceView(exercise: exercise, vm: vm)
+                                    case .fillBlank, .shortAnswer:
+                                        ShortAnswerView(vm: vm)
+                                    case .oral:
+                                        OralResponseView(vm: vm)
+                                    case .lesson:
+                                        EmptyView()
                                     }
-                                } label: {
-                                    Text(vm.currentIndex + 1 >= vm.exercises.count
-                                         ? "Voir mes résultats" : "Question suivante →")
-                                        .font(.system(size: 17, weight: .medium))
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                        .background(Color(subject.color))
-                                        .cornerRadius(16)
                                 }
-                                .padding(.horizontal, 20)
-                            }
 
-                            Spacer(minLength: 120)
+                                if vm.hasAnswered {
+                                    ExplanationCard(exercise: exercise, correct: vm.lastAnswerCorrect)
+
+                                    Button {
+                                        if vm.currentIndex + 1 >= vm.exercises.count {
+                                            vm.saveSession(modelContext: modelContext)
+                                            sessionComplete = true
+                                        } else {
+                                            vm.nextExercise()
+                                        }
+                                    } label: {
+                                        Text(vm.currentIndex + 1 >= vm.exercises.count
+                                             ? "Voir mes résultats" : "Question suivante →")
+                                            .font(.system(size: 17, weight: .medium))
+                                            .foregroundColor(.white)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 16)
+                                            .background(Color(subject.color))
+                                            .cornerRadius(16)
+                                    }
+                                    .padding(.horizontal, 20)
+                                }
+
+                                Spacer(minLength: 120)
+                            }
                         }
                     }
                 }
@@ -134,6 +138,10 @@ struct CollegeSessionView: View {
         }
         .onChange(of: vm.currentIndex) { _, _ in
             timeRemaining = 45; timerActive = true
+            if vm.isSessionComplete {
+                vm.saveSession(modelContext: modelContext)
+                sessionComplete = true
+            }
         }
         .onChange(of: vm.hasAnswered) { _, answered in
             if answered { timerActive = false }
