@@ -141,10 +141,12 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private func sessionStart(subject: String, firstName: String) -> [String] {
         switch language {
-        case .french: return [
+        case .french:
+            let f = LeoAvatarView.gender == "female"
+            return [
             "Salut \(firstName) ! On attaque \(subject) ensemble. Je suis là !",
             "C'est parti \(firstName) ! \(subject) aujourd'hui — t'as assuré la dernière fois !",
-            "\(firstName), prêt(e) ? Moi oui ! On va se régaler en \(subject) !",
+            f ? "\(firstName), prête ? Moi oui ! On va se régaler en \(subject) !" : "\(firstName), prêt ? Moi oui ! On va se régaler en \(subject) !",
             "Bonjour \(firstName) ! \(subject) ce matin — on va cartonner !",
             "\(firstName), j'adore \(subject) ! On y va ensemble !",
             "Allez \(firstName), on se lance en \(subject) ! Tu es capable !",
@@ -194,19 +196,21 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private func correct() -> [String] {
         switch language {
-        case .french: return [
+        case .french:
+            let f = LeoAvatarView.gender == "female"
+            return [
             "Exact ! Bien joué !",
             "Oui ! Je savais que tu y arriverais !",
             "Parfait ! Continue comme ça !",
             "Bravo ! Tu maîtrises bien !",
             "Super réponse ! T'as assuré !",
-            "Excellent ! Tu es vraiment doué(e) !",
-            "C'est ça ! Je suis impressionné(e) !",
+            f ? "Excellent ! Tu es vraiment douée !" : "Excellent ! Tu es vraiment doué !",
+            f ? "C'est ça ! Je suis impressionnée !" : "C'est ça ! Je suis impressionné !",
             "Magnifique ! Tu progresses vraiment !",
             "Oh oui ! Exactement la bonne réponse !",
             "Top ! Tu as bien compris le cours !",
-            "Très bien raisonné ! Je suis fière de toi !",
-            "Brillant(e) ! Quelle logique impeccable !"
+            f ? "Très bien raisonné ! Je suis fière de toi !" : "Très bien raisonné ! Je suis fier de toi !",
+            f ? "Brillante ! Quelle logique impeccable !" : "Brillant ! Quelle logique impeccable !"
         ]
         case .english: return [
             "Correct! Well done!",
@@ -267,13 +271,15 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private func streakCorrect(streak: Int) -> [String] {
         switch language {
-        case .french: return [
+        case .french:
+            let f = LeoAvatarView.gender == "female"
+            return [
             "\(streak) bonnes réponses d'affilée ! Tu es en feu !",
-            "Incroyable ! \(streak) à la suite ! Je suis impressionné(e) !",
+            f ? "Incroyable ! \(streak) à la suite ! Je suis impressionnée !" : "Incroyable ! \(streak) à la suite ! Je suis impressionné !",
             "Wow \(streak) ! Tu cartonnes aujourd'hui !",
             "\(streak) d'affilée ! Tu es une vraie machine !",
             "INCROYABLE ! \(streak) bonnes réponses ! Continue !",
-            "\(streak) ! C'est ta meilleure série — je suis bluffé(e) !"
+            f ? "\(streak) ! C'est ta meilleure série — je suis bluffée !" : "\(streak) ! C'est ta meilleure série — je suis bluffé !"
         ]
         case .english: return [
             "\(streak) in a row! You're on fire!",
@@ -579,9 +585,11 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private func greetingMorning(firstName: String) -> [String] {
         switch language {
-        case .french: return [
-            "Bonjour \(firstName) ! Content de te voir aujourd'hui !",
-            "Salut \(firstName) ! Prêt(e) pour une super session ?",
+        case .french:
+            let f = LeoAvatarView.gender == "female"
+            return [
+            f ? "Bonjour \(firstName) ! Contente de te voir aujourd'hui !" : "Bonjour \(firstName) ! Content de te voir aujourd'hui !",
+            f ? "Salut \(firstName) ! Prête pour une super session ?" : "Salut \(firstName) ! Prêt pour une super session ?",
             "Hey \(firstName) ! Nouvelle journée, nouvelles victoires !"
         ]
         case .english: return [

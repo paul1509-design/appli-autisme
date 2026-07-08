@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import AVFoundation
 import UIKit
 
 @MainActor
@@ -17,7 +16,6 @@ class CollegeSessionVM: ObservableObject {
     @Published var starsEarned: Int = 0
     @Published var correctAnswers: Int = 0
     @Published var totalAnswers: Int = 0
-    @Published var isSpeaking: Bool = false
     @Published var promptLevel: CollegePromptLevel = .independent
     @Published var showHint: Bool = false
     @Published var totalPromptsUsed: Int = 0
@@ -25,7 +23,6 @@ class CollegeSessionVM: ObservableObject {
     let leo = LeoCompanion()
     private var correctStreak = 0
 
-    private let synthesizer = AVSpeechSynthesizer()
     private let startDate = Date()
 
     init(student: CollegeProfile, subject: CollegeSubject) {
@@ -186,14 +183,6 @@ class CollegeSessionVM: ObservableObject {
     }
 
     func speak(_ text: String) {
-        synthesizer.stopSpeaking(at: .immediate)
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: student.language.voiceLocale)
-        utterance.rate = 0.45
-        isSpeaking = true
-        synthesizer.speak(utterance)
-        DispatchQueue.main.asyncAfter(deadline: .now() + Double(text.count) * 0.065 + 0.5) {
-            self.isSpeaking = false
-        }
+        leo.speakText(text)
     }
 }
