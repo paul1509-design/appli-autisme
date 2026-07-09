@@ -178,11 +178,11 @@ struct QuestionCard: View {
                 }
                 Spacer()
                 Button { vm.speak(exercise.question) } label: {
-                    Image(systemName: vm.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2")
+                    Image(systemName: vm.leo.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2")
                         .font(.system(size: 18))
                         .foregroundColor(Color(exercise.subject.color))
                 }
-                .disabled(vm.isSpeaking)
+                .disabled(vm.leo.isSpeaking)
             }
 
             Text(exercise.question)
