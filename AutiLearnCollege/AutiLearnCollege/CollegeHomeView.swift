@@ -44,6 +44,7 @@ struct CollegeHomeView: View {
                     withAnimation(.spring(response: 0.3)) { _ = completedSteps.insert(idx) }
                 }
                 subjectGrid
+                freePlayButton
                 bonusButton
                 parentLink
                 Spacer(minLength: 80)
@@ -78,6 +79,36 @@ struct CollegeHomeView: View {
             }
         }
         .padding(.horizontal, 20)
+    }
+
+    @ViewBuilder private var freePlayButton: some View {
+        NavigationLink {
+            CollegeFreePracticeView(student: student)
+        } label: {
+            HStack(spacing: 12) {
+                Text("🎮").font(.system(size: 22))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Jeux libres")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(Color("textPrimary"))
+                    Text("Explore les exercices sans pression, à ton rythme")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color("textSecondary"))
+                }
+                Spacer()
+                Image(systemName: "gamecontroller.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(Color("accentPurple"))
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color("cardBackground"))
+                    .overlay(RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color("accentPurple").opacity(0.3), lineWidth: 1))
+            )
+            .padding(.horizontal, 20)
+        }
     }
 
     @ViewBuilder private var bonusButton: some View {

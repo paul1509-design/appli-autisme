@@ -32,6 +32,11 @@ struct CollegeSessionView: View {
                             .padding(.horizontal, 20)
 
                         HStack {
+                            // Avatar Léa animé permanent
+                            LeoAvatarView(isSpeaking: vm.leo.isSpeaking,
+                                          accentColor: Color(subject.color))
+                                .frame(width: 48, height: 56)
+
                             HStack(spacing: 6) {
                                 Text(subject.emoji)
                                 Text(subject.rawValue)

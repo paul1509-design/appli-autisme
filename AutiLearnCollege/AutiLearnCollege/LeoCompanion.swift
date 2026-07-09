@@ -12,6 +12,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private let synthesizer = AVSpeechSynthesizer()
     private var language: CollegeLanguage = .french
+    private var recentPhrases: [String] = []
 
     override init() {
         super.init()
@@ -134,7 +135,12 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     }
 
     private func pick(_ arr: [String]) -> String {
-        arr.randomElement() ?? arr[0]
+        guard arr.count > 1 else { return arr[0] }
+        let fresh = arr.filter { !recentPhrases.contains($0) }
+        let chosen = (fresh.isEmpty ? arr : fresh).randomElement() ?? arr[0]
+        recentPhrases.append(chosen)
+        if recentPhrases.count > 5 { recentPhrases.removeFirst() }
+        return chosen
     }
 
     // MARK: - Banques de messages multilingues

@@ -33,23 +33,23 @@ struct CollegeContentLibrary {
             return [
                 .lesson(subject: .francais, emoji: "📜",
                         title: "Les figures de style",
-                        body: "Une **métaphore** compare sans « comme » (ex: *il est un lion*). Une **comparaison** utilise « comme » ou « tel » (ex: *il est courageux comme un lion*). La **personnification** attribue des traits humains à un objet.",
-                        narration: "Aujourd'hui on explore les figures de style, essentielles pour l'analyse littéraire au lycée."),
+                        body: "Imagine un auteur qui écrit : « *Julien est un lion au combat* ». Il ne dit pas que Julien EST vraiment un lion — il crée une **métaphore**, une comparaison directe et frappante. S'il avait écrit « *courageux comme un lion* », ce serait une **comparaison** (avec « comme »). Et quand le vent « *murmure* » dans les arbres ? C'est une **personnification** : on prête une qualité humaine à la nature. Ces outils rendent l'écriture vivante et poétique.",
+                        narration: "Les figures de style sont les outils secrets des grands auteurs. Je vais te les faire découvrir avec des exemples."),
                 .lesson(subject: .francais, emoji: "✍️",
-                        title: "La dissertation",
-                        body: "Une dissertation comporte **trois parties** : introduction (accroche + problématique + annonce du plan), **développement** (thèse, antithèse, synthèse), et **conclusion** (réponse à la problématique + ouverture).",
-                        narration: "La dissertation est l'exercice phare du bac de français. Je t'explique la structure parfaite."),
+                        title: "La dissertation en 3 actes",
+                        body: "Pense à la dissertation comme une **pièce de théâtre en 3 actes**. Acte 1 — l'**introduction** : tu accroches le lecteur, tu poses la question centrale (la problématique), et tu annonces ton plan. Acte 2 — le **développement** : tu explores la thèse (pour), l'antithèse (contre), puis tu nuances (synthèse). Acte 3 — la **conclusion** : tu réponds clairement à la problématique et tu ouvres sur une nouvelle question.",
+                        narration: "La dissertation fait peur, mais c'est juste une histoire en trois parties. Laisse-moi te montrer la structure."),
             ]
         }
         return [
             .lesson(subject: .francais, emoji: "📝",
                     title: "Le nom et le groupe nominal",
-                    body: "Un **nom** désigne une personne, un animal, une chose ou une idée. Il peut être **propre** (Paris, Marie) ou **commun** (chat, maison). Le **groupe nominal** est formé d'un déterminant + un nom (ex: *le chat*, *une belle maison*).",
-                    narration: "Parlons grammaire ! Le nom est la brique de base de la phrase française."),
+                    body: "Tout commence par un **nom** : il désigne une personne (*Marie*), un animal (*chat*), une chose (*maison*) ou une idée (*liberté*). Un nom **propre** prend une majuscule (*Paris, Antoine*), un nom **commun** s'écrit en minuscule (*ville, garçon*). Quand on entoure un nom d'un déterminant et d'un adjectif, on forme un **groupe nominal** : *le vieux chat gris*. C'est la brique de base de toute phrase !",
+                    narration: "Je vais te raconter comment les mots s'organisent pour donner vie à une phrase française."),
             .lesson(subject: .francais, emoji: "🔤",
-                    title: "Les temps du passé",
-                    body: "L'**imparfait** décrit une action habituelle ou un état (ex: *il jouait*). Le **passé composé** exprime une action terminée (ex: *il a joué*). Le **passé simple** s'utilise surtout à l'écrit pour des actions courtes (ex: *il joua*).",
-                    narration: "Les temps du passé sont souvent confondus. Je vais t'aider à les distinguer facilement !"),
+                    title: "Voyager dans le temps avec les verbes",
+                    body: "Imagine que tu racontes ta journée d'hier. Tu dirais : « *Hier, je jouais dehors* » — c'est l'**imparfait**, pour une habitude ou un état. Mais si tu précises un moment exact : « *À 15h, j'ai marqué un but* » — c'est le **passé composé**, pour une action terminée et datée. Dans les romans, on voit aussi le **passé simple** : « *Il joua toute la nuit* » — très littéraire ! Chaque temps a son rôle dans l'histoire.",
+                    narration: "Les temps du passé c'est comme une machine à remonter le temps — chacun t'emmène à un moment différent !"),
         ]
     }
 
@@ -59,36 +59,36 @@ struct CollegeContentLibrary {
             return [
                 .lesson(subject: .maths, emoji: "📐",
                         title: "Les fonctions du second degré",
-                        body: "Une fonction **trinôme** s'écrit f(x) = ax² + bx + c. Son **discriminant** est Δ = b² − 4ac. Si Δ > 0 : deux racines. Si Δ = 0 : une racine double. Si Δ < 0 : pas de racine réelle.",
-                        narration: "Les fonctions du second degré sont au cœur du programme de seconde. Voici la méthode pas à pas."),
+                        body: "Tu veux savoir si une balle lancée en l'air retombera avant le mur ? Les maths répondent avec une **parabole** ! Toute fonction du second degré s'écrit **f(x) = ax² + bx + c**. Pour trouver où elle coupe l'axe, on calcule le **discriminant** : **Δ = b² − 4ac**. Si Δ > 0 : deux points de coupe. Si Δ = 0 : elle touche juste l'axe. Si Δ < 0 : elle ne coupe jamais. La balle atterrit là où Δ > 0 !",
+                        narration: "Les fonctions du second degré décrivent la trajectoire de tout ce qu'on lance. Je te montre comment les maîtriser."),
                 .lesson(subject: .maths, emoji: "∫",
-                        title: "Les dérivées",
-                        body: "La **dérivée** d'une fonction mesure son taux de variation. Si f(x) = xⁿ alors **f'(x) = n·xⁿ⁻¹**. La dérivée d'une constante est **0**. La dérivée de sin(x) est **cos(x)**.",
-                        narration: "La dérivation est une notion fondamentale en terminale. Apprenons les règles essentielles !"),
+                        title: "Les dérivées : la vitesse du changement",
+                        body: "Imagine que tu roules en voiture : la **vitesse** est la dérivée de ta **position**. En maths, la **dérivée** mesure à quelle vitesse une fonction change. Règle d'or : si **f(x) = xⁿ**, alors **f'(x) = n·xⁿ⁻¹**. Exemples : la dérivée de x³ est **3x²** ; la dérivée d'une constante (comme 5) est toujours **0** ; la dérivée de sin(x) est **cos(x)**.",
+                        narration: "La dérivée c'est la vitesse des fonctions. Une fois qu'on a compris ça, tout devient logique !"),
             ]
         }
         return [
             .lesson(subject: .maths, emoji: "🔢",
-                    title: "Les fractions",
-                    body: "Une **fraction** représente une division : **numérateur** ÷ **dénominateur**. Pour additionner des fractions, il faut le même dénominateur (dénominateur **commun**). Ex : 1/3 + 1/6 = 2/6 + 1/6 = **3/6 = 1/2**.",
-                    narration: "Les fractions font peur à beaucoup d'élèves, mais avec la bonne méthode c'est simple !"),
+                    title: "Les fractions, pas de panique !",
+                    body: "Une **fraction** c'est simplement une part d'un tout. Le **numérateur** (en haut) dit combien de parts tu as, le **dénominateur** (en bas) dit en combien de parts l'ensemble est coupé. Pour additionner, il faut que les dénominateurs soient pareils : **1/3 + 1/6** ? On transforme 1/3 en **2/6**, et hop : 2/6 + 1/6 = **3/6 = 1/2** ! Pense à une pizza : si tu as 2 parts sur 6, tu as mangé un tiers.",
+                    narration: "Les fractions c'est comme partager une pizza entre amis. Je te montre la méthode et tu verras, c'est logique !"),
             .lesson(subject: .maths, emoji: "📐",
-                    title: "Le théorème de Pythagore",
-                    body: "Dans un **triangle rectangle**, le carré de l'**hypoténuse** (le côté le plus long) est égal à la somme des carrés des deux autres côtés. **a² + b² = c²** où c est l'hypoténuse.",
-                    narration: "Le théorème de Pythagore est l'un des théorèmes les plus célèbres des maths. Découvrons-le ensemble !"),
+                    title: "Pythagore, le génie de l'Antiquité",
+                    body: "Il y a 2 500 ans, un mathématicien grec nommé **Pythagore** découvrit quelque chose d'extraordinaire. Dans tout **triangle rectangle**, si tu prends les deux côtés qui forment l'angle droit (appelés **cathètes**) et le côté en face (l'**hypoténuse**), alors **a² + b² = c²**. Exemple : un triangle avec des côtés de 3 et 4 cm aura une hypoténuse de 5 cm, car 9 + 16 = 25 = 5². Les architectes utilisent encore ce théorème aujourd'hui !",
+                    narration: "Pythagore a changé les maths pour toujours. Je vais te raconter son secret et comment l'utiliser."),
         ]
     }
 
     // MARK: - Cours Anglais
     private static func anglaisLessons(level: CollegeLevel) -> [CollegeExercise] { [
         .lesson(subject: .anglais, emoji: "🇬🇧",
-                title: "Le prétérit simple",
-                body: "Le **prétérit simple** exprime une action passée et terminée. Pour les verbes **réguliers**, on ajoute **-ed** (ex: *play → played*). Pour les verbes **irréguliers**, il faut les apprendre (ex: *go → went*, *see → saw*).",
-                narration: "Today we learn the past simple tense in English! It's very useful to talk about what happened."),
+                title: "Le prétérit : voyager dans le passé",
+                body: "Imagine que tu racontes ton weekend à un ami anglophone. Tu utilises le **prétérit simple** ! Pour les verbes **réguliers**, tu ajoutes **-ed** : *I play* → *I **played*** (j'ai joué). Facile ! Mais attention aux **verbes irréguliers** — ils changent complètement : *go → **went***, *see → **saw***, *eat → **ate***. Astuce : les verbes irréguliers les plus courants valent la peine d'être appris par cœur, 20 suffisent pour démarrer !",
+                narration: "Today we travel to the past! I'll show you how to tell stories about what happened yesterday."),
         .lesson(subject: .anglais, emoji: "💬",
-                title: "Les modaux",
-                body: "Les **modaux** expriment des nuances : **can** = pouvoir/savoir, **must** = devoir (obligation), **should** = devoir (conseil), **may/might** = pouvoir (possibilité). Ils sont toujours suivis de l'**infinitif sans to**.",
-                narration: "Modal verbs are essential in English! Let me explain how each one works."),
+                title: "Les modaux : les super-verbes",
+                body: "Les **modaux** sont des verbes magiques qui changent le sens de tout ce qu'ils touchent. **Can** dit ce qu'on sait faire (*I can swim* = je sais nager). **Must** exprime une obligation forte (*You must stop* = tu dois t'arrêter). **Should** donne un conseil (*You should sleep* = tu devrais dormir). **May/might** exprime une possibilité (*It might rain* = il pourrait pleuvoir). Règle d'or : un modal est **toujours suivi de l'infinitif sans « to »**.",
+                narration: "Modal verbs are like superpowers for your sentences. Let me show you how each one transforms the meaning!"),
     ] }
 
     // MARK: - Cours Histoire-Géo
@@ -96,20 +96,20 @@ struct CollegeContentLibrary {
         if level.isLycee {
             return [
                 .lesson(subject: .histoire, emoji: "🌍",
-                        title: "La mondialisation",
-                        body: "La **mondialisation** est l'intensification des échanges économiques, culturels et humains à l'échelle planétaire. Elle est portée par le **libre-échange**, les **multinationales** et les nouvelles technologies. Elle crée à la fois des richesses et des **inégalités**.",
-                        narration: "La mondialisation est un sujet central en géographie au lycée. Analysons ses mécanismes."),
+                        title: "La mondialisation : le monde comme un village",
+                        body: "En 1990, une paire de Nike fabriquée en Asie, conçue aux États-Unis et vendue en Europe, c'était rare. Aujourd'hui, c'est la norme : c'est la **mondialisation**. Elle repose sur le **libre-échange** (moins de barrières entre pays), les **multinationales** (entreprises présentes partout), et Internet. Résultat : des marchandises, des capitaux et des personnes circulent à une vitesse sans précédent. Mais ce village mondial crée aussi des **inégalités** : certains pays profitent davantage que d'autres.",
+                        narration: "La mondialisation c'est l'histoire de comment le monde est devenu un grand marché. Je te raconte les coulisses."),
             ]
         }
         return [
             .lesson(subject: .histoire, emoji: "🏛️",
-                    title: "La Révolution française",
-                    body: "En **1789**, le peuple français se soulève contre le roi Louis XVI. Le **14 juillet 1789**, la Bastille est prise. La **Déclaration des droits de l'Homme** est rédigée. La devise **Liberté, Égalité, Fraternité** naît à cette époque.",
-                    narration: "La Révolution française est un moment clé de notre histoire. Découvrons ensemble ce qui s'est passé !"),
+                    title: "1789 : quand le peuple se réveille",
+                    body: "Imagine la France en 1788 : le peuple a faim, les impôts écrasent les pauvres pendant que les nobles ne paient rien. La colère monte. Le **14 juillet 1789**, des milliers de Parisiens prennent d'assaut la **Bastille**, symbole du pouvoir royal. C'est le début de la **Révolution**. Quelques semaines plus tard, la **Déclaration des droits de l'Homme** proclame que tous les hommes naissent libres et égaux. La devise **Liberté, Égalité, Fraternité** est née — elle est encore sur nos mairies aujourd'hui.",
+                    narration: "La Révolution française c'est l'histoire d'un peuple qui a osé changer le monde. Je vais te la raconter comme un roman."),
             .lesson(subject: .histoire, emoji: "⚔️",
-                    title: "La Première Guerre mondiale",
-                    body: "La **Première Guerre mondiale** (1914-1918) oppose les **Alliés** (France, Royaume-Uni, Russie, puis États-Unis) aux **Empires centraux** (Allemagne, Autriche-Hongrie). C'est une guerre de **tranchées**. Elle cause plus de **18 millions** de morts.",
-                    narration: "La Grande Guerre a bouleversé le monde entier. Voici les faits essentiels à connaître."),
+                    title: "1914 : la guerre qui a tout changé",
+                    body: "Le 28 juin 1914, un archiduc est assassiné à Sarajevo. En quelques semaines, toute l'Europe entre en guerre. D'un côté les **Alliés** (France, Royaume-Uni, Russie), de l'autre les **Empires centraux** (Allemagne, Autriche). Les soldats croyaient que ça serait court — mais ils se sont retrouvés dans des **tranchées**, à quelques mètres de l'ennemi, pendant 4 ans. Quand l'armistice sonne le **11 novembre 1918**, plus de **18 millions** de personnes sont mortes. Le monde ne sera plus jamais le même.",
+                    narration: "La Première Guerre mondiale est l'une des pages les plus sombres de l'humanité. Voici comment et pourquoi tout a basculé."),
         ]
     }
 
@@ -118,33 +118,33 @@ struct CollegeContentLibrary {
         if level.isLycee {
             return [
                 .lesson(subject: .sciences, emoji: "⚛️",
-                        title: "La structure de l'atome",
-                        body: "L'**atome** est composé d'un **noyau** (protons + neutrons) entouré d'**électrons**. Le **numéro atomique Z** = nombre de protons. La **masse atomique A** = protons + neutrons. Un **ion** est un atome ayant gagné ou perdu des électrons.",
-                        narration: "La chimie atomique est fondamentale pour comprendre la matière. Voici les bases indispensables !"),
+                        title: "L'atome : le LEGO de l'univers",
+                        body: "Tout ce qui existe — ta table, l'air que tu respires, toi-même — est fait d'**atomes**. Imagine un mini système solaire : au centre, le **noyau** (avec des **protons** chargés + et des **neutrons** neutres), et autour, des **électrons** qui tourbillonnent. Le **numéro atomique Z** = le nombre de protons (c'est ça qui définit l'élément : 1 proton = hydrogène, 6 protons = carbone...). Quand un atome gagne ou perd un électron, il devient un **ion** — chargé + ou −. C'est comme ça que les piles fonctionnent !",
+                        narration: "L'atome c'est la brique fondamentale de tout l'univers. Je vais te montrer comment ce minuscule objet explique tout."),
             ]
         }
         return [
             .lesson(subject: .sciences, emoji: "🔬",
-                    title: "La cellule vivante",
-                    body: "Tous les **êtres vivants** sont composés de **cellules**. La cellule contient un **noyau** (avec l'ADN), une **membrane** (qui l'entoure) et du **cytoplasme**. Les cellules végétales ont en plus une **paroi** et des **chloroplastes**.",
-                    narration: "La cellule est l'unité fondamentale du vivant. Découvrons sa structure fascinante !"),
+                    title: "La cellule : la ville miniature du vivant",
+                    body: "Pense à une cellule comme à une **ville miniature**. La **membrane** est le rempart qui protège la ville et contrôle ce qui entre et sort. Le **cytoplasme** est la place publique où circule tout le trafic. Le **noyau** est la mairie : il contient l'**ADN**, le plan d'urbanisme complet de la ville. Les cellules **végétales** ont en plus une **paroi rigide** (les murs de pierre) et des **chloroplastes** verts (les panneaux solaires qui fabriquent de l'énergie à partir de la lumière).",
+                    narration: "Chaque cellule de ton corps est une ville en miniature. Je t'emmène faire la visite guidée !"),
             .lesson(subject: .sciences, emoji: "🌡️",
-                    title: "Les états de la matière",
-                    body: "La matière existe en **trois états** : **solide** (forme fixe), **liquide** (forme variable, volume fixe), **gazeux** (forme et volume variables). Le passage entre ces états s'appelle un **changement d'état** : fusion, solidification, vaporisation, condensation.",
-                    narration: "L'eau peut être glace, liquide ou vapeur. Apprenons pourquoi et comment !"),
+                    title: "L'eau : une actrice aux trois visages",
+                    body: "L'eau est la seule substance qu'on voit facilement dans ses **trois états** dans la nature. Sous 0°C, elle devient **glace** : les molécules se figent dans une structure rigide (*solide* = forme fixe). Entre 0° et 100°C, c'est de l'**eau liquide** : les molécules glissent les unes sur les autres (forme variable, volume fixe). Au-dessus de 100°C, elle devient **vapeur** : les molécules s'échappent dans tous les sens. Ces transitions s'appellent **fusion** (glace→liquide), **vaporisation** (liquide→vapeur), **condensation** (vapeur→liquide) et **solidification** (liquide→glace).",
+                    narration: "L'eau est une magicienne : elle peut être solide, liquide ou gazeuse. Je t'explique comment et pourquoi elle change de forme."),
         ]
     }
 
     // MARK: - Cours Communication
     private static func communicationLessons(level: CollegeLevel) -> [CollegeExercise] { [
         .lesson(subject: .communication, emoji: "🗣️",
-                title: "Exprimer ses émotions",
-                body: "Reconnaître et exprimer ses **émotions** est important. Les émotions de base sont : **joie**, **tristesse**, **colère**, **peur**, **dégoût** et **surprise**. Dire « **Je me sens** ... » est plus précis que « ça va » ou « ça va pas ».",
-                narration: "Parler de ce qu'on ressent, c'est une compétence qui s'apprend. Voyons comment bien exprimer ses émotions."),
+                title: "Nommer ce qu'on ressent, c'est puissant",
+                body: "Imagine que tu rentres du collège énervé. Tu dis « ça va pas ». Mais qu'est-ce que ça signifie vraiment ? Être capable de dire « **Je me sens frustré** parce que personne ne m'a écouté aujourd'hui » est beaucoup plus précis — et ça t'aide à comprendre ce dont tu as besoin. Les 6 émotions de base à connaître : **joie**, **tristesse**, **colère**, **peur**, **dégoût** et **surprise**. Chacune envoie un message important sur ce que tu vis.",
+                narration: "Nommer ses émotions c'est une super-puissance. Je vais t'apprendre à t'en servir dans la vraie vie."),
         .lesson(subject: .communication, emoji: "🤝",
-                title: "La communication non-violente",
-                body: "La **Communication Non-Violente** (CNV) suit 4 étapes : **Observer** (les faits sans jugement), **Ressentir** (nommer l'émotion), **Besoin** (identifier ce qu'on souhaite), **Demander** (une action concrète et réalisable).",
-                narration: "La communication non-violente permet de mieux se comprendre et éviter les conflits. C'est très utile au quotidien !"),
+                title: "Parler sans blesser : la CNV",
+                body: "Scénario : ton ami a mangé ta part de gâteau. Tu pourrais crier « T'es nul ! » — mais ça crée un conflit. Avec la **Communication Non-Violente**, tu suis 4 étapes : 1) **Observer** les faits sans juger (« Tu as mangé mon gâteau »). 2) **Ressentir** (« Je me sens déçu »). 3) Identifier ton **Besoin** (« J'avais besoin qu'on respecte mes affaires »). 4) Formuler une **Demande** concrète (« La prochaine fois, peux-tu me demander avant ? »). Résultat : le problème est posé, sans guerre.",
+                narration: "La CNV c'est l'art de dire les choses sans déclencher une dispute. Je te donne les 4 clés avec un exemple réel."),
     ] }
 
     private static func allExercises(subject: CollegeSubject, level: CollegeLevel, language: CollegeLanguage) -> [CollegeExercise] {

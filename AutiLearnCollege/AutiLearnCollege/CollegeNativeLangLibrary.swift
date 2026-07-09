@@ -77,7 +77,7 @@ struct CollegeNativeLangLibrary {
                    "'Madame Bovary' (1857) de Flaubert est un chef-d'œuvre du réalisme littéraire français.", "📖", 2),
             ]
         }
-        // Exercices supplémentaires grammaire et littérature
+        // Exercices variés : QCM, shortAnswer, oral
         pool += [
             ex("Qu'est-ce qu'un complément d'objet direct (COD) ?",
                ["Le mot qui reçoit l'action du verbe, sans préposition", "Le sujet de la phrase", "Un adverbe", "Un mot entre virgules"], "Le mot qui reçoit l'action du verbe, sans préposition",
@@ -88,12 +88,35 @@ struct CollegeNativeLangLibrary {
             ex("Dans la phrase 'Le chien aboie fort', 'fort' est :",
                ["Un adverbe", "Un adjectif", "Un nom", "Un verbe"], "Un adverbe",
                "L'adverbe modifie le verbe. 'Fort' indique comment le chien aboie. Il est invariable.", "📝", 1),
-            ex("Qu'est-ce que la ponctuation forte ?",
-               ["Le point, le point d'interrogation, le point d'exclamation", "La virgule", "Le point-virgule", "Les guillemets"], "Le point, le point d'interrogation, le point d'exclamation",
-               "La ponctuation forte termine une phrase. Elle indique une pause longue et une intonation finale.", "✍️", 1),
             ex("Comment conjugue-t-on 'venir' au présent pour 'nous' ?",
                ["nous venons", "nous venez", "nous venions", "nous viens"], "nous venons",
                "Venir : je viens, tu viens, il vient, nous venons, vous venez, ils viennent.", "📝", 2),
+            // Exercices shortAnswer (réponse courte)
+            ex("Quel est le participe passé du verbe 'écrire' ?",
+               [], "écrit",
+               "Écrire → écrit. Ex : 'J'ai écrit une lettre.' Les participes passés irréguliers s'apprennent par cœur.", "✍️", 2),
+            ex("Donne le féminin du mot 'boulanger'.",
+               [], "boulangère",
+               "Boulanger → boulangère. On ajoute -ère pour former le féminin de nombreux métiers en -er.", "🥖", 1),
+            ex("Quelle est la nature du mot 'rapidement' ?",
+               [], "adverbe",
+               "'Rapidement' est un adverbe de manière, formé de l'adjectif féminin 'rapide' + le suffixe -ment.", "🏃", 1),
+            ex("Écris le pluriel de 'œil'.",
+               [], "yeux",
+               "'Œil' a un pluriel irrégulier : yeux. C'est l'un des pluriels irréguliers les plus courants en français.", "👁️", 2),
+            ex("Conjugue 'finir' à la 3e personne du pluriel, présent.",
+               [], "ils finissent",
+               "Les verbes en -ir du 2e groupe prennent -issent au pluriel : nous finissons, vous finissez, ils finissent.", "📝", 2),
+            ex("Quelle est la différence entre 'a' et 'à' ?",
+               [], "a = verbe avoir (il a) / à = préposition (il va à Paris)",
+               "'A' est le verbe avoir conjugué (il a mangé). 'À' est une préposition (il va à Paris). Astuce : remplace par 'avait' — si ça marche, c'est 'a'.", "✍️", 2),
+            // Exercices oral
+            ex("Donne un exemple de phrase avec un adjectif qualificatif.",
+               [], "Ex : 'Le grand chien noir court vite.'",
+               "L'adjectif qualificatif décrit le nom. Il s'accorde en genre et en nombre : grand/grande, noir/noire.", "🗣️", 1),
+            ex("Explique à voix haute ce qu'est un verbe.",
+               [], "Un verbe exprime une action (manger, courir) ou un état (être, sembler). Il se conjugue selon le sujet et le temps.",
+               "Le verbe est le cœur de la phrase. Sans verbe, pas de phrase ! Il indique ce que fait ou ce qu'est le sujet.", "🎤", 1),
         ]
         return pool
     }
