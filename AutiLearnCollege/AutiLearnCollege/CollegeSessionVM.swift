@@ -45,14 +45,11 @@ class CollegeSessionVM: ObservableObject {
     func startSession() {
         leo.configure(language: student.language)
         exercises = CollegeContentLibrary.exercises(for: subject, level: student.level, language: student.language, count: 8)
-        // Léo accueille l'élève
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        // Léa accueille uniquement — chaque vue lit elle-même sa question à l'apparition
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             self.leo.speak(context: .sessionStart(
                 subject: self.subject.displayName(for: self.student.language),
                 firstName: self.student.firstName))
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
-            if let first = self.exercises.first { self.speak(first.question) }
         }
     }
 
@@ -130,13 +127,27 @@ class CollegeSessionVM: ObservableObject {
         switch promptLevel {
         case .independent: return ""
         case .hint:
-            return "Indice : " + String(ex.question.prefix(40)) + "..."
+            // Indice 1 : première lettre + longueur
+            let answer = ex.correctAnswer.trimmingCharacters(in: .whitespaces)
+            let firstLetter = answer.first.map { String($0).uppercased() } ?? "?"
+            let wordCount = answer.split(separator: " ").count
+            if wordCount == 1 {
+                return "💡 Le mot commence par « \(firstLetter) » et contient \(answer.count) lettres."
+            } else {
+                return "💡 La réponse commence par « \(firstLetter) » et contient \(wordCount) mot(s)."
+            }
         case .partial:
+            // Indice 2 : chaque mot masqué sauf la première lettre
             let words = ex.correctAnswer.split(separator: " ")
-            let half = Int(ceil(Double(words.count) / 2.0))
-            return words.prefix(half).joined(separator: " ") + "..."
+            let masked = words.map { word -> String in
+                guard word.count > 1 else { return String(word) }
+                let first = String(word.prefix(1))
+                let dashes = String(repeating: "_", count: word.count - 1)
+                return first + dashes
+            }
+            return "💡 " + masked.joined(separator: " ")
         case .full:
-            return ex.correctAnswer
+            return "✅ Réponse : " + ex.correctAnswer
         }
     }
 
@@ -147,7 +158,7 @@ class CollegeSessionVM: ObservableObject {
         userInput = ""
         promptLevel = .independent
         showHint = false
-        if let ex = currentExercise { speak(ex.question) }
+        // Chaque vue lit sa propre question via onAppear — pas de speak() ici
     }
 
     func saveSession(modelContext: ModelContext) {

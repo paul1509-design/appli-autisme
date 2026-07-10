@@ -62,15 +62,27 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     }
 
     private static func preferredVoice(locale: String) -> AVSpeechSynthesisVoice? {
-        let isFemale = LeoAvatarView.gender == "female"
         let langCode = String(locale.prefix(2))
         let all = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix(langCode) }
-        let femaleIds = ["amelie","marie","audrey","aurelie","florence","monica","karen","samantha","victoria"]
-        let maleIds   = ["thomas","nicolas","pierre","daniel","alex","romain","jorge","diego"]
-        let preferred = isFemale ? femaleIds : maleIds
-        for id in preferred {
+
+        // Voix féminines prioritaires (Léa est toujours féminine)
+        let femaleIds = ["amelie","aurelie","audrey","marie","florence","ines",
+                         "monica","karen","samantha","victoria","alice","anna",
+                         "pauline","juliette","claire"]
+        // Voix masculines à exclure explicitement
+        let maleIds   = ["thomas","nicolas","pierre","daniel","alex","romain",
+                         "jorge","diego","luca","felix","thomas"]
+
+        // 1. Chercher une voix féminine connue
+        for id in femaleIds {
             if let v = all.first(where: { $0.identifier.lowercased().contains(id) }) { return v }
         }
+        // 2. Exclure les voix masculines connues et prendre la première restante
+        let nonMale = all.filter { v in
+            !maleIds.contains(where: { v.identifier.lowercased().contains($0) })
+        }
+        if let v = nonMale.first { return v }
+        // 3. Fallback absolu
         return all.first ?? AVSpeechSynthesisVoice(language: locale)
     }
 
@@ -202,21 +214,19 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private func correct() -> [String] {
         switch language {
-        case .french:
-            let f = LeoAvatarView.gender == "female"
-            return [
+        case .french: return [
             "Exact ! Bien joué !",
             "Oui ! Je savais que tu y arriverais !",
             "Parfait ! Continue comme ça !",
             "Bravo ! Tu maîtrises bien !",
             "Super réponse ! T'as assuré !",
-            f ? "Excellent ! Tu es vraiment douée !" : "Excellent ! Tu es vraiment doué !",
-            f ? "C'est ça ! Je suis impressionnée !" : "C'est ça ! Je suis impressionné !",
+            "Excellent ! Tu es vraiment douée !",
+            "C'est ça ! Je suis impressionnée !",
             "Magnifique ! Tu progresses vraiment !",
             "Oh oui ! Exactement la bonne réponse !",
             "Top ! Tu as bien compris le cours !",
-            f ? "Très bien raisonné ! Je suis fière de toi !" : "Très bien raisonné ! Je suis fier de toi !",
-            f ? "Brillante ! Quelle logique impeccable !" : "Brillant ! Quelle logique impeccable !"
+            "Très bien raisonné ! Je suis fière de toi !",
+            "Brillante ! Quelle logique impeccable !"
         ]
         case .english: return [
             "Correct! Well done!",
@@ -277,15 +287,13 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private func streakCorrect(streak: Int) -> [String] {
         switch language {
-        case .french:
-            let f = LeoAvatarView.gender == "female"
-            return [
+        case .french: return [
             "\(streak) bonnes réponses d'affilée ! Tu es en feu !",
-            f ? "Incroyable ! \(streak) à la suite ! Je suis impressionnée !" : "Incroyable ! \(streak) à la suite ! Je suis impressionné !",
+            "Incroyable ! \(streak) à la suite ! Je suis impressionnée !",
             "Wow \(streak) ! Tu cartonnes aujourd'hui !",
             "\(streak) d'affilée ! Tu es une vraie machine !",
             "INCROYABLE ! \(streak) bonnes réponses ! Continue !",
-            f ? "\(streak) ! C'est ta meilleure série — je suis bluffée !" : "\(streak) ! C'est ta meilleure série — je suis bluffé !"
+            "\(streak) ! C'est ta meilleure série — je suis bluffée !"
         ]
         case .english: return [
             "\(streak) in a row! You're on fire!",
