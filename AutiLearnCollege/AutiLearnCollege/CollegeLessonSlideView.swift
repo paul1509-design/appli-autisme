@@ -74,10 +74,13 @@ struct CollegeLessonSlideView: View {
             .padding(.bottom, 16)
         }
         .onAppear {
-            vm.leo.speakText(exercise.question)
             withAnimation { revealed = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 bodyOpacity = 1
+            }
+            // Attend que le message d'accueil de Léa soit terminé avant de lire le cours
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                if !vm.leo.isSpeaking { vm.leo.speakText(exercise.question) }
             }
         }
     }
