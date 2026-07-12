@@ -13,6 +13,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     private let synthesizer = AVSpeechSynthesizer()
     private var language: CollegeLanguage = .french
     private var recentPhrases: [String] = []
+    private var pendingUtterances = 0
 
     override init() {
         super.init()
@@ -45,10 +46,13 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     func speakText(_ text: String) {
         synthesizer.stopSpeaking(at: .immediate)
+        pendingUtterances = 0
         let sentences = text.components(separatedBy: CharacterSet(charactersIn: ".!?"))
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
+        guard !sentences.isEmpty else { return }
         isSpeaking = true
+        pendingUtterances = sentences.count
         for (i, sentence) in sentences.enumerated() {
             let utterance = AVSpeechUtterance(string: sentence)
             utterance.voice = Self.preferredVoice(locale: language.voiceLocale)
@@ -99,7 +103,10 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
                                        didFinish utterance: AVSpeechUtterance) {
-        Task { @MainActor in self.isSpeaking = false }
+        Task { @MainActor in
+            self.pendingUtterances = max(0, self.pendingUtterances - 1)
+            if self.pendingUtterances == 0 { self.isSpeaking = false }
+        }
     }
 
     // MARK: - Messages par contexte et langue

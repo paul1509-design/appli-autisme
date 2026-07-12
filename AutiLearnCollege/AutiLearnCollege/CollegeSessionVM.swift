@@ -45,11 +45,16 @@ class CollegeSessionVM: ObservableObject {
     func startSession() {
         leo.configure(language: student.language)
         exercises = CollegeContentLibrary.exercises(for: subject, level: student.level, language: student.language, count: 8)
-        // Léa accueille uniquement — chaque vue lit elle-même sa question à l'apparition
+        // 1. Léa accueille (t=0.4s)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             self.leo.speak(context: .sessionStart(
                 subject: self.subject.displayName(for: self.student.language),
                 firstName: self.student.firstName))
+        }
+        // 2. Lecture du premier contenu après que l'accueil est terminé (t=5s)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            guard let first = self.exercises.first else { return }
+            self.leo.speakText(first.question)
         }
     }
 
@@ -158,7 +163,11 @@ class CollegeSessionVM: ObservableObject {
         userInput = ""
         promptLevel = .independent
         showHint = false
-        // Chaque vue lit sa propre question via onAppear — pas de speak() ici
+        // Lecture de la question suivante depuis le VM (seul endroit qui parle)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            guard let ex = self.currentExercise else { return }
+            self.leo.speakText(ex.question)
+        }
     }
 
     func saveSession(modelContext: ModelContext) {

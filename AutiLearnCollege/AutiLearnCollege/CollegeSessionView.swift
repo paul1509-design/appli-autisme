@@ -208,11 +208,7 @@ struct QuestionCard: View {
                     .stroke(Color(exercise.subject.color).opacity(0.25), lineWidth: 1))
         )
         .padding(.horizontal, 20)
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
-                if !vm.leo.isSpeaking { vm.speak(exercise.question) }
-            }
-        }
+        // TTS géré par CollegeSessionVM.nextExercise() et startSession()
     }
 }
 
