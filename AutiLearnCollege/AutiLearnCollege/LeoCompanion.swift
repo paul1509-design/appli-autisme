@@ -74,9 +74,38 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     private static func preferredVoice(locale: String) -> AVSpeechSynthesisVoice? {
         let langCode = String(locale.prefix(2))
         let all = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix(langCode) }
-        // Utilise la propriété .gender (iOS 9+) — fiable quel que soit le nom de la voix
-        if let female = all.first(where: { $0.gender == .female }) { return female }
-        return all.first ?? AVSpeechSynthesisVoice(language: locale)
+
+        // Log toutes les voix disponibles pour diagnostic
+        #if DEBUG
+        print("🎤 Voix disponibles pour '\(langCode)':")
+        all.forEach { print("   \($0.identifier) | gender=\($0.gender.rawValue) | quality=\($0.quality.rawValue)") }
+        #endif
+
+        // 1. Identifiants féminins connus iOS 14–26 (ordre de préférence)
+        let femaleIds = ["marie","amelie","aurelie","audrey","florence","ines","pauline",
+                         "juliette","claire","monica","karen","samantha","victoria",
+                         "alice","anna","siri_female","sirf"]
+        for id in femaleIds {
+            if let v = all.first(where: { $0.identifier.lowercased().contains(id) }) {
+                print("🎤 Voix choisie par nom: \(v.identifier)")
+                return v
+            }
+        }
+        // 2. Propriété gender (parfois non renseignée sur simulateur)
+        if let v = all.first(where: { $0.gender == .female }) {
+            print("🎤 Voix choisie par gender: \(v.identifier)")
+            return v
+        }
+        // 3. Éviter les identifiants masculins connus
+        let maleIds = ["thomas","nicolas","pierre","daniel","jorge","diego","luca","felix","romain","alex"]
+        if let v = all.first(where: { v in !maleIds.contains(where: { v.identifier.lowercased().contains($0) }) }) {
+            print("🎤 Voix choisie (non-male): \(v.identifier)")
+            return v
+        }
+        // 4. Fallback absolu
+        let fallback = all.first ?? AVSpeechSynthesisVoice(language: locale)
+        print("🎤 Fallback: \(fallback?.identifier ?? "nil")")
+        return fallback
     }
 
     func stop() { Self.shared.stopSpeaking(at: .immediate); isSpeaking = false }
