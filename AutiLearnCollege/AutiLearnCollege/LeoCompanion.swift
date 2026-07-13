@@ -10,14 +10,15 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     @Published var emotion: LeoEmotion = .neutral
     @Published var showBubble = false
 
-    private let synthesizer = AVSpeechSynthesizer()
+    // Synthétiseur UNIQUE partagé dans toute l'app — impossible d'avoir deux voix en même temps
+    private static let shared = AVSpeechSynthesizer()
+    private static weak var activeDelegate: LeoCompanion?
     private var language: CollegeLanguage = .french
     private var recentPhrases: [String] = []
     private var pendingUtterances = 0
 
     override init() {
         super.init()
-        synthesizer.delegate = self
     }
 
     func configure(language: CollegeLanguage) {
@@ -45,7 +46,12 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     }
 
     func speakText(_ text: String) {
-        synthesizer.stopSpeaking(at: .immediate)
+        // Ce LeoCompanion devient le délégué actif — il reçoit les callbacks isSpeaking
+        Self.activeDelegate?.isSpeaking = false
+        Self.activeDelegate = self
+        Self.shared.delegate = self
+
+        Self.shared.stopSpeaking(at: .immediate)
         pendingUtterances = 0
         let sentences = text.components(separatedBy: CharacterSet(charactersIn: ".!?"))
             .map { $0.trimmingCharacters(in: .whitespaces) }
@@ -57,11 +63,11 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             let utterance = AVSpeechUtterance(string: sentence)
             utterance.voice = Self.preferredVoice(locale: language.voiceLocale)
             utterance.rate = 0.48
-            utterance.pitchMultiplier = LeoAvatarView.gender == "female" ? 1.12 : 0.95
+            utterance.pitchMultiplier = 1.12
             utterance.volume = 1.0
             utterance.preUtteranceDelay = i == 0 ? 0 : 0.18
             utterance.postUtteranceDelay = 0.08
-            synthesizer.speak(utterance)
+            Self.shared.speak(utterance)
         }
     }
 
@@ -73,7 +79,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         return all.first ?? AVSpeechSynthesisVoice(language: locale)
     }
 
-    func stop() { synthesizer.stopSpeaking(at: .immediate) }
+    func stop() { Self.shared.stopSpeaking(at: .immediate); isSpeaking = false }
 
     private func display(message: String, emotion: LeoEmotion) {
         currentMessage = message
@@ -86,7 +92,8 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
                                        didFinish utterance: AVSpeechUtterance) {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self else { return }
             self.pendingUtterances = max(0, self.pendingUtterances - 1)
             if self.pendingUtterances == 0 { self.isSpeaking = false }
         }
