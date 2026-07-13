@@ -207,6 +207,7 @@ struct CollegeHomeView: View {
                 }
             }
         }
+        .onDisappear { leo.stop() }
         .onChange(of: student.totalStars) { _, newValue in
             let cycle = newValue / rewardThreshold
             if cycle > lastRewardAt && newValue >= rewardThreshold {
