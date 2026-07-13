@@ -68,25 +68,8 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     private static func preferredVoice(locale: String) -> AVSpeechSynthesisVoice? {
         let langCode = String(locale.prefix(2))
         let all = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix(langCode) }
-
-        // Voix féminines prioritaires (Léa est toujours féminine)
-        let femaleIds = ["amelie","aurelie","audrey","marie","florence","ines",
-                         "monica","karen","samantha","victoria","alice","anna",
-                         "pauline","juliette","claire"]
-        // Voix masculines à exclure explicitement
-        let maleIds   = ["thomas","nicolas","pierre","daniel","alex","romain",
-                         "jorge","diego","luca","felix","thomas"]
-
-        // 1. Chercher une voix féminine connue
-        for id in femaleIds {
-            if let v = all.first(where: { $0.identifier.lowercased().contains(id) }) { return v }
-        }
-        // 2. Exclure les voix masculines connues et prendre la première restante
-        let nonMale = all.filter { v in
-            !maleIds.contains(where: { v.identifier.lowercased().contains($0) })
-        }
-        if let v = nonMale.first { return v }
-        // 3. Fallback absolu
+        // Utilise la propriété .gender (iOS 9+) — fiable quel que soit le nom de la voix
+        if let female = all.first(where: { $0.gender == .female }) { return female }
         return all.first ?? AVSpeechSynthesisVoice(language: locale)
     }
 
@@ -166,12 +149,10 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private func sessionStart(subject: String, firstName: String) -> [String] {
         switch language {
-        case .french:
-            let f = LeoAvatarView.gender == "female"
-            return [
+        case .french: return [
             "Salut \(firstName) ! On attaque \(subject) ensemble. Je suis là !",
             "C'est parti \(firstName) ! \(subject) aujourd'hui — t'as assuré la dernière fois !",
-            f ? "\(firstName), prête ? Moi oui ! On va se régaler en \(subject) !" : "\(firstName), prêt ? Moi oui ! On va se régaler en \(subject) !",
+            "\(firstName), prête ? Moi oui ! On va se régaler en \(subject) !",
             "Bonjour \(firstName) ! \(subject) ce matin — on va cartonner !",
             "\(firstName), j'adore \(subject) ! On y va ensemble !",
             "Allez \(firstName), on se lance en \(subject) ! Tu es capable !",
@@ -512,7 +493,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         case .french:
             if rate >= 80 { return [
                 "\(correct) sur \(total) ! \(firstName), tu es incroyable !",
-                "Magnifique session ! \(rate)% — je suis vraiment fier de toi !",
+                "Magnifique session ! \(rate)% — je suis vraiment fière de toi !",
                 "Wow \(firstName) ! \(correct) bonnes réponses — tu déchires !"
             ]} else if rate >= 50 { return [
                 "\(correct) sur \(total) — bien joué \(firstName) ! On progresse !",
@@ -606,11 +587,9 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private func greetingMorning(firstName: String) -> [String] {
         switch language {
-        case .french:
-            let f = LeoAvatarView.gender == "female"
-            return [
-            f ? "Bonjour \(firstName) ! Contente de te voir aujourd'hui !" : "Bonjour \(firstName) ! Content de te voir aujourd'hui !",
-            f ? "Salut \(firstName) ! Prête pour une super session ?" : "Salut \(firstName) ! Prêt pour une super session ?",
+        case .french: return [
+            "Bonjour \(firstName) ! Contente de te voir aujourd'hui !",
+            "Salut \(firstName) ! Prête pour une super session ?",
             "Hey \(firstName) ! Nouvelle journée, nouvelles victoires !"
         ]
         case .english: return [
