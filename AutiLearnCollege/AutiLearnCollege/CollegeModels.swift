@@ -111,6 +111,19 @@ enum CollegeLanguage: String, CaseIterable, Codable {
         case .dutch:      return "Sociale Vaardigheden"
         }
     }
+
+    var cultureSubjectName: String {
+        switch self {
+        case .french:     return "Culture & Histoires"
+        case .english:    return "Culture & Stories"
+        case .spanish:    return "Cultura e Historias"
+        case .portuguese: return "Cultura e Histórias"
+        case .italian:    return "Cultura e Storie"
+        case .german:     return "Kultur & Geschichten"
+        case .arabic:     return "الثقافة والقصص"
+        case .dutch:      return "Cultuur & Verhalen"
+        }
+    }
 }
 
 // MARK: - Niveaux scolaires collège/lycée
@@ -160,6 +173,7 @@ enum CollegeSubject: String, CaseIterable, Codable {
     case histoire     = "Histoire-Géo"
     case sciences     = "Sciences"
     case communication = "Communication sociale"
+    case culture       = "Culture & Histoires"
 
     var emoji: String {
         switch self {
@@ -169,6 +183,7 @@ enum CollegeSubject: String, CaseIterable, Codable {
         case .histoire:      return "🏛️"
         case .sciences:      return "🔬"
         case .communication: return "🗣️"
+        case .culture:       return "🌟"
         }
     }
 
@@ -180,6 +195,7 @@ enum CollegeSubject: String, CaseIterable, Codable {
         case .histoire:      return "accentOrange"
         case .sciences:      return "accentPink"
         case .communication: return "accentYellow"
+        case .culture:       return "accentRed"
         }
     }
 
@@ -191,6 +207,7 @@ enum CollegeSubject: String, CaseIterable, Codable {
         case .histoire:      return language.historySubjectName
         case .sciences:      return language.sciencesSubjectName
         case .communication: return language.communicationSubjectName
+        case .culture:       return language.cultureSubjectName
         }
     }
 }

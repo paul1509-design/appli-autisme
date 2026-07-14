@@ -27,6 +27,7 @@
 		AA000019 /* LeoCompanion.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000019 /* LeoCompanion.swift */; };
 		AA000020 /* CollegeLessonSlideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000020 /* CollegeLessonSlideView.swift */; };
 		AA000021 /* CollegeFreePracticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000021 /* CollegeFreePracticeView.swift */; };
+		AA000022 /* CollegeCultureLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000022 /* CollegeCultureLibrary.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +52,7 @@
 		BB000019 /* LeoCompanion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeoCompanion.swift; sourceTree = "<group>"; };
 		BB000020 /* CollegeLessonSlideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeLessonSlideView.swift; sourceTree = "<group>"; };
 		BB000021 /* CollegeFreePracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeFreePracticeView.swift; sourceTree = "<group>"; };
+		BB000022 /* CollegeCultureLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeCultureLibrary.swift; sourceTree = "<group>"; };
 		CC000001 /* AutiLearnCollege.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutiLearnCollege.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -87,6 +89,7 @@
 				BB000019 /* LeoCompanion.swift */,
 				BB000020 /* CollegeLessonSlideView.swift */,
 				BB000021 /* CollegeFreePracticeView.swift */,
+				BB000022 /* CollegeCultureLibrary.swift */,
 			);
 			path = AutiLearnCollege;
 			sourceTree = "<group>";
@@ -186,6 +189,7 @@
 				AA000019 /* LeoCompanion.swift in Sources */,
 				AA000020 /* CollegeLessonSlideView.swift in Sources */,
 				AA000021 /* CollegeFreePracticeView.swift in Sources */,
+				AA000022 /* CollegeCultureLibrary.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

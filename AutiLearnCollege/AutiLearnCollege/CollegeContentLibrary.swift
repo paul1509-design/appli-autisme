@@ -16,8 +16,6 @@ struct CollegeContentLibrary {
 
     // MARK: - Slides de cours par matière
     private static func lessonSlides(subject: CollegeSubject, level: CollegeLevel, language: CollegeLanguage) -> [CollegeExercise] {
-        // Les slides de cours sont en français quelle que soit la langue de l'interface
-
         switch subject {
         case .francais:      return francaisLessons(level: level)
         case .maths:         return mathsLessons(level: level)
@@ -25,6 +23,7 @@ struct CollegeContentLibrary {
         case .histoire:      return histoireLessons(level: level)
         case .sciences:      return sciencesLessons(level: level)
         case .communication: return communicationLessons(level: level)
+        case .culture:       return CollegeCultureLibrary.lessonSlides(level: level, language: language)
         }
     }
 
@@ -156,6 +155,7 @@ struct CollegeContentLibrary {
         case .anglais:       return anglaisExercises(level: level, language: language)
         case .sciences:      return sciencesExercises(level: level)
         case .communication: return communicationExercises(level: level)
+        case .culture:       return CollegeCultureLibrary.exercises(level: level, language: language)
         }
     }
 
