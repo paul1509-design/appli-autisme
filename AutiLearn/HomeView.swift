@@ -199,6 +199,7 @@ struct HomeView: View {
         .onReceive(timer) { time in
             currentTime = time
         }
+        .onDisappear { leo.stop() }
         .onChange(of: child.totalStars) { _, newValue in
             let cycle = newValue / rewardStarThreshold
             if cycle > lastRewardAt && newValue >= rewardStarThreshold {

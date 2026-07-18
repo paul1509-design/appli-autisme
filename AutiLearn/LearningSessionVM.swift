@@ -85,18 +85,18 @@ class LearningSessionVM: ObservableObject {
 
     func startSession() {
         sessionStartTime = Date()
+        leo.configure(locale: language.voiceLocale)
         exercises = ContentLibrary.exercises(for: moduleType,
                                              level: child.schoolLevel,
                                              language: language,
                                              count: 8)
         currentIndex = 0
         currentPromptLevel = .independent
-        // Léo accueille l'enfant
         let moduleName = moduleType.rawValue
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.leo.speak(context: .moduleStart(module: moduleName, firstName: self.child.firstName))
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
             self.speakCurrentExercise()
         }
     }

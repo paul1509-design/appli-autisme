@@ -159,28 +159,129 @@ struct ContentLibrary {
 
     // MARK: - Generic lesson slides (non-French)
     private static func genericLessons(language: AppLanguage, level: SchoolLevel) -> [CurriculumExercise] {
-        // Basic welcome lesson in original language
-        let (emoji, title, body, narration): (String, String, String, String)
         switch language {
-        case .english:
-            (emoji, title, body, narration) = ("👋", "Greetings", "When you arrive somewhere, say **Hello**! It's very polite. In the evening, say **Good evening**. When leaving, say **Goodbye**!", "Today we learn how to greet people!")
-        case .spanish:
-            (emoji, title, body, narration) = ("👋", "Los saludos", "Cuando llegas a algún lugar, di **¡Hola**! Es muy educado. Por la noche di **Buenas noches**. Al marcharte di **¡Adiós**!", "¡Hoy aprendemos a saludar!")
-        case .portuguese:
-            (emoji, title, body, narration) = ("👋", "Saudações", "Quando você chega em algum lugar, diga **Olá**! É muito educado. À noite diga **Boa noite**. Ao sair diga **Tchau**!", "Hoje aprendemos a cumprimentar!")
-        case .italian:
-            (emoji, title, body, narration) = ("👋", "I saluti", "Quando arrivi da qualche parte, di' **Ciao**! È molto educato. La sera di' **Buona sera**. Quando parti di' **Arrivederci**!", "Oggi impariamo a salutare!")
-        case .german:
-            (emoji, title, body, narration) = ("👋", "Begrüßungen", "Wenn du irgendwo ankommst, sage **Hallo**! Das ist sehr höflich. Abends sage **Guten Abend**. Beim Abschied sage **Auf Wiedersehen**!", "Heute lernen wir, wie man grüßt!")
-        case .arabic:
-            (emoji, title, body, narration) = ("👋", "التحيات", "عندما تصل إلى مكان ما، قل **مرحباً**! هذا مهذب جداً. في المساء قل **مساء الخير**. عند المغادرة قل **مع السلامة**!", "اليوم نتعلم كيف نحيي الناس!")
-        case .dutch:
-            (emoji, title, body, narration) = ("👋", "Begroetingen", "Als je ergens aankomt, zeg **Hallo**! Dat is heel beleefd. 's Avonds zeg je **Goedenavond**. Bij het weggaan zeg je **Tot ziens**!", "Vandaag leren we hoe we mensen begroeten!")
-        case .french:
-            return frLessons(level)
+        case .french:     return frLessons(level)
+        case .english:    return enLessons(level)
+        case .spanish:    return esLessons(level)
+        case .portuguese: return ptLessons(level)
+        case .italian:    return itLessons(level)
+        case .german:     return deLessons(level)
+        case .arabic:     return arLessons(level)
+        case .dutch:      return nlLessons(level)
         }
-        return [.lesson(emoji: emoji, title: title, body: body, narration: narration)]
     }
+
+    // MARK: - English lesson slides
+    private static func enLessons(_ level: SchoolLevel) -> [CurriculumExercise] { [
+        .lesson(emoji: "👋", title: "Greetings",
+                body: "When you arrive somewhere, say **Hello**! In the evening, say **Good evening**. When leaving, say **Goodbye**! These words make people happy and show good manners.",
+                narration: "Today we learn how to greet people — it's one of the most important things you can do!", subject: .social),
+        .lesson(emoji: "🦁", title: "The Lion and the Mouse",
+                body: "A big **lion** was sleeping. A little **mouse** ran over his nose and woke him up! The lion was about to eat the mouse, but she said: 'Please let me go, one day I will help you!' Days later, the lion was caught in a **net**. The tiny mouse **chewed through the ropes** and freed him. Lesson: **everyone can help, big or small!**",
+                narration: "Here is a story that is 2,500 years old — and still true today! Listen very carefully.", subject: .oral),
+        .lesson(emoji: "🌈", title: "Colours of the Rainbow",
+                body: "A **rainbow** has 7 colours in this order: **Red, Orange, Yellow, Green, Blue, Indigo, Violet**. Rainbows appear when sunlight shines through raindrops — the water works like a prism and splits the light into all these beautiful colours!",
+                narration: "Have you ever seen a rainbow? Let me tell you the secret behind its magic colours!", subject: .science),
+        .lesson(emoji: "🐘", title: "Amazing Animals",
+                body: "Did you know? **Elephants** are the biggest land animals on Earth and have incredible memories. **Butterflies** taste with their feet! **Dolphins** sleep with one eye open. **Penguins** live in Antarctica where it is very cold. Nature is full of surprises!",
+                narration: "Let me tell you some amazing facts about animals — you won't believe some of them!", subject: .science),
+    ] }
+
+    // MARK: - Spanish lesson slides
+    private static func esLessons(_ level: SchoolLevel) -> [CurriculumExercise] { [
+        .lesson(emoji: "👋", title: "Los saludos",
+                body: "Cuando llegas a algún lugar, di **¡Hola**! Por la mañana di **Buenos días**. Por la tarde di **Buenas tardes**. Al irte di **¡Adiós**! Estas palabras hacen feliz a la gente.",
+                narration: "¡Hoy aprendemos a saludar — es muy importante para hacer amigos!", subject: .social),
+        .lesson(emoji: "🦁", title: "El León y el Ratón",
+                body: "Un gran **león** dormía. Un pequeño **ratón** corrió por su nariz y lo despertó. El ratón dijo: '¡Por favor, déjame ir! Un día te ayudaré.' Días después, el león cayó en una **red**. El ratoncito **royó las cuerdas** y lo liberó. Lección: **¡todos podemos ayudar, grandes o pequeños!**",
+                narration: "¡Esta es una historia de hace 2 500 años que todavía es verdad hoy! Escucha con mucha atención.", subject: .oral),
+        .lesson(emoji: "🌈", title: "Los Colores del Arcoíris",
+                body: "El **arcoíris** tiene 7 colores: **Rojo, Naranja, Amarillo, Verde, Azul, Añil, Violeta**. ¡Aparece cuando la luz del sol brilla a través de las gotas de lluvia! El agua separa la luz en todos esos hermosos colores.",
+                narration: "¿Alguna vez has visto un arcoíris? ¡Voy a contarte el secreto de sus colores mágicos!", subject: .science),
+        .lesson(emoji: "🐘", title: "Animales Increíbles",
+                body: "¿Sabías que los **elefantes** son los animales terrestres más grandes y tienen una memoria increíble? Las **mariposas** sienten el sabor con sus patas. Los **delfines** duermen con un ojo abierto. ¡La naturaleza está llena de sorpresas!",
+                narration: "¡Déjame contarte algunos datos asombrosos sobre los animales — algunos no los podrás creer!", subject: .science),
+    ] }
+
+    // MARK: - Portuguese lesson slides
+    private static func ptLessons(_ level: SchoolLevel) -> [CurriculumExercise] { [
+        .lesson(emoji: "👋", title: "Cumprimentos",
+                body: "Quando você chega em algum lugar, diga **Olá**! De manhã diga **Bom dia**. À tarde diga **Boa tarde**. Ao sair diga **Tchau**! Essas palavras fazem as pessoas felizes.",
+                narration: "Hoje aprendemos como cumprimentar as pessoas — é muito importante para fazer amigos!", subject: .social),
+        .lesson(emoji: "🦁", title: "O Leão e o Rato",
+                body: "Um grande **leão** dormia. Um pequeno **rato** correu pelo seu nariz e o acordou. O rato disse: 'Por favor, me deixa ir! Um dia vou te ajudar.' Dias depois, o leão caiu em uma **rede**. O ratinho **roeu as cordas** e o libertou. Lição: **todos podem ajudar, grandes ou pequenos!**",
+                narration: "Esta é uma história de 2 500 anos atrás que ainda é verdade hoje! Ouça com muita atenção.", subject: .oral),
+        .lesson(emoji: "🌈", title: "As Cores do Arco-Íris",
+                body: "O **arco-íris** tem 7 cores: **Vermelho, Laranja, Amarelo, Verde, Azul, Anil, Violeta**. Aparece quando a luz do sol brilha através de gotinhas de chuva. A água separa a luz em todas essas cores bonitas!",
+                narration: "Você já viu um arco-íris? Vou te contar o segredo das suas cores mágicas!", subject: .science),
+        .lesson(emoji: "🐘", title: "Animais Incríveis",
+                body: "Você sabia que os **elefantes** são os maiores animais terrestres e têm uma memória incrível? As **borboletas** sentem o gosto com as patas. Os **golfinhos** dormem com um olho aberto. A natureza está cheia de surpresas!",
+                narration: "Deixa eu te contar alguns fatos incríveis sobre animais — alguns vão te surpreender!", subject: .science),
+    ] }
+
+    // MARK: - Italian lesson slides
+    private static func itLessons(_ level: SchoolLevel) -> [CurriculumExercise] { [
+        .lesson(emoji: "👋", title: "I saluti",
+                body: "Quando arrivi da qualche parte, di' **Ciao**! Al mattino di' **Buongiorno**. Al pomeriggio di' **Buon pomeriggio**. Quando parti di' **Arrivederci**! Queste parole rendono felici le persone.",
+                narration: "Oggi impariamo a salutare — è molto importante per fare amicizia!", subject: .social),
+        .lesson(emoji: "🦁", title: "Il Leone e il Topo",
+                body: "Un grande **leone** dormiva. Un piccolo **topo** gli corse sul naso e lo svegliò. Il topo disse: 'Per favore, lasciami andare! Un giorno ti aiuterò.' Giorni dopo, il leone cadde in una **rete**. Il topino **rosicchiò le corde** e lo liberò. Lezione: **tutti possono aiutare, grandi o piccoli!**",
+                narration: "Questa è una storia di 2 500 anni fa che è ancora vera oggi! Ascolta con molta attenzione.", subject: .oral),
+        .lesson(emoji: "🌈", title: "I Colori dell'Arcobaleno",
+                body: "L'**arcobaleno** ha 7 colori: **Rosso, Arancione, Giallo, Verde, Blu, Indaco, Viola**. Appare quando la luce del sole brilla attraverso le gocce di pioggia. L'acqua separa la luce in tutti questi bellissimi colori!",
+                narration: "Hai mai visto un arcobaleno? Ti racconto il segreto dei suoi colori magici!", subject: .science),
+        .lesson(emoji: "🐘", title: "Animali Straordinari",
+                body: "Lo sapevi che gli **elefanti** sono i più grandi animali terrestri e hanno una memoria incredibile? Le **farfalle** assaporano con le zampe. I **delfini** dormono con un occhio aperto. La natura è piena di sorprese!",
+                narration: "Lascia che ti racconti alcuni fatti straordinari sugli animali — alcuni non ci crederai!", subject: .science),
+    ] }
+
+    // MARK: - German lesson slides
+    private static func deLessons(_ level: SchoolLevel) -> [CurriculumExercise] { [
+        .lesson(emoji: "👋", title: "Begrüßungen",
+                body: "Wenn du irgendwo ankommst, sage **Hallo**! Morgens sage **Guten Morgen**. Nachmittags sage **Guten Tag**. Beim Abschied sage **Auf Wiedersehen**! Diese Worte machen Menschen glücklich.",
+                narration: "Heute lernen wir, wie man Menschen begrüßt — das ist sehr wichtig, um Freunde zu finden!", subject: .social),
+        .lesson(emoji: "🦁", title: "Der Löwe und die Maus",
+                body: "Ein großer **Löwe** schlief. Eine kleine **Maus** lief über seine Nase und weckte ihn auf. Die Maus sagte: 'Bitte lass mich gehen! Eines Tages helfe ich dir.' Tage später fiel der Löwe in ein **Netz**. Die kleine Maus **nagte die Seile durch** und befreite ihn. Moral: **Jeder kann helfen, groß oder klein!**",
+                narration: "Dies ist eine Geschichte aus vor 2 500 Jahren, die heute noch wahr ist! Hör sehr genau zu.", subject: .oral),
+        .lesson(emoji: "🌈", title: "Die Farben des Regenbogens",
+                body: "Der **Regenbogen** hat 7 Farben: **Rot, Orange, Gelb, Grün, Blau, Indigo, Violett**. Er entsteht, wenn Sonnenlicht durch Regentropfen scheint. Das Wasser trennt das Licht in all diese wunderschönen Farben!",
+                narration: "Hast du jemals einen Regenbogen gesehen? Ich erkläre dir das Geheimnis seiner magischen Farben!", subject: .science),
+        .lesson(emoji: "🐘", title: "Erstaunliche Tiere",
+                body: "Wusstest du, dass **Elefanten** die größten Landtiere der Erde sind und ein unglaubliches Gedächtnis haben? **Schmetterlinge** schmecken mit ihren Füßen. **Delfine** schlafen mit einem offenen Auge. Die Natur steckt voller Überraschungen!",
+                narration: "Lass mich dir einige erstaunliche Fakten über Tiere erzählen — manches wirst du kaum glauben!", subject: .science),
+    ] }
+
+    // MARK: - Arabic lesson slides
+    private static func arLessons(_ level: SchoolLevel) -> [CurriculumExercise] { [
+        .lesson(emoji: "👋", title: "التحيات",
+                body: "عندما تصل إلى مكان ما، قل **مرحباً**! في الصباح قل **صباح الخير**. في المساء قل **مساء الخير**. عند المغادرة قل **مع السلامة**! هذه الكلمات تجعل الناس سعداء.",
+                narration: "اليوم نتعلم كيف نحيي الناس — هذا مهم جداً لصنع الأصدقاء!", subject: .social),
+        .lesson(emoji: "🦁", title: "الأسد والفأر",
+                body: "كان **أسدٌ** كبير نائماً. جرى **فأرٌ** صغير فوق أنفه وأيقظه! قال الفأر: 'أرجوك اتركني، سأساعدك يوماً ما.' بعد أيام، وقع الأسد في **شبكة**. قضم الفأرُ الصغيرُ **الحبالَ** وحرّره. الدرس: **الجميع يمكنه المساعدة، كبيراً كان أم صغيراً!**",
+                narration: "هذه قصة عمرها ٢٥٠٠ عام وما زالت صحيحة حتى اليوم! استمع بانتباه شديد.", subject: .oral),
+        .lesson(emoji: "🌈", title: "ألوان قوس قزح",
+                body: "لـ**قوس قزح** ٧ ألوان: **أحمر، برتقالي، أصفر، أخضر، أزرق، نيلي، بنفسجي**. يظهر حين تشرق الشمس عبر قطرات المطر. تعمل الماءُ كمنشور يقسّم الضوء إلى هذه الألوان الجميلة!",
+                narration: "هل رأيت يوماً قوس قزح؟ سأحكي لك سر ألوانه الساحرة!", subject: .science),
+        .lesson(emoji: "🐘", title: "حيوانات مذهلة",
+                body: "هل تعلم أن **الفيلة** هي أكبر الحيوانات البرية وتتمتع بذاكرة رائعة؟ **الفراشات** تتذوق بأقدامها! **الدلافين** تنام بعين واحدة مفتوحة. الطبيعة مليئة بالمفاجآت!",
+                narration: "دعني أخبرك ببعض الحقائق المذهلة عن الحيوانات — لن تصدق بعضها!", subject: .science),
+    ] }
+
+    // MARK: - Dutch lesson slides
+    private static func nlLessons(_ level: SchoolLevel) -> [CurriculumExercise] { [
+        .lesson(emoji: "👋", title: "Begroetingen",
+                body: "Als je ergens aankomt, zeg **Hallo**! 's Ochtends zeg je **Goedemorgen**. 's Middags zeg je **Goedemiddag**. Bij het weggaan zeg je **Tot ziens**! Deze woorden maken mensen blij.",
+                narration: "Vandaag leren we hoe we mensen begroeten — heel belangrijk om vrienden te maken!", subject: .social),
+        .lesson(emoji: "🦁", title: "De Leeuw en de Muis",
+                body: "Een grote **leeuw** sliep. Een klein **muisje** liep over zijn neus en maakte hem wakker! Het muisje zei: 'Laat me alsjeblieft gaan! Ooit zal ik je helpen.' Dagen later viel de leeuw in een **net**. Het muisje **knaagde de touwen door** en bevrijdde hem. Les: **iedereen kan helpen, groot of klein!**",
+                narration: "Dit is een verhaal van 2 500 jaar geleden dat nog steeds waar is! Luister heel goed.", subject: .oral),
+        .lesson(emoji: "🌈", title: "De Kleuren van de Regenboog",
+                body: "De **regenboog** heeft 7 kleuren: **Rood, Oranje, Geel, Groen, Blauw, Indigo, Violet**. Hij verschijnt als zonlicht door regendruppels schijnt. Het water splitst het licht in al deze prachtige kleuren!",
+                narration: "Heb je ooit een regenboog gezien? Ik vertel je het geheim van zijn magische kleuren!", subject: .science),
+        .lesson(emoji: "🐘", title: "Verbazingwekkende Dieren",
+                body: "Wist je dat **olifanten** de grootste landdieren ter wereld zijn met een ongelooflijk geheugen? **Vlinders** proeven met hun poten! **Dolfijnen** slapen met één oog open. De natuur zit vol verrassingen!",
+                narration: "Laat me je een paar verbazingwekkende feiten over dieren vertellen — sommige zul je nauwelijks geloven!", subject: .science),
+    ] }
 
     // MARK: - French Practice Exercises (write + fill-blank + diction)
 
@@ -236,16 +337,6 @@ struct ContentLibrary {
     ] }
 
     // MARK: - FRENCH (evaluation QCM + repeat)
-    private static func french(_ level: SchoolLevel, _ module: ModuleType) -> [CurriculumExercise] {
-        switch level {
-        case .level0: return frLevel0()
-        case .level1: return frLevel1()
-        case .level2: return frLevel2()
-        case .level3: return frLevel3()
-        }
-    }
-
-    // MARK: - FRENCH
     private static func french(_ level: SchoolLevel, _ module: ModuleType) -> [CurriculumExercise] {
         switch level {
         case .level0: return frLevel0()

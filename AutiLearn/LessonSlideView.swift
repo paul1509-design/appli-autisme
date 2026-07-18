@@ -102,8 +102,7 @@ struct LessonSlideView: View {
             .padding(.bottom, 16)
         }
         .onAppear {
-            // Léa narrate le cours
-            vm.speak(exercise.characterSays)
+            // TTS géré par LearningSessionVM.startSession() et nextExercise()
             withAnimation { revealed = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 bodyOpacity = 1

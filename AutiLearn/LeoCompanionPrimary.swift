@@ -10,12 +10,19 @@ class LeoPrimary: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     @Published var emotion: LeoEmotionP = .neutral
     @Published var showBubble = false
 
-    private let synthesizer = AVSpeechSynthesizer()
+    private static let shared = AVSpeechSynthesizer()
+    private static weak var activeDelegate: LeoPrimary?
+    private var pendingUtterances = 0
+    private var currentLocale: String = "fr-FR"
     private var correctStreak = 0
+    private var recentPicks: [String] = []
 
     override init() {
         super.init()
-        synthesizer.delegate = self
+    }
+
+    func configure(locale: String) {
+        currentLocale = locale
     }
 
     // MARK: - Contextes
@@ -42,45 +49,55 @@ class LeoPrimary: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         speak(context: correct ? .correct(streak: correctStreak) : .wrong(attempt: 1))
     }
 
-    func stop() { synthesizer.stopSpeaking(at: .immediate) }
+    func stop() {
+        Self.shared.stopSpeaking(at: .immediate)
+        pendingUtterances = 0
+        isSpeaking = false
+    }
 
-    /// Lit un texte libre sans passer par un contexte prédéfini
     func speakText(_ text: String) {
         display(text, emotion: .neutral)
         say(text)
     }
 
     private func say(_ text: String) {
-        synthesizer.stopSpeaking(at: .immediate)
+        Self.activeDelegate?.isSpeaking = false
+        Self.activeDelegate = self
+        Self.shared.delegate = self
+        Self.shared.stopSpeaking(at: .immediate)
+        pendingUtterances = 0
+
         let sentences = text.components(separatedBy: CharacterSet(charactersIn: ".!?"))
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
+        guard !sentences.isEmpty else { return }
         isSpeaking = true
+        pendingUtterances = sentences.count
         for (i, sentence) in sentences.enumerated() {
             let utt = AVSpeechUtterance(string: sentence)
-            utt.voice = Self.preferredVoice()
+            utt.voice = Self.preferredVoice(locale: currentLocale)
             utt.rate = 0.42
-            utt.pitchMultiplier = LeoAvatarView.gender == "female" ? 1.15 : 0.95
+            utt.pitchMultiplier = 1.15
             utt.volume = 0.95
             utt.preUtteranceDelay = i == 0 ? 0 : 0.22
             utt.postUtteranceDelay = 0.06
-            synthesizer.speak(utt)
+            Self.shared.speak(utt)
         }
     }
 
-    /// Sélectionne la meilleure voix française selon le genre du professeur
-    private static func preferredVoice() -> AVSpeechSynthesisVoice? {
-        let isFemale = LeoAvatarView.gender == "female"
-        let all = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix("fr") }
-        // Recherche par nom connu
-        let femaleIds = ["amelie", "marie", "audrey", "aurelie", "florence"]
-        let maleIds   = ["thomas", "nicolas", "pierre", "romain"]
-        let preferred = isFemale ? femaleIds : maleIds
-        for id in preferred {
+    private static func preferredVoice(locale: String) -> AVSpeechSynthesisVoice? {
+        let langCode = String(locale.prefix(2))
+        let all = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix(langCode) }
+        let femaleIds = ["marie", "amelie", "aurelie", "audrey", "florence", "ines", "pauline",
+                         "juliette", "claire", "monica", "karen", "samantha", "victoria",
+                         "alice", "anna", "siri_female", "sirf"]
+        for id in femaleIds {
             if let v = all.first(where: { $0.identifier.lowercased().contains(id) }) { return v }
         }
-        // Fallback : première voix française disponible
-        return all.first ?? AVSpeechSynthesisVoice(language: "fr-FR")
+        if let v = all.first(where: { $0.gender == .female }) { return v }
+        let maleIds = ["thomas", "nicolas", "pierre", "daniel", "jorge", "diego", "luca", "felix", "romain", "alex"]
+        if let v = all.first(where: { v in !maleIds.contains(where: { v.identifier.lowercased().contains($0) }) }) { return v }
+        return all.first ?? AVSpeechSynthesisVoice(language: locale)
     }
 
     private func display(_ message: String, emotion: LeoEmotionP) {
@@ -93,7 +110,11 @@ class LeoPrimary: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     }
 
     nonisolated func speechSynthesizer(_ s: AVSpeechSynthesizer, didFinish u: AVSpeechUtterance) {
-        Task { @MainActor in self.isSpeaking = false }
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.pendingUtterances = max(0, self.pendingUtterances - 1)
+            if self.pendingUtterances == 0 { self.isSpeaking = false }
+        }
     }
 
     // MARK: - Banque de messages (français, adapté 3-10 ans)
@@ -249,7 +270,13 @@ class LeoPrimary: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         }
     }
 
-    private func pick(_ arr: [String]) -> String { arr.randomElement() ?? arr[0] }
+    private func pick(_ arr: [String]) -> String {
+        let filtered = arr.filter { !recentPicks.contains($0) }
+        let chosen = (filtered.isEmpty ? arr : filtered).randomElement() ?? arr[0]
+        recentPicks.append(chosen)
+        if recentPicks.count > 5 { recentPicks.removeFirst() }
+        return chosen
+    }
 }
 
 // MARK: - Émotion de Léo (app primaire)
