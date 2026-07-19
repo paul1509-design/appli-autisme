@@ -599,7 +599,7 @@ struct ModuleGrid: View {
                 let (emoji, title, color, moduleType) = module
                 NavigationLink {
                     LearningSessionView(child: child, moduleType: moduleType,
-                                        language: appState.currentLanguage, leo: leo)
+                                        language: appState.currentLanguage)
                 } label: {
                     ModuleCard(emoji: emoji, title: title, colorName: color,
                                isPrimary: index == 0)
