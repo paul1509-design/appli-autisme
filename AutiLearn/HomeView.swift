@@ -43,59 +43,58 @@ struct HomeView: View {
             ZStack(alignment: .bottom) {
             ScrollView(.vertical) {
                 VStack(spacing: 20) {
-
-                    // Bandeau trial si < 7 jours restants
-                    if !subscriptionService.isSubscribed && subscriptionService.trialDaysRemaining <= 7 {
-                        TrialBanner(daysLeft: subscriptionService.trialDaysRemaining) {
-                            appState.currentScreen = .paywall
-                        }
-                    }
-
-                    HomeHeader(child: child, greeting: greeting,
-                               onLevelTap: { showLevelPicker = true })
-
-                    if showEmotionCheck && selectedEmotion == nil {
-                        EmotionCheckCard(child: child) { emotion in
-                            withAnimation(.spring()) {
-                                selectedEmotion = emotion
-                                showEmotionCheck = false
-                                if emotion.needsRegulation { showBreathing = true }
+                    Group {
+                        // Bandeau trial si < 7 jours restants
+                        if !subscriptionService.isSubscribed && subscriptionService.trialDaysRemaining <= 7 {
+                            TrialBanner(daysLeft: subscriptionService.trialDaysRemaining) {
+                                appState.currentScreen = .paywall
                             }
                         }
-                    }
 
-                    if let emotion = selectedEmotion, emotion.needsRegulation {
-                        BreathingBanner(onTap: { showBreathing = true })
-                    }
+                        HomeHeader(child: child, greeting: greeting,
+                                   onLevelTap: { showLevelPicker = true })
 
-                    // Compagnon pair — encouragement
-                    PeerCompanionCard(child: child, starsUntilReward: starsUntilReward)
-
-                    // Planning visuel du jour (style PECS)
-                    DailyScheduleCard(
-                        child: child,
-                        completedSteps: completedScheduleSteps,
-                        onComplete: { idx in
-                            withAnimation(.spring(response: 0.3)) {
-                                completedScheduleSteps.insert(idx)
+                        if showEmotionCheck && selectedEmotion == nil {
+                            EmotionCheckCard(child: child) { emotion in
+                                withAnimation(.spring()) {
+                                    selectedEmotion = emotion
+                                    showEmotionCheck = false
+                                    if emotion.needsRegulation { showBreathing = true }
+                                }
                             }
                         }
-                    )
 
-                    StatsRow(child: child, onRewardTap: { showReward = true })
+                        if let emotion = selectedEmotion, emotion.needsRegulation {
+                            BreathingBanner(onTap: { showBreathing = true })
+                        }
 
-                    SpacingReviewBanner(child: child)
+                        PeerCompanionCard(child: child, starsUntilReward: starsUntilReward)
 
-                    // Modules — Parole en PREMIER
-                    Text("Par où commencer ?")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Color("textPrimary"))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 20)
+                        DailyScheduleCard(
+                            child: child,
+                            completedSteps: completedScheduleSteps,
+                            onComplete: { idx in
+                                withAnimation(.spring(response: 0.3)) {
+                                    completedScheduleSteps.insert(idx)
+                                }
+                            }
+                        )
 
-                    ModuleGrid(child: child)
+                        StatsRow(child: child, onRewardTap: { showReward = true })
+                    }
+                    Group {
+                        SpacingReviewBanner(child: child)
 
-                    DailyStoryTeaser(child: child)
+                        Text("Par où commencer ?")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(Color("textPrimary"))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 20)
+
+                        ModuleGrid(child: child)
+
+                        DailyStoryTeaser(child: child)
+                    }
 
                     // Exercice bonus Mot Mystère
                     Button {
