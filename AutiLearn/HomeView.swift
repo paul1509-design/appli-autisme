@@ -75,7 +75,7 @@ struct HomeView: View {
                             completedSteps: completedScheduleSteps,
                             onComplete: { idx in
                                 withAnimation(.spring(response: 0.3)) {
-                                    completedScheduleSteps.insert(idx)
+                                    _ = completedScheduleSteps.insert(idx)
                                 }
                             }
                         )
