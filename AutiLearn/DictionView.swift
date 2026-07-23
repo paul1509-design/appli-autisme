@@ -323,7 +323,7 @@ struct WaveformAnimation: View {
         .onAppear {
             if isActive { animateWave() }
         }
-        .onChange(of: isActive) { active in
+        .onChange(of: isActive) { _, active in
             if active { animateWave() }
         }
     }
