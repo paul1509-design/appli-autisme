@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 // MARK: - Dashboard Parents
 struct ParentDashboardView: View {
@@ -87,7 +86,16 @@ struct ParentDashboardView: View {
 
 // MARK: - Paramètres rappels (app primaire)
 struct ABAReminderSettingsView: View {
-    @Bindable var child: ChildProfile
+    let child: ChildProfile
+    @EnvironmentObject var dataStore: DataStore
+    @State private var reminderEnabled: Bool
+    @State private var reminderHour: Int
+
+    init(child: ChildProfile) {
+        self.child = child
+        _reminderEnabled = State(initialValue: child.reminderEnabled)
+        _reminderHour = State(initialValue: child.reminderHour)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -98,30 +106,32 @@ struct ABAReminderSettingsView: View {
             Text("Une notification quotidienne aide à maintenir la routine — fondamentale pour les enfants TSA.")
                 .font(.system(size: 13)).foregroundColor(Color("textSecondary")).lineSpacing(4)
 
-            Toggle("Activer les rappels", isOn: $child.reminderEnabled)
+            Toggle("Activer les rappels", isOn: $reminderEnabled)
                 .font(.system(size: 15))
                 .tint(Color("accentBlue"))
-                .onChange(of: child.reminderEnabled) { _, enabled in
+                .onChange(of: reminderEnabled) { enabled in
+                    saveChanges()
                     if enabled {
-                        ABANotificationService.scheduleDailyReminder(childName: child.firstName, hour: child.reminderHour)
+                        ABANotificationService.scheduleDailyReminder(childName: child.firstName, hour: reminderHour)
                     } else {
                         ABANotificationService.cancelReminder()
                     }
                 }
 
-            if child.reminderEnabled {
+            if reminderEnabled {
                 HStack {
                     Text("Heure du rappel").font(.system(size: 15)).foregroundColor(Color("textPrimary"))
                     Spacer()
-                    Picker("Heure", selection: $child.reminderHour) {
+                    Picker("Heure", selection: $reminderHour) {
                         ForEach(6..<22, id: \.self) { h in Text("\(h):00").tag(h) }
                     }
                     .pickerStyle(.menu).tint(Color("accentBlue"))
-                    .onChange(of: child.reminderHour) { _, hour in
+                    .onChange(of: reminderHour) { hour in
+                        saveChanges()
                         ABANotificationService.scheduleDailyReminder(childName: child.firstName, hour: hour)
                     }
                 }
-                Text("Rappel tous les jours à \(child.reminderHour):00.")
+                Text("Rappel tous les jours à \(reminderHour):00.")
                     .font(.system(size: 12)).foregroundColor(Color("textSecondary"))
             }
 
@@ -130,10 +140,17 @@ struct ABAReminderSettingsView: View {
         }
         .padding(20)
         .onAppear {
-            if child.reminderEnabled {
-                ABANotificationService.scheduleDailyReminder(childName: child.firstName, hour: child.reminderHour)
+            if reminderEnabled {
+                ABANotificationService.scheduleDailyReminder(childName: child.firstName, hour: reminderHour)
             }
         }
+    }
+
+    private func saveChanges() {
+        var updated = child
+        updated.reminderEnabled = reminderEnabled
+        updated.reminderHour = reminderHour
+        dataStore.updateChild(updated)
     }
 }
 

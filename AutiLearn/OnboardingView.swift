@@ -1,8 +1,7 @@
 import SwiftUI
-import SwiftData
 
 struct OnboardingView: View {
-    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject var dataStore: DataStore
     @EnvironmentObject var appState: AppState
 
     @State private var currentStep: Int = 0
@@ -70,7 +69,7 @@ struct OnboardingView: View {
     }
 
     private func createProfile() {
-        let child = ChildProfile(
+        var child = ChildProfile(
             firstName: childName.trimmingCharacters(in: .whitespaces),
             avatarName: selectedAvatar,
             schoolLevel: selectedLevel,
@@ -78,8 +77,7 @@ struct OnboardingView: View {
         )
         child.teacherAvatarName = selectedTeacher
         appState.currentLanguage = selectedLanguage
-        modelContext.insert(child)
-        try? modelContext.save()
+        dataStore.addChild(child)
         appState.selectChild(child)
         appState.completeOnboarding()
     }

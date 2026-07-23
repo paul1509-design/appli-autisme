@@ -1,12 +1,11 @@
 import SwiftUI
-import SwiftData
 
 // MARK: - Seuil d'étoiles pour la récompense
 private let rewardStarThreshold = 10
 
 struct HomeView: View {
     let child: ChildProfile
-    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var dataStore: DataStore
     @EnvironmentObject private var subscriptionService: SubscriptionService
     @EnvironmentObject private var appState: AppState
 
@@ -164,7 +163,11 @@ struct HomeView: View {
                 BreathingExerciseView()
             }
             .sheet(isPresented: $showLevelPicker) {
-                LevelPickerSheet(child: child)
+                LevelPickerSheet(currentLevel: child.schoolLevel) { level in
+                    var updated = child
+                    updated.schoolLevel = level
+                    dataStore.updateChild(updated)
+                }
             }
             .fullScreenCover(isPresented: $showReward) {
                 RewardBreakView(child: child, onDismiss: { showReward = false })
@@ -199,7 +202,7 @@ struct HomeView: View {
             currentTime = time
         }
         .onDisappear { leo.stop() }
-        .onChange(of: child.totalStars) { _, newValue in
+        .onChange(of: child.totalStars) { newValue in
             let cycle = newValue / rewardStarThreshold
             if cycle > lastRewardAt && newValue >= rewardStarThreshold {
                 lastRewardAt = cycle
@@ -278,9 +281,9 @@ struct HomeHeader: View {
 
 // MARK: - Sélecteur de niveau (sheet)
 struct LevelPickerSheet: View {
-    let child: ChildProfile
+    let currentLevel: SchoolLevel
+    let onSelect: (SchoolLevel) -> Void
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         NavigationStack {
@@ -292,8 +295,7 @@ struct LevelPickerSheet: View {
 
                 ForEach(SchoolLevel.allCases.filter { $0 != .level3 }, id: \.self) { level in
                     Button {
-                        child.schoolLevel = level
-                        try? modelContext.save()
+                        onSelect(level)
                         dismiss()
                     } label: {
                         HStack(spacing: 14) {
@@ -308,7 +310,7 @@ struct LevelPickerSheet: View {
                                     .foregroundColor(Color("textSecondary"))
                             }
                             Spacer()
-                            if child.schoolLevel == level {
+                            if currentLevel == level {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(Color("accentPurple"))
                                     .font(.system(size: 22))
@@ -317,14 +319,14 @@ struct LevelPickerSheet: View {
                         .padding(16)
                         .background(
                             RoundedRectangle(cornerRadius: 14)
-                                .fill(child.schoolLevel == level
+                                .fill(currentLevel == level
                                       ? Color("accentPurple").opacity(0.08)
                                       : Color("cardBackground"))
                                 .overlay(RoundedRectangle(cornerRadius: 14)
-                                    .stroke(child.schoolLevel == level
+                                    .stroke(currentLevel == level
                                             ? Color("accentPurple")
                                             : Color("borderLight"),
-                                            lineWidth: child.schoolLevel == level ? 1.5 : 0.5))
+                                            lineWidth: currentLevel == level ? 1.5 : 0.5))
                         )
                     }
                 }

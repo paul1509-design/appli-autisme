@@ -25,6 +25,7 @@
 		AA100002 /* CurriculumModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB100002 /* CurriculumModels.swift */; };
 		AA100003 /* LessonSlideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB100003 /* LessonSlideView.swift */; };
 		AA100004 /* DictionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB100004 /* DictionView.swift */; };
+		AA100005 /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB100005 /* DataStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +47,7 @@
 		BB100002 /* CurriculumModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurriculumModels.swift; sourceTree = "<group>"; };
 		BB100003 /* LessonSlideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonSlideView.swift; sourceTree = "<group>"; };
 		BB100004 /* DictionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictionView.swift; sourceTree = "<group>"; };
+		BB100005 /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
 		000FD7236D9345879211E10B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9BDE3E69C9A549518BCF94D0 /* AutiLearn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutiLearn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -89,6 +91,7 @@
 				BB100002 /* CurriculumModels.swift */,
 				BB100003 /* LessonSlideView.swift */,
 				BB100004 /* DictionView.swift */,
+			BB100005 /* DataStore.swift */,
 				66F9613F09884521972BE86E /* Assets.xcassets */,
 				000FD7236D9345879211E10B /* Info.plist */,
 			);
@@ -191,6 +194,7 @@
 				AA100002 /* CurriculumModels.swift in Sources */,
 				AA100003 /* LessonSlideView.swift in Sources */,
 				AA100004 /* DictionView.swift in Sources */,
+			AA100005 /* DataStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,7 +226,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -249,7 +253,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;
@@ -268,7 +272,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = AutiLearn/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.autilearn.app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -290,7 +294,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = AutiLearn/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.autilearn.app";
 				PRODUCT_NAME = "$(TARGET_NAME)";

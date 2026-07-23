@@ -6,7 +6,7 @@ struct LearningSessionView: View {
     let moduleType: ModuleType
     let language: AppLanguage
 
-    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var dataStore: DataStore
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var vm: LearningSessionVM
@@ -50,7 +50,7 @@ struct LearningSessionView: View {
                         CountdownTimer(timeRemaining: timeRemaining, total: 30)
                         Spacer()
                         Button {
-                            vm.saveSession(modelContext: modelContext)
+                            vm.saveSession(dataStore: dataStore)
                             dismiss()
                         } label: {
                             Image(systemName: "xmark.circle.fill")
@@ -70,7 +70,7 @@ struct LearningSessionView: View {
             vm.startSession()
             resetTimer()
         }
-        .onDisappear { vm.saveSession(modelContext: modelContext) }
+        .onDisappear { vm.saveSession(dataStore: dataStore) }
         .onReceive(exerciseTimer) { _ in
             guard timerActive && !vm.hasAnswered else { return }
             if timeRemaining > 0 {
@@ -80,14 +80,14 @@ struct LearningSessionView: View {
                 vm.requestHint()
             }
         }
-        .onChange(of: vm.currentIndex) { _, _ in
+        .onChange(of: vm.currentIndex) { _ in
             resetTimer()
             if vm.isSessionComplete {
-                vm.saveSession(modelContext: modelContext)
+                vm.saveSession(dataStore: dataStore)
                 sessionComplete = true
             }
         }
-        .onChange(of: vm.hasAnswered) { _, answered in
+        .onChange(of: vm.hasAnswered) { answered in
             if answered { timerActive = false }
         }
     }
@@ -177,7 +177,7 @@ struct LearningSessionView: View {
         if vm.hasAnswered {
             Button {
                 if vm.currentIndex + 1 >= vm.exercises.count {
-                    vm.saveSession(modelContext: modelContext)
+                    vm.saveSession(dataStore: dataStore)
                     sessionComplete = true
                 } else {
                     vm.nextExercise()

@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 enum AppScreen {
     case splash

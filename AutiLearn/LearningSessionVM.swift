@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 import AVFoundation
 import UIKit
 
@@ -33,12 +32,11 @@ class LearningSessionVM: ObservableObject {
     @Published var showHint: Bool = false
     @Published var totalPromptsUsed: Int = 0
 
-    // Hiérarchie de prompts ABA : independent → gesture → partial → full
     enum PromptLevel: Int, CaseIterable {
-        case independent = 0  // aucune aide
-        case gesture     = 1  // indice visuel (emoji / 1ère lettre)
-        case partial     = 2  // début de la réponse
-        case full        = 3  // réponse complète lue à voix haute
+        case independent = 0
+        case gesture     = 1
+        case partial     = 2
+        case full        = 3
 
         var label: String {
             switch self {
@@ -61,7 +59,6 @@ class LearningSessionVM: ObservableObject {
 
     let leo: LeoPrimary
     private var correctStreak = 0
-
     private var sessionStartTime = Date()
 
     var currentExercise: CurriculumExercise? {
@@ -101,7 +98,6 @@ class LearningSessionVM: ObservableObject {
         }
     }
 
-    // MARK: - Hiérarchie de prompts ABA
     func requestHint() {
         guard let ex = currentExercise, !hasAnswered else { return }
         let nextLevel = PromptLevel(rawValue: currentPromptLevel.rawValue + 1) ?? .full
@@ -123,11 +119,9 @@ class LearningSessionVM: ObservableObject {
         case .independent:
             return ""
         case .gesture:
-            // Première lettre
             let first = String(exercise.expectedAnswer.prefix(1))
             return "Ça commence par : \(first)..."
         case .partial:
-            // Moitié de la réponse
             let words = exercise.expectedAnswer.components(separatedBy: " ")
             let half = words.prefix(max(1, words.count / 2)).joined(separator: " ")
             return "Début : \(half)..."
@@ -149,7 +143,6 @@ class LearningSessionVM: ObservableObject {
         }
     }
 
-    // Validation d'une réponse écrite
     func submitAnswer() {
         guard let ex = currentExercise, !hasAnswered else { return }
         totalAnswers += 1
@@ -172,7 +165,6 @@ class LearningSessionVM: ObservableObject {
         }
     }
 
-    // Auto-validation pour le mode "J'ai répété à voix haute"
     func confirmRepeated() {
         guard !hasAnswered else { return }
         totalAnswers += 1
@@ -199,33 +191,33 @@ class LearningSessionVM: ObservableObject {
         }
     }
 
-    func saveSession(modelContext: ModelContext) {
-        let session = LearningSession(moduleType: moduleType)
+    func saveSession(dataStore: DataStore) {
+        var session = LearningSession(moduleType: moduleType)
         session.durationSeconds = Int(Date().timeIntervalSince(sessionStartTime))
         session.starsEarned = starsEarned
         session.wordsStudied = exercises.count
         session.correctAnswers = correctAnswers
         session.totalAnswers = totalAnswers
         session.completed = isSessionComplete
-        // Pénalité légère si beaucoup de prompts utilisés (ABA : encourager l'indépendance)
         let promptPenalty = min(totalPromptsUsed, starsEarned)
         session.starsEarned = max(0, starsEarned - promptPenalty / 4)
-        child.sessions.append(session)
-        child.totalStars += starsEarned
-        child.lastActiveAt = Date()
-        try? modelContext.save()
+
+        var updatedChild = child
+        updatedChild.sessions.append(session)
+        updatedChild.totalStars += starsEarned
+        updatedChild.lastActiveAt = Date()
+        dataStore.updateChild(updatedChild)
 
         leo.speak(context: .sessionEnd(correct: correctAnswers, total: totalAnswers, firstName: child.firstName))
 
         let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
-        ABAReviewService.checkAndRequestReview(totalSessions: child.sessions.count, scene: scene)
+        ABAReviewService.checkAndRequestReview(totalSessions: updatedChild.sessions.count, scene: scene)
     }
 
     private func evaluate(input: String, expected: String) -> Bool {
         let a = normalize(input)
         let b = normalize(expected)
         if a == b { return true }
-        // Tolérance 70% des mots
         let wa = Set(a.components(separatedBy: " ").filter { !$0.isEmpty })
         let wb = Set(b.components(separatedBy: " ").filter { !$0.isEmpty })
         guard !wb.isEmpty else { return false }

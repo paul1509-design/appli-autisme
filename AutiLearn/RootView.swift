@@ -1,10 +1,14 @@
 import SwiftUI
-import SwiftData
 
 struct RootView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var subscriptionService: SubscriptionService
-    @Query private var children: [ChildProfile]
+    @EnvironmentObject private var dataStore: DataStore
+
+    private func freshChild(for stored: ChildProfile?) -> ChildProfile? {
+        guard let stored else { return nil }
+        return dataStore.children.first(where: { $0.id == stored.id }) ?? stored
+    }
 
     var body: some View {
         Group {
@@ -12,6 +16,7 @@ struct RootView: View {
             case .splash:
                 SplashView(onGetStarted: {
                     appState.hasSeenSplash = true
+                    let children = dataStore.children
                     if children.isEmpty {
                         appState.currentScreen = .onboarding
                     } else if children.count == 1 {
@@ -26,19 +31,22 @@ struct RootView: View {
             case .childSelector:
                 ChildSelectorView()
             case .home:
-                if let child = appState.selectedChild ?? children.first {
+                let child = freshChild(for: appState.selectedChild) ?? dataStore.children.first
+                if let child {
                     HomeView(child: child)
                 } else {
                     OnboardingView()
                 }
             case .learning:
-                if let child = appState.selectedChild ?? children.first {
+                let child = freshChild(for: appState.selectedChild) ?? dataStore.children.first
+                if let child {
                     LearningSessionView(child: child, moduleType: appState.selectedModule, language: appState.currentLanguage)
                 } else {
                     OnboardingView()
                 }
             case .parentDashboard:
-                if let child = appState.selectedChild ?? children.first {
+                let child = freshChild(for: appState.selectedChild) ?? dataStore.children.first
+                if let child {
                     ParentDashboardView(child: child)
                 } else {
                     OnboardingView()
@@ -49,12 +57,12 @@ struct RootView: View {
         }
         .onAppear {
             guard appState.hasSeenSplash else { return }
-            // Vérifier trial avant de laisser entrer
             subscriptionService.checkSubscriptionStatus()
             if subscriptionService.trialExpired && !subscriptionService.isSubscribed {
                 appState.currentScreen = .paywall
                 return
             }
+            let children = dataStore.children
             if children.isEmpty {
                 appState.currentScreen = .onboarding
             } else if children.count == 1 {
@@ -64,7 +72,7 @@ struct RootView: View {
                 appState.currentScreen = .childSelector
             }
         }
-        .onChange(of: subscriptionService.trialExpired) { _, expired in
+        .onChange(of: subscriptionService.trialExpired) { expired in
             if expired && !subscriptionService.isSubscribed {
                 appState.currentScreen = .paywall
             }

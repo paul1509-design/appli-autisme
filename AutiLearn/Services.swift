@@ -1,6 +1,5 @@
 import AVFoundation
 import SwiftUI
-import SwiftData
 import Combine
 
 // MARK: - Service synthèse vocale (orthophoniste)
@@ -271,9 +270,8 @@ struct BreathingExerciseView: View {
 
 // MARK: - Sélecteur d'enfant
 struct ChildSelectorView: View {
-    @Query var children: [ChildProfile]
+    @EnvironmentObject var dataStore: DataStore
     @EnvironmentObject var appState: AppState
-    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         NavigationStack {
@@ -284,7 +282,7 @@ struct ChildSelectorView: View {
                         .foregroundColor(Color("textPrimary"))
                         .padding(.top, 32)
 
-                    ForEach(children) { child in
+                    ForEach(dataStore.children) { child in
                         ChildCard(child: child)
                             .onTapGesture {
                                 appState.selectChild(child)

@@ -1,26 +1,24 @@
-import SwiftData
 import Foundation
 
 // MARK: - Profil Enfant
-@Model
-class ChildProfile {
+struct ChildProfile: Codable, Identifiable {
     var id: UUID
     var firstName: String
-    var avatarName: String          // nom de l'avatar choisi
+    var avatarName: String
     var schoolLevel: SchoolLevel
     var communicationLevel: CommunicationLevel
-    var teacherAvatarName: String   // prof ABA choisi par les parents
-    var teacherAvatarVoice: String  // voix AVSpeech
+    var teacherAvatarName: String
+    var teacherAvatarVoice: String
     var createdAt: Date
     var lastActiveAt: Date
-    var totalStars: Int             // monnaie de récompense
-    var currentStreak: Int          // jours consécutifs
+    var totalStars: Int
+    var currentStreak: Int
     var reminderHour: Int
     var reminderEnabled: Bool
 
-    @Relationship(deleteRule: .cascade) var sessions: [LearningSession]
-    @Relationship(deleteRule: .cascade) var wordProgresses: [WordProgress]
-    @Relationship(deleteRule: .cascade) var weeklyReports: [WeeklyReport]
+    var sessions: [LearningSession]
+    var wordProgresses: [WordProgress]
+    var weeklyReports: [WeeklyReport]
 
     init(firstName: String, avatarName: String = "avatar_star",
          schoolLevel: SchoolLevel = .level0,
@@ -90,10 +88,10 @@ enum SchoolLevel: String, Codable, CaseIterable {
 
 // MARK: - Niveau de communication
 enum CommunicationLevel: String, Codable, CaseIterable {
-    case preverbal      = "preverbal"       // pas de mots
-    case emerging       = "emerging"        // quelques mots
-    case functional     = "functional"      // phrases courtes
-    case conversational = "conversational"  // conversations simples
+    case preverbal      = "preverbal"
+    case emerging       = "emerging"
+    case functional     = "functional"
+    case conversational = "conversational"
 
     var displayName: String {
         switch self {
@@ -106,8 +104,7 @@ enum CommunicationLevel: String, Codable, CaseIterable {
 }
 
 // MARK: - Session d'apprentissage
-@Model
-class LearningSession {
+struct LearningSession: Codable, Identifiable {
     var id: UUID
     var date: Date
     var durationSeconds: Int
@@ -180,15 +177,13 @@ enum EmotionState: String, Codable, CaseIterable {
         }
     }
 
-    // Si état difficile → suggestion cohérence cardiaque
     var needsRegulation: Bool {
         [.anxious, .sad, .angry, .tired].contains(self)
     }
 }
 
 // MARK: - Progression par mot
-@Model
-class WordProgress {
+struct WordProgress: Codable, Identifiable {
     var id: UUID
     var word: String
     var translation: String
@@ -197,7 +192,7 @@ class WordProgress {
     var timesStudied: Int
     var timesCorrect: Int
     var lastStudied: Date?
-    var nextReviewDate: Date?         // spacing effect automatique
+    var nextReviewDate: Date?
     var masteryLevel: MasteryLevel
 
     var accuracy: Double {
@@ -215,11 +210,10 @@ class WordProgress {
         self.timesStudied = 0
         self.timesCorrect = 0
         self.masteryLevel = .new
-        self.nextReviewDate = Date().addingTimeInterval(60 * 60 * 24 * 3) // J+3
+        self.nextReviewDate = Date().addingTimeInterval(60 * 60 * 24 * 3)
     }
 
-    // Spacing effect: J+3 → J+7 → J+14 → maîtrisé
-    func recordAnswer(correct: Bool) {
+    mutating func recordAnswer(correct: Bool) {
         timesStudied += 1
         lastStudied = Date()
         if correct {
@@ -238,7 +232,6 @@ class WordProgress {
                 nextReviewDate = nil
             }
         } else {
-            // Régression si erreur
             if masteryLevel == .mastered || masteryLevel == .reviewing {
                 masteryLevel = .learning
                 nextReviewDate = Date().addingTimeInterval(60 * 60 * 24 * 3)
@@ -273,8 +266,7 @@ enum MasteryLevel: String, Codable, CaseIterable {
 }
 
 // MARK: - Rapport hebdomadaire
-@Model
-class WeeklyReport {
+struct WeeklyReport: Codable, Identifiable {
     var id: UUID
     var weekStartDate: Date
     var weekEndDate: Date
@@ -285,7 +277,7 @@ class WeeklyReport {
     var wordsInProgress: Int
     var overallSuccessRate: Double
     var topModule: String
-    var parentNote: String           // message auto-généré pour le parent
+    var parentNote: String
 
     init(weekStartDate: Date) {
         self.id = UUID()
@@ -352,7 +344,6 @@ enum AppLanguage: String, Codable, CaseIterable {
         }
     }
 
-    // Noms des niveaux scolaires selon le pays
     var levelNames: (l0: String, l1: String, l2: String) {
         switch self {
         case .french:     return ("Maternelle", "CP – CE1", "CE2 – CM2")
@@ -366,7 +357,6 @@ enum AppLanguage: String, Codable, CaseIterable {
         }
     }
 
-    // Traductions UI essentielles
     var ui: UIStrings { UIStrings(language: self) }
 
     struct UIStrings {
