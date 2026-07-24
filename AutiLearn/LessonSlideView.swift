@@ -320,7 +320,7 @@ struct FillBlankView: View {
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .onAppear { focused = true }
-                    .onChange(of: userWord) { vm.userInput = userWord }
+                    .onChange(of: userWord) { newWord in vm.userInput = newWord }
 
                 Button {
                     vm.userInput = userWord
