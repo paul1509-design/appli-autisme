@@ -1130,102 +1130,134 @@ struct SettingsTabView: View {
     @EnvironmentObject var dataStore: DataStore
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-
-            // Langue de l'interface
-            VStack(alignment: .leading, spacing: 12) {
-                Text("🌍 Langue de l'application")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundColor(Color("textPrimary"))
-
-                Text("La langue utilisée par le professeur et les exercices.")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color("textSecondary"))
-                    .lineSpacing(3)
-
-                ForEach(AppLanguage.allCases, id: \.self) { lang in
-                    Button {
-                        appState.currentLanguage = lang
-                    } label: {
-                        HStack(spacing: 14) {
-                            Text(lang.flag).font(.system(size: 26))
-                            Text(lang.displayName)
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(Color("textPrimary"))
-                            Spacer()
-                            if appState.currentLanguage == lang {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(Color("accentPurple"))
-                                    .font(.system(size: 20))
-                            }
-                        }
-                        .padding(14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(appState.currentLanguage == lang
-                                      ? Color("accentPurple").opacity(0.08)
-                                      : Color("cardBackground"))
-                                .overlay(RoundedRectangle(cornerRadius: 12)
-                                    .stroke(appState.currentLanguage == lang
-                                            ? Color("accentPurple")
-                                            : Color("borderLight"),
-                                            lineWidth: appState.currentLanguage == lang ? 1.5 : 0.5))
-                        )
-                    }
-                }
+        VStack(spacing: 12) {
+            // Langue
+            NavigationLink {
+                LanguagePickerScreen()
+                    .environmentObject(appState)
+            } label: {
+                SettingsRow(
+                    emoji: "🌍",
+                    title: "Langue de l'application",
+                    value: appState.currentLanguage.flag + " " + appState.currentLanguage.displayName
+                )
             }
-
-            Divider().opacity(0.3).padding(.vertical, 4)
 
             // Niveau scolaire
-            VStack(alignment: .leading, spacing: 12) {
-                Text("🎓 Niveau scolaire")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundColor(Color("textPrimary"))
+            NavigationLink {
+                LevelPickerScreen(child: child)
+                    .environmentObject(dataStore)
+                    .environmentObject(appState)
+            } label: {
+                SettingsRow(
+                    emoji: "🎓",
+                    title: "Niveau scolaire",
+                    value: child.schoolLevel.emoji + " " + child.schoolLevel.displayName
+                )
+            }
+        }
+        .padding(20)
+    }
+}
 
-                ForEach(SchoolLevel.allCases.filter { $0 != .level3 }, id: \.self) { level in
-                    Button {
-                        var updated = child
-                        updated.schoolLevel = level
-                        dataStore.updateChild(updated)
-                        appState.selectedChild = updated
-                    } label: {
-                        HStack(spacing: 12) {
-                            Text(level.emoji).font(.system(size: 24))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(level.displayName)
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(Color("textPrimary"))
-                                Text(level.description)
-                                    .font(.system(size: 12))
-                                    .foregroundColor(Color("textSecondary"))
-                            }
-                            Spacer()
-                            if child.schoolLevel == level {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(Color("accentGreen"))
-                                    .font(.system(size: 20))
-                            }
+private struct SettingsRow: View {
+    let emoji: String
+    let title: String
+    let value: String
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Text(emoji).font(.system(size: 24))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Color("textPrimary"))
+                Text(value)
+                    .font(.system(size: 13))
+                    .foregroundColor(Color("textSecondary"))
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(Color("textSecondary").opacity(0.5))
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color("cardBackground"))
+                .overlay(RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color("borderLight"), lineWidth: 0.5))
+        )
+    }
+}
+
+struct LanguagePickerScreen: View {
+    @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        List {
+            ForEach(AppLanguage.allCases, id: \.self) { lang in
+                Button {
+                    appState.currentLanguage = lang
+                    dismiss()
+                } label: {
+                    HStack(spacing: 14) {
+                        Text(lang.flag).font(.system(size: 26))
+                        Text(lang.displayName)
+                            .font(.system(size: 16))
+                            .foregroundColor(Color("textPrimary"))
+                        Spacer()
+                        if appState.currentLanguage == lang {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(Color("accentPurple"))
                         }
-                        .padding(14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(child.schoolLevel == level
-                                      ? Color("accentGreen").opacity(0.07)
-                                      : Color("cardBackground"))
-                                .overlay(RoundedRectangle(cornerRadius: 12)
-                                    .stroke(child.schoolLevel == level
-                                            ? Color("accentGreen")
-                                            : Color("borderLight"),
-                                            lineWidth: child.schoolLevel == level ? 1.5 : 0.5))
-                        )
                     }
                 }
             }
-
-            Spacer(minLength: 24)
         }
-        .padding(20)
+        .navigationTitle("Langue")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct LevelPickerScreen: View {
+    let child: ChildProfile
+    @EnvironmentObject var dataStore: DataStore
+    @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        List {
+            ForEach(SchoolLevel.allCases.filter { $0 != .level3 }, id: \.self) { level in
+                Button {
+                    var updated = child
+                    updated.schoolLevel = level
+                    dataStore.updateChild(updated)
+                    appState.selectedChild = updated
+                    dismiss()
+                } label: {
+                    HStack(spacing: 14) {
+                        Text(level.emoji).font(.system(size: 24))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(level.displayName)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(Color("textPrimary"))
+                            Text(level.description)
+                                .font(.system(size: 12))
+                                .foregroundColor(Color("textSecondary"))
+                        }
+                        Spacer()
+                        if child.schoolLevel == level {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(Color("accentGreen"))
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Niveau scolaire")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

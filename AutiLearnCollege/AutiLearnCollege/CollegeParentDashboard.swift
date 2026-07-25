@@ -70,93 +70,132 @@ struct CollegeSettingsTabView: View {
     @EnvironmentObject var dataStore: CollegeDataStore
 
     var body: some View {
-        VStack(spacing: 16) {
-            // Langue
-            VStack(alignment: .leading, spacing: 12) {
-                Text("🌍 Langue de scolarisation")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Color("textPrimary"))
-
-                ForEach(CollegeLanguage.allCases, id: \.self) { lang in
-                    Button {
-                        var updated = student
-                        updated.language = lang
-                        dataStore.updateStudent(updated)
-                    } label: {
-                        HStack(spacing: 12) {
-                            Text(lang.flag).font(.system(size: 22))
-                            Text(lang.rawValue)
-                                .font(.system(size: 15))
-                                .foregroundColor(Color("textPrimary"))
-                            Spacer()
-                            if student.language == lang {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(Color("accentPurple"))
-                            }
-                        }
-                        .padding(12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(student.language == lang
-                                      ? Color("accentPurple").opacity(0.08) : Color("cardBackground"))
-                                .overlay(RoundedRectangle(cornerRadius: 12)
-                                    .stroke(student.language == lang
-                                            ? Color("accentPurple") : Color("borderLight"),
-                                            lineWidth: student.language == lang ? 1.5 : 0.5))
-                        )
-                    }
-                }
+        VStack(spacing: 12) {
+            NavigationLink {
+                CollegeLanguagePickerScreen(student: student)
+                    .environmentObject(dataStore)
+            } label: {
+                CollegeSettingsRow(
+                    emoji: "🌍",
+                    title: "Langue de scolarisation",
+                    value: student.language.flag + " " + student.language.rawValue
+                )
             }
-            .padding(16)
-            .background(RoundedRectangle(cornerRadius: 16).fill(Color("cardBackground"))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color("borderLight"), lineWidth: 0.5)))
 
-            // Niveau
-            VStack(alignment: .leading, spacing: 12) {
-                Text("🎓 Niveau scolaire")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Color("textPrimary"))
-
-                ForEach(CollegeLevel.allCases, id: \.self) { level in
-                    Button {
-                        var updated = student
-                        updated.level = level
-                        dataStore.updateStudent(updated)
-                    } label: {
-                        HStack(spacing: 12) {
-                            Text(level.emoji).font(.system(size: 20))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(level.rawValue)
-                                    .font(.system(size: 15))
-                                    .foregroundColor(Color("textPrimary"))
-                                Text(level.ageRange)
-                                    .font(.system(size: 11))
-                                    .foregroundColor(Color("textSecondary"))
-                            }
-                            Spacer()
-                            if student.level == level {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(Color("accentPurple"))
-                            }
-                        }
-                        .padding(12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(student.level == level
-                                      ? Color("accentPurple").opacity(0.08) : Color("cardBackground"))
-                                .overlay(RoundedRectangle(cornerRadius: 12)
-                                    .stroke(student.level == level
-                                            ? Color("accentPurple") : Color("borderLight"),
-                                            lineWidth: student.level == level ? 1.5 : 0.5))
-                        )
-                    }
-                }
+            NavigationLink {
+                CollegeLevelPickerScreen(student: student)
+                    .environmentObject(dataStore)
+            } label: {
+                CollegeSettingsRow(
+                    emoji: "🎓",
+                    title: "Niveau scolaire",
+                    value: student.level.emoji + " " + student.level.rawValue
+                )
             }
-            .padding(16)
-            .background(RoundedRectangle(cornerRadius: 16).fill(Color("cardBackground"))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color("borderLight"), lineWidth: 0.5)))
         }
         .padding(.horizontal, 20)
+    }
+}
+
+private struct CollegeSettingsRow: View {
+    let emoji: String
+    let title: String
+    let value: String
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Text(emoji).font(.system(size: 24))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Color("textPrimary"))
+                Text(value)
+                    .font(.system(size: 13))
+                    .foregroundColor(Color("textSecondary"))
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(Color("textSecondary").opacity(0.5))
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color("cardBackground"))
+                .overlay(RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color("borderLight"), lineWidth: 0.5))
+        )
+    }
+}
+
+struct CollegeLanguagePickerScreen: View {
+    let student: CollegeProfile
+    @EnvironmentObject var dataStore: CollegeDataStore
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        List {
+            ForEach(CollegeLanguage.allCases, id: \.self) { lang in
+                Button {
+                    var updated = student
+                    updated.language = lang
+                    dataStore.updateStudent(updated)
+                    dismiss()
+                } label: {
+                    HStack(spacing: 14) {
+                        Text(lang.flag).font(.system(size: 26))
+                        Text(lang.rawValue)
+                            .font(.system(size: 16))
+                            .foregroundColor(Color("textPrimary"))
+                        Spacer()
+                        if student.language == lang {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(Color("accentPurple"))
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Langue")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct CollegeLevelPickerScreen: View {
+    let student: CollegeProfile
+    @EnvironmentObject var dataStore: CollegeDataStore
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        List {
+            ForEach(CollegeLevel.allCases, id: \.self) { level in
+                Button {
+                    var updated = student
+                    updated.level = level
+                    dataStore.updateStudent(updated)
+                    dismiss()
+                } label: {
+                    HStack(spacing: 14) {
+                        Text(level.emoji).font(.system(size: 24))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(level.rawValue)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(Color("textPrimary"))
+                            Text(level.ageRange)
+                                .font(.system(size: 12))
+                                .foregroundColor(Color("textSecondary"))
+                        }
+                        Spacer()
+                        if student.level == level {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(Color("accentPurple"))
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Niveau scolaire")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
