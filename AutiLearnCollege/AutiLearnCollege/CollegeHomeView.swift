@@ -6,6 +6,7 @@ struct CollegeHomeView: View {
     @EnvironmentObject private var appState: CollegeAppState
     @EnvironmentObject private var dataStore: CollegeDataStore
     @State private var showLevelPicker = false
+    @State private var showQuickSettings = false
     @State private var showReward = false
     @State private var showBonusUnlock = false
     @State private var showChampionsQuiz = false
@@ -36,7 +37,8 @@ struct CollegeHomeView: View {
                         appState.screen = .paywall
                     }
                 }
-                CollegeHeader(student: student, onLevelTap: { showLevelPicker = true })
+                CollegeHeader(student: student, onLevelTap: { showLevelPicker = true },
+                              onSettingsTap: { showQuickSettings = true })
                 statsRow
                 AdoPeerCard(student: student, starsUntilReward: starsUntilReward)
                 CollegeDailySchedule(completedSteps: completedSteps) { idx in
@@ -176,6 +178,10 @@ struct CollegeHomeView: View {
                     dataStore.updateStudent(updated)
                 }
             }
+            .sheet(isPresented: $showQuickSettings) {
+                CollegeQuickSettingsSheet(student: student)
+                    .environmentObject(dataStore)
+            }
             .sheet(isPresented: $showBonusUnlock) {
                 CollegeBonusUnlockView(isPresented: $showBonusUnlock, studentName: student.firstName)
             }
@@ -227,6 +233,7 @@ struct CollegeHomeView: View {
 struct CollegeHeader: View {
     let student: CollegeProfile
     let onLevelTap: () -> Void
+    let onSettingsTap: () -> Void
 
     var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -259,12 +266,89 @@ struct CollegeHeader: View {
                 }
             }
             Spacer()
+            // Bouton réglages rapides
+            Button(action: onSettingsTap) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(Color("textSecondary").opacity(0.7))
+                    .padding(8)
+                    .background(Color("cardBackground"))
+                    .clipShape(Circle())
+            }
             ZStack {
                 Circle().fill(Color("accentPurple").opacity(0.12)).frame(width: 52, height: 52)
                 Text("🎓").font(.system(size: 28))
             }
         }
         .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - Réglages rapides College (accessible sans PIN)
+struct CollegeQuickSettingsSheet: View {
+    let student: CollegeProfile
+    @EnvironmentObject var dataStore: CollegeDataStore
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("🌍 Langue de scolarisation") {
+                    ForEach(CollegeLanguage.allCases, id: \.self) { lang in
+                        Button {
+                            var updated = student
+                            updated.language = lang
+                            dataStore.updateStudent(updated)
+                        } label: {
+                            HStack(spacing: 14) {
+                                Text(lang.flag).font(.system(size: 22))
+                                Text(lang.rawValue)
+                                    .foregroundColor(Color("textPrimary"))
+                                Spacer()
+                                if student.language == lang {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(Color("accentPurple"))
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Section("🎓 Niveau scolaire") {
+                    ForEach(CollegeLevel.allCases, id: \.self) { level in
+                        Button {
+                            var updated = student
+                            updated.level = level
+                            dataStore.updateStudent(updated)
+                        } label: {
+                            HStack(spacing: 14) {
+                                Text(level.emoji).font(.system(size: 22))
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(level.rawValue)
+                                        .foregroundColor(Color("textPrimary"))
+                                    Text(level.ageRange)
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Color("textSecondary"))
+                                }
+                                Spacer()
+                                if student.level == level {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(Color("accentGreen"))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Réglages")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Fermer") { dismiss() }
+                        .foregroundColor(Color("accentPurple"))
+                }
+            }
+        }
     }
 }
 

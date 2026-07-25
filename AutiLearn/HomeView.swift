@@ -14,6 +14,7 @@ struct HomeView: View {
     @State private var showBreathing = false
     @State private var currentTime = Date()
     @State private var showLevelPicker = false
+    @State private var showQuickSettings = false
     @State private var showReward = false
     @State private var showBonusUnlock = false
     @State private var lastRewardAt: Int = 0
@@ -51,7 +52,8 @@ struct HomeView: View {
                         }
 
                         HomeHeader(child: child, greeting: greeting,
-                                   onLevelTap: { showLevelPicker = true })
+                                   onLevelTap: { showLevelPicker = true },
+                                   onSettingsTap: { showQuickSettings = true })
 
                         if showEmotionCheck && selectedEmotion == nil {
                             EmotionCheckCard(child: child) { emotion in
@@ -162,6 +164,11 @@ struct HomeView: View {
             .sheet(isPresented: $showBreathing) {
                 BreathingExerciseView()
             }
+            .sheet(isPresented: $showQuickSettings) {
+                QuickSettingsSheet(child: child)
+                    .environmentObject(appState)
+                    .environmentObject(dataStore)
+            }
             .sheet(isPresented: $showLevelPicker) {
                 LevelPickerSheet(currentLevel: child.schoolLevel) { level in
                     var updated = child
@@ -246,6 +253,7 @@ struct HomeHeader: View {
     let child: ChildProfile
     let greeting: String
     let onLevelTap: () -> Void
+    let onSettingsTap: () -> Void
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
@@ -254,7 +262,6 @@ struct HomeHeader: View {
                     .font(.system(size: 24, weight: .medium))
                     .foregroundColor(Color("textPrimary"))
 
-                // Bouton niveau — tap pour changer
                 Button(action: onLevelTap) {
                     HStack(spacing: 6) {
                         Text(child.schoolLevel.emoji)
@@ -273,9 +280,86 @@ struct HomeHeader: View {
                 }
             }
             Spacer()
+            // Bouton réglages rapides
+            Button(action: onSettingsTap) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(Color("textSecondary").opacity(0.7))
+                    .padding(8)
+                    .background(Color("cardBackground"))
+                    .clipShape(Circle())
+            }
             AvatarCircle(name: child.avatarName, size: 56, isSelected: false)
         }
         .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - Réglages rapides (accessible sans PIN)
+struct QuickSettingsSheet: View {
+    let child: ChildProfile
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: DataStore
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("🌍 Langue de l'application") {
+                    ForEach(AppLanguage.allCases, id: \.self) { lang in
+                        Button {
+                            appState.currentLanguage = lang
+                        } label: {
+                            HStack(spacing: 14) {
+                                Text(lang.flag).font(.system(size: 22))
+                                Text(lang.displayName)
+                                    .foregroundColor(Color("textPrimary"))
+                                Spacer()
+                                if appState.currentLanguage == lang {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(Color("accentPurple"))
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Section("🎓 Niveau scolaire") {
+                    ForEach(SchoolLevel.allCases.filter { $0 != .level3 }, id: \.self) { level in
+                        Button {
+                            var updated = child
+                            updated.schoolLevel = level
+                            dataStore.updateChild(updated)
+                            appState.selectedChild = updated
+                        } label: {
+                            HStack(spacing: 14) {
+                                Text(level.emoji).font(.system(size: 22))
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(level.displayName)
+                                        .foregroundColor(Color("textPrimary"))
+                                    Text(level.description)
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Color("textSecondary"))
+                                }
+                                Spacer()
+                                if child.schoolLevel == level {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(Color("accentGreen"))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Réglages")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Fermer") { dismiss() }
+                        .foregroundColor(Color("accentPurple"))
+                }
+            }
+        }
     }
 }
 
