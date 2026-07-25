@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 // MARK: - Langue / Pays de scolarisation
 enum CollegeLanguage: String, CaseIterable, Codable {
@@ -51,7 +50,6 @@ enum CollegeLanguage: String, CaseIterable, Codable {
         }
     }
 
-    // Langue étrangère enseignée (anglais pour la plupart; français pour anglophones)
     var foreignSubjectName: String {
         switch self {
         case .english:    return "French"
@@ -128,12 +126,12 @@ enum CollegeLanguage: String, CaseIterable, Codable {
 
 // MARK: - Niveaux scolaires collège/lycée
 enum CollegeLevel: String, CaseIterable, Codable {
-    case sixieme  = "6ème"
+    case sixieme   = "6ème"
     case cinquieme = "5ème"
     case quatrieme = "4ème"
     case troisieme = "3ème"
-    case seconde  = "Seconde"
-    case premiere = "Première"
+    case seconde   = "Seconde"
+    case premiere  = "Première"
     case terminale = "Terminale"
 
     var ageRange: String {
@@ -167,11 +165,11 @@ enum CollegeLevel: String, CaseIterable, Codable {
 
 // MARK: - Matières
 enum CollegeSubject: String, CaseIterable, Codable {
-    case francais     = "Français"
-    case maths        = "Mathématiques"
-    case anglais      = "Anglais"
-    case histoire     = "Histoire-Géo"
-    case sciences     = "Sciences"
+    case francais      = "Français"
+    case maths         = "Mathématiques"
+    case anglais       = "Anglais"
+    case histoire      = "Histoire-Géo"
+    case sciences      = "Sciences"
     case communication = "Communication sociale"
     case culture       = "Culture & Histoires"
 
@@ -228,14 +226,13 @@ struct CollegeExercise: Identifiable {
     let subject: CollegeSubject
     let mode: CollegeExerciseMode
     let question: String
-    let choices: [String]          // Vide si shortAnswer/oral
+    let choices: [String]
     let correctAnswer: String
-    let explanation: String        // Explication pédagogique après réponse
+    let explanation: String
     let emoji: String
-    let difficulty: Int            // 1-3 : facile, moyen, difficile
-    // Champs spécifiques aux slides de cours
+    let difficulty: Int
     let lessonTitle: String
-    let lessonBody: String         // Texte avec **mots** en gras
+    let lessonBody: String
 
     init(subject: CollegeSubject, mode: CollegeExerciseMode, question: String,
          choices: [String], correctAnswer: String, explanation: String,
@@ -253,7 +250,6 @@ struct CollegeExercise: Identifiable {
         self.lessonBody = lessonBody
     }
 
-    // Initialiseur simplifié pour les slides de cours
     static func lesson(subject: CollegeSubject, emoji: String,
                        title: String, body: String, narration: String) -> CollegeExercise {
         CollegeExercise(subject: subject, mode: .lesson,
@@ -263,9 +259,9 @@ struct CollegeExercise: Identifiable {
     }
 }
 
-// MARK: - Profil élève collège
-@Model
-class CollegeProfile {
+// MARK: - Profil élève collège (Codable struct)
+struct CollegeProfile: Identifiable, Codable {
+    var id: UUID = UUID()
     var firstName: String
     var avatarName: String
     var level: CollegeLevel
@@ -275,7 +271,7 @@ class CollegeProfile {
     var lastSessionDate: Date?
     var sessions: [CollegeSession]
     var exerciseProgresses: [CollegeExerciseProgress]
-    var reminderHour: Int       // heure de notification (défaut 10h)
+    var reminderHour: Int
     var reminderEnabled: Bool
 
     init(firstName: String, avatarName: String, level: CollegeLevel, language: CollegeLanguage = .french) {
@@ -292,8 +288,9 @@ class CollegeProfile {
     }
 }
 
-@Model
-class CollegeSession {
+// MARK: - Session (Codable struct)
+struct CollegeSession: Identifiable, Codable {
+    var id: UUID = UUID()
     var date: Date
     var subject: String
     var starsEarned: Int
@@ -333,16 +330,16 @@ enum CollegePromptLevel: Int, CaseIterable {
     }
 }
 
-// MARK: - Progression par exercice (spacing effect)
-@Model
-class CollegeExerciseProgress {
-    var exerciseKey: String         // subject + hash de la question
+// MARK: - Progression par exercice (Codable struct)
+struct CollegeExerciseProgress: Identifiable, Codable {
+    var id: UUID = UUID()
+    var exerciseKey: String
     var subject: String
     var timesStudied: Int
     var timesCorrect: Int
     var lastStudied: Date?
     var nextReviewDate: Date?
-    var masteryLevel: String        // "new" | "learning" | "reviewing" | "mastered"
+    var masteryLevel: String
 
     var accuracy: Double {
         guard timesStudied > 0 else { return 0 }
@@ -367,7 +364,7 @@ class CollegeExerciseProgress {
         self.nextReviewDate = Date().addingTimeInterval(60 * 60 * 24 * 3)
     }
 
-    func record(correct: Bool) {
+    mutating func record(correct: Bool) {
         timesStudied += 1
         lastStudied = Date()
         if correct {
@@ -392,4 +389,3 @@ class CollegeExerciseProgress {
         }
     }
 }
-

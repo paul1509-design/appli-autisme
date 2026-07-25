@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		AA000001 /* AutiLearnCollegeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000001 /* AutiLearnCollegeApp.swift */; };
 		AA000002 /* CollegeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000002 /* CollegeModels.swift */; };
+		AA100005 /* CollegeDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB100005 /* CollegeDataStore.swift */; };
 		AA000003 /* CollegeContentLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000003 /* CollegeContentLibrary.swift */; };
 		AA000004 /* CollegeSessionVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000004 /* CollegeSessionVM.swift */; };
 		AA000005 /* CollegeSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000005 /* CollegeSessionView.swift */; };
@@ -33,6 +34,7 @@
 /* Begin PBXFileReference section */
 		BB000001 /* AutiLearnCollegeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutiLearnCollegeApp.swift; sourceTree = "<group>"; };
 		BB000002 /* CollegeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeModels.swift; sourceTree = "<group>"; };
+		BB100005 /* CollegeDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeDataStore.swift; sourceTree = "<group>"; };
 		BB000003 /* CollegeContentLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeContentLibrary.swift; sourceTree = "<group>"; };
 		BB000004 /* CollegeSessionVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeSessionVM.swift; sourceTree = "<group>"; };
 		BB000005 /* CollegeSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollegeSessionView.swift; sourceTree = "<group>"; };
@@ -70,6 +72,7 @@
 			children = (
 				BB000001 /* AutiLearnCollegeApp.swift */,
 				BB000002 /* CollegeModels.swift */,
+				BB100005 /* CollegeDataStore.swift */,
 				BB000003 /* CollegeContentLibrary.swift */,
 				BB000004 /* CollegeSessionVM.swift */,
 				BB000005 /* CollegeSessionView.swift */,
@@ -172,6 +175,7 @@
 			files = (
 				AA000001 /* AutiLearnCollegeApp.swift in Sources */,
 				AA000002 /* CollegeModels.swift in Sources */,
+				AA100005 /* CollegeDataStore.swift in Sources */,
 				AA000003 /* CollegeContentLibrary.swift in Sources */,
 				AA000004 /* CollegeSessionVM.swift in Sources */,
 				AA000005 /* CollegeSessionView.swift in Sources */,
@@ -248,7 +252,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -304,7 +308,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -322,7 +326,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_LANGUAGE = fr;
 				INFOPLIST_FILE = AutiLearnCollege/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -345,7 +349,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_LANGUAGE = fr;
 				INFOPLIST_FILE = AutiLearnCollege/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

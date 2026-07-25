@@ -4,7 +4,7 @@ struct CollegeSessionView: View {
     let student: CollegeProfile
     let subject: CollegeSubject
 
-    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var dataStore: CollegeDataStore
     @Environment(\.dismiss) private var dismiss
     @StateObject private var vm: CollegeSessionVM
     @State private var sessionComplete = false
@@ -32,7 +32,6 @@ struct CollegeSessionView: View {
                             .padding(.horizontal, 20)
 
                         HStack {
-                            // Avatar Léa animé permanent
                             LeoAvatarView(isSpeaking: vm.leo.isSpeaking,
                                           accentColor: Color(subject.color))
                                 .frame(width: 48, height: 56)
@@ -53,7 +52,7 @@ struct CollegeSessionView: View {
                                     .foregroundColor(Color("textPrimary"))
                             }
                             Button {
-                                vm.saveSession(modelContext: modelContext)
+                                vm.saveSession(dataStore: dataStore)
                                 dismiss()
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
@@ -93,7 +92,7 @@ struct CollegeSessionView: View {
 
                                     Button {
                                         if vm.currentIndex + 1 >= vm.exercises.count {
-                                            vm.saveSession(modelContext: modelContext)
+                                            vm.saveSession(dataStore: dataStore)
                                             sessionComplete = true
                                         } else {
                                             vm.nextExercise()
@@ -118,7 +117,6 @@ struct CollegeSessionView: View {
                 }
             }
 
-            // Léo — bulle de dialogue flottante en bas
             VStack {
                 Spacer()
                 LeoBubbleView(leo: vm.leo)
@@ -131,7 +129,7 @@ struct CollegeSessionView: View {
             timeRemaining = 45
             timerActive = true
         }
-        .onDisappear { vm.saveSession(modelContext: modelContext) }
+        .onDisappear { vm.saveSession(dataStore: dataStore) }
         .onReceive(exerciseTimer) { _ in
             guard timerActive && !vm.hasAnswered else { return }
             if timeRemaining > 0 {
@@ -141,14 +139,14 @@ struct CollegeSessionView: View {
                 vm.requestHint()
             }
         }
-        .onChange(of: vm.currentIndex) { _, _ in
+        .onChange(of: vm.currentIndex) { _ in
             timeRemaining = 45; timerActive = true
             if vm.isSessionComplete {
-                vm.saveSession(modelContext: modelContext)
+                vm.saveSession(dataStore: dataStore)
                 sessionComplete = true
             }
         }
-        .onChange(of: vm.hasAnswered) { _, answered in
+        .onChange(of: vm.hasAnswered) { answered in
             if answered { timerActive = false }
         }
     }
@@ -161,7 +159,6 @@ struct QuestionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            // Visuel principal — grand emoji pour support TSA
             HStack {
                 Spacer()
                 Text(exercise.emoji)
@@ -208,7 +205,6 @@ struct QuestionCard: View {
                     .stroke(Color(exercise.subject.color).opacity(0.25), lineWidth: 1))
         )
         .padding(.horizontal, 20)
-        // TTS géré par CollegeSessionVM.nextExercise() et startSession()
     }
 }
 

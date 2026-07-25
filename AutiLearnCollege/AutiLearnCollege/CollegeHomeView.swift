@@ -1,11 +1,10 @@
 import SwiftUI
-import SwiftData
 
 struct CollegeHomeView: View {
     let student: CollegeProfile
-    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var sub: CollegeSubscriptionService
     @EnvironmentObject private var appState: CollegeAppState
+    @EnvironmentObject private var dataStore: CollegeDataStore
     @State private var showLevelPicker = false
     @State private var showReward = false
     @State private var showBonusUnlock = false
@@ -73,6 +72,7 @@ struct CollegeHomeView: View {
             ForEach(CollegeSubject.allCases, id: \.self) { subject in
                 NavigationLink {
                     CollegeSessionView(student: student, subject: subject)
+                        .environmentObject(dataStore)
                 } label: {
                     CollegeSubjectCard(subject: subject, student: student)
                 }
@@ -139,6 +139,7 @@ struct CollegeHomeView: View {
     @ViewBuilder private var parentLink: some View {
         NavigationLink {
             CollegeParentPINView(student: student)
+                .environmentObject(dataStore)
         } label: {
             HStack(spacing: 12) {
                 Text("📊").font(.system(size: 22))
@@ -168,7 +169,13 @@ struct CollegeHomeView: View {
                     .allowsHitTesting(false)
             }
             .navigationBarHidden(true)
-            .sheet(isPresented: $showLevelPicker) { CollegeLevelPicker(student: student) }
+            .sheet(isPresented: $showLevelPicker) {
+                CollegeLevelPicker(currentLevel: student.level) { level in
+                    var updated = student
+                    updated.level = level
+                    dataStore.updateStudent(updated)
+                }
+            }
             .sheet(isPresented: $showBonusUnlock) {
                 CollegeBonusUnlockView(isPresented: $showBonusUnlock, studentName: student.firstName)
             }
@@ -186,7 +193,6 @@ struct CollegeHomeView: View {
                 completedSteps = []
             }
             leo.configure(language: student.language)
-            // Léo salue à l'arrivée
             let daysSinceLast: Int = {
                 guard let last = student.lastSessionDate else { return 0 }
                 return Calendar.current.dateComponents([.day], from: last, to: Date()).day ?? 0
@@ -200,7 +206,6 @@ struct CollegeHomeView: View {
                     self.leo.speak(context: .greetingMorning(firstName: self.student.firstName))
                 }
             }
-            // Célébration streak si ≥ 3 jours
             if student.currentStreak >= 3 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                     self.leo.speak(context: .streakCelebration(days: self.student.currentStreak))
@@ -208,7 +213,7 @@ struct CollegeHomeView: View {
             }
         }
         .onDisappear { leo.stop() }
-        .onChange(of: student.totalStars) { _, newValue in
+        .onChange(of: student.totalStars) { newValue in
             let cycle = newValue / rewardThreshold
             if cycle > lastRewardAt && newValue >= rewardThreshold {
                 lastRewardAt = cycle
@@ -509,6 +514,7 @@ struct CollegeRewardBreakView: View {
 // MARK: - PIN parents (app ado)
 struct CollegeParentPINView: View {
     let student: CollegeProfile
+    @EnvironmentObject private var dataStore: CollegeDataStore
     @AppStorage("collegeParentPIN") private var storedPIN: String = ""
     @State private var enteredPIN: String = ""
     @State private var confirmPIN: String = ""
@@ -523,6 +529,7 @@ struct CollegeParentPINView: View {
         Group {
             if phase == .authenticated {
                 CollegeParentDashboard(student: student)
+                    .environmentObject(dataStore)
             } else {
                 pinBody
             }
@@ -602,9 +609,9 @@ struct CollegeParentPINView: View {
 
 // MARK: - Sélecteur de niveau
 struct CollegeLevelPicker: View {
-    let student: CollegeProfile
+    let currentLevel: CollegeLevel
+    let onSelect: (CollegeLevel) -> Void
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         NavigationStack {
@@ -614,8 +621,7 @@ struct CollegeLevelPicker: View {
 
                 ForEach(CollegeLevel.allCases, id: \.self) { level in
                     Button {
-                        student.level = level
-                        try? modelContext.save()
+                        onSelect(level)
                         dismiss()
                     } label: {
                         HStack(spacing: 14) {
@@ -636,7 +642,7 @@ struct CollegeLevelPicker: View {
                                 Text(level.ageRange).font(.system(size: 12)).foregroundColor(Color("textSecondary"))
                             }
                             Spacer()
-                            if student.level == level {
+                            if currentLevel == level {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(Color("accentPurple")).font(.system(size: 20))
                             }
@@ -644,12 +650,12 @@ struct CollegeLevelPicker: View {
                         .padding(14)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(student.level == level
+                                .fill(currentLevel == level
                                       ? Color("accentPurple").opacity(0.08) : Color("cardBackground"))
                                 .overlay(RoundedRectangle(cornerRadius: 12)
-                                    .stroke(student.level == level
+                                    .stroke(currentLevel == level
                                             ? Color("accentPurple") : Color("borderLight"),
-                                            lineWidth: student.level == level ? 1.5 : 0.5))
+                                            lineWidth: currentLevel == level ? 1.5 : 0.5))
                         )
                     }
                 }

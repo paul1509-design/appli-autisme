@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 enum CollegeScreen {
     case splash, onboarding, home, paywall
@@ -13,8 +12,8 @@ class CollegeAppState: ObservableObject {
 
 struct CollegeRootView: View {
     @StateObject private var appState = CollegeAppState()
-    @StateObject private var sub = CollegeSubscriptionService()
-    @Query private var students: [CollegeProfile]
+    @EnvironmentObject private var sub: CollegeSubscriptionService
+    @EnvironmentObject private var dataStore: CollegeDataStore
 
     var body: some View {
         Group {
@@ -24,7 +23,7 @@ struct CollegeRootView: View {
                     sub.checkSubscriptionStatus()
                     if sub.trialExpired && !sub.isSubscribed {
                         appState.screen = .paywall
-                    } else if let existing = students.first {
+                    } else if let existing = dataStore.students.first {
                         appState.currentStudent = existing
                         appState.screen = .home
                     } else {
@@ -38,11 +37,13 @@ struct CollegeRootView: View {
                 }
                 .environmentObject(sub)
                 .environmentObject(appState)
+                .environmentObject(dataStore)
             case .home:
-                if let student = appState.currentStudent ?? students.first {
+                if let student = freshStudent() {
                     CollegeHomeView(student: student)
                         .environmentObject(appState)
                         .environmentObject(sub)
+                        .environmentObject(dataStore)
                 } else {
                     CollegeOnboardingView { profile in
                         appState.currentStudent = profile
@@ -50,6 +51,7 @@ struct CollegeRootView: View {
                     }
                     .environmentObject(sub)
                     .environmentObject(appState)
+                    .environmentObject(dataStore)
                 }
             case .paywall:
                 CollegePaywallView()
@@ -57,8 +59,16 @@ struct CollegeRootView: View {
                     .environmentObject(appState)
             }
         }
-        .onChange(of: sub.trialExpired) { _, expired in
+        .onChange(of: sub.trialExpired) { expired in
             if expired && !sub.isSubscribed { appState.screen = .paywall }
         }
+    }
+
+    private func freshStudent() -> CollegeProfile? {
+        if let id = appState.currentStudent?.id,
+           let found = dataStore.students.first(where: { $0.id == id }) {
+            return found
+        }
+        return dataStore.students.first
     }
 }

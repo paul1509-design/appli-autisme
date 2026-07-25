@@ -1,10 +1,9 @@
 import SwiftUI
-import SwiftData
 import UIKit
 
 @MainActor
 class CollegeSessionVM: ObservableObject {
-    let student: CollegeProfile
+    var student: CollegeProfile
     let subject: CollegeSubject
 
     @Published var exercises: [CollegeExercise] = []
@@ -22,7 +21,6 @@ class CollegeSessionVM: ObservableObject {
 
     let leo = LeoCompanion()
     private var correctStreak = 0
-
     private let startDate = Date()
 
     init(student: CollegeProfile, subject: CollegeSubject) {
@@ -45,13 +43,11 @@ class CollegeSessionVM: ObservableObject {
     func startSession() {
         leo.configure(language: student.language)
         exercises = CollegeContentLibrary.exercises(for: subject, level: student.level, language: student.language, count: 8)
-        // 1. Léa accueille (t=0.4s)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             self.leo.speak(context: .sessionStart(
                 subject: self.subject.displayName(for: self.student.language),
                 firstName: self.student.firstName))
         }
-        // 2. Lecture du premier contenu après que l'accueil est terminé (t=5s)
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
             guard let first = self.exercises.first else { return }
             self.leo.speakText(first.question)
@@ -92,7 +88,6 @@ class CollegeSessionVM: ObservableObject {
             correctStreak = 0
         }
 
-        // Léo réagit à voix haute
         if correct {
             leo.speak(context: .correctAnswer(streak: correctStreak))
         } else {
@@ -100,17 +95,16 @@ class CollegeSessionVM: ObservableObject {
             leo.speak(context: .wrongAnswer(attempt: attempt))
         }
 
-        // La synthèse de l'exercice parle après Léo (délai 2s)
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
             if !correct { self.speak(ex.explanation) }
         }
 
         // Mise à jour progression par exercice (spacing effect)
         let key = ex.subject.rawValue + "|" + ex.question.prefix(60)
-        if let prog = student.exerciseProgresses.first(where: { $0.exerciseKey == key }) {
-            prog.record(correct: correct)
+        if let idx = student.exerciseProgresses.firstIndex(where: { $0.exerciseKey == key }) {
+            student.exerciseProgresses[idx].record(correct: correct)
         } else {
-            let prog = CollegeExerciseProgress(key: key, subject: ex.subject.rawValue)
+            var prog = CollegeExerciseProgress(key: key, subject: ex.subject.rawValue)
             prog.record(correct: correct)
             student.exerciseProgresses.append(prog)
         }
@@ -132,7 +126,6 @@ class CollegeSessionVM: ObservableObject {
         switch promptLevel {
         case .independent: return ""
         case .hint:
-            // Indice 1 : première lettre + longueur
             let answer = ex.correctAnswer.trimmingCharacters(in: .whitespaces)
             let firstLetter = answer.first.map { String($0).uppercased() } ?? "?"
             let wordCount = answer.split(separator: " ").count
@@ -142,7 +135,6 @@ class CollegeSessionVM: ObservableObject {
                 return "💡 La réponse commence par « \(firstLetter) » et contient \(wordCount) mot(s)."
             }
         case .partial:
-            // Indice 2 : chaque mot masqué sauf la première lettre
             let words = ex.correctAnswer.split(separator: " ")
             let masked = words.map { word -> String in
                 guard word.count > 1 else { return String(word) }
@@ -163,14 +155,13 @@ class CollegeSessionVM: ObservableObject {
         userInput = ""
         promptLevel = .independent
         showHint = false
-        // Lecture de la question suivante depuis le VM (seul endroit qui parle)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             guard let ex = self.currentExercise else { return }
             self.leo.speakText(ex.question)
         }
     }
 
-    func saveSession(modelContext: ModelContext) {
+    func saveSession(dataStore: CollegeDataStore) {
         let duration = Int(Date().timeIntervalSince(startDate))
         let session = CollegeSession(subject: subject, stars: starsEarned,
                                      correct: correctAnswers, total: totalAnswers,
@@ -192,12 +183,10 @@ class CollegeSessionVM: ObservableObject {
             }
         }
         student.lastSessionDate = Date()
-        try? modelContext.save()
+        dataStore.updateStudent(student)
 
-        // Léo félicite en fin de session
         leo.speak(context: .sessionEnd(correct: correctAnswers, total: totalAnswers, firstName: student.firstName))
 
-        // Demande d'avis App Store après la 3ème session
         let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
         CollegeReviewService.checkAndRequestReview(totalSessions: student.sessions.count, scene: scene)
     }

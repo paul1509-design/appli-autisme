@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 struct CollegeParentDashboard: View {
     let student: CollegeProfile
@@ -9,14 +8,13 @@ struct CollegeParentDashboard: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Onglets
                 HStack(spacing: 0) {
-                    ForEach([(0, "Suivi"), (1, "Rappels"), (2, "Guide"), (3, "Support")], id: \.0) { idx, label in
+                    ForEach([(0, "Suivi"), (1, "Rappels"), (2, "Réglages"), (3, "Guide"), (4, "Support")], id: \.0) { idx, label in
                         Button {
                             withAnimation { selectedTab = idx }
                         } label: {
                             Text(label)
-                                .font(.system(size: 13, weight: selectedTab == idx ? .medium : .regular))
+                                .font(.system(size: 12, weight: selectedTab == idx ? .medium : .regular))
                                 .foregroundColor(selectedTab == idx ? Color("accentPurple") : Color("textSecondary"))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
@@ -42,6 +40,8 @@ struct CollegeParentDashboard: View {
                         } else if selectedTab == 1 {
                             CollegeReminderSettingsCard(student: student)
                         } else if selectedTab == 2 {
+                            CollegeSettingsTabView(student: student)
+                        } else if selectedTab == 3 {
                             CollegeGuideTab()
                         } else {
                             CollegeSupportTab()
@@ -61,6 +61,102 @@ struct CollegeParentDashboard: View {
             }
         }
         .onAppear { CollegeNotificationService.requestPermission() }
+    }
+}
+
+// MARK: - Onglet Réglages
+struct CollegeSettingsTabView: View {
+    let student: CollegeProfile
+    @EnvironmentObject var dataStore: CollegeDataStore
+
+    var body: some View {
+        VStack(spacing: 16) {
+            // Langue
+            VStack(alignment: .leading, spacing: 12) {
+                Text("🌍 Langue de scolarisation")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(Color("textPrimary"))
+
+                ForEach(CollegeLanguage.allCases, id: \.self) { lang in
+                    Button {
+                        var updated = student
+                        updated.language = lang
+                        dataStore.updateStudent(updated)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text(lang.flag).font(.system(size: 22))
+                            Text(lang.rawValue)
+                                .font(.system(size: 15))
+                                .foregroundColor(Color("textPrimary"))
+                            Spacer()
+                            if student.language == lang {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(Color("accentPurple"))
+                            }
+                        }
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(student.language == lang
+                                      ? Color("accentPurple").opacity(0.08) : Color("cardBackground"))
+                                .overlay(RoundedRectangle(cornerRadius: 12)
+                                    .stroke(student.language == lang
+                                            ? Color("accentPurple") : Color("borderLight"),
+                                            lineWidth: student.language == lang ? 1.5 : 0.5))
+                        )
+                    }
+                }
+            }
+            .padding(16)
+            .background(RoundedRectangle(cornerRadius: 16).fill(Color("cardBackground"))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color("borderLight"), lineWidth: 0.5)))
+
+            // Niveau
+            VStack(alignment: .leading, spacing: 12) {
+                Text("🎓 Niveau scolaire")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(Color("textPrimary"))
+
+                ForEach(CollegeLevel.allCases, id: \.self) { level in
+                    Button {
+                        var updated = student
+                        updated.level = level
+                        dataStore.updateStudent(updated)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text(level.emoji).font(.system(size: 20))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(level.rawValue)
+                                    .font(.system(size: 15))
+                                    .foregroundColor(Color("textPrimary"))
+                                Text(level.ageRange)
+                                    .font(.system(size: 11))
+                                    .foregroundColor(Color("textSecondary"))
+                            }
+                            Spacer()
+                            if student.level == level {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(Color("accentPurple"))
+                            }
+                        }
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(student.level == level
+                                      ? Color("accentPurple").opacity(0.08) : Color("cardBackground"))
+                                .overlay(RoundedRectangle(cornerRadius: 12)
+                                    .stroke(student.level == level
+                                            ? Color("accentPurple") : Color("borderLight"),
+                                            lineWidth: student.level == level ? 1.5 : 0.5))
+                        )
+                    }
+                }
+            }
+            .padding(16)
+            .background(RoundedRectangle(cornerRadius: 16).fill(Color("cardBackground"))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color("borderLight"), lineWidth: 0.5)))
+        }
+        .padding(.horizontal, 20)
     }
 }
 
@@ -118,8 +214,16 @@ private struct MasteryLegend: View {
 
 // MARK: - Paramètres rappels
 struct CollegeReminderSettingsCard: View {
-    @Bindable var student: CollegeProfile
-    @State private var selectedHour: Int = 10
+    let student: CollegeProfile
+    @EnvironmentObject var dataStore: CollegeDataStore
+    @State private var reminderEnabled: Bool
+    @State private var reminderHour: Int
+
+    init(student: CollegeProfile) {
+        self.student = student
+        _reminderEnabled = State(initialValue: student.reminderEnabled)
+        _reminderHour = State(initialValue: student.reminderHour)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -129,40 +233,42 @@ struct CollegeReminderSettingsCard: View {
             Text("Recevez une notification chaque jour pour maintenir la routine — essentielle pour les jeunes TSA.")
                 .font(.system(size: 13)).foregroundColor(Color("textSecondary")).lineSpacing(4)
 
-            Toggle("Activer les rappels", isOn: $student.reminderEnabled)
+            Toggle("Activer les rappels", isOn: $reminderEnabled)
                 .font(.system(size: 15))
                 .tint(Color("accentPurple"))
-                .onChange(of: student.reminderEnabled) { _, enabled in
+                .onChange(of: reminderEnabled) { enabled in
+                    saveChanges()
                     if enabled {
                         CollegeNotificationService.scheduleDailyReminder(
                             studentName: student.firstName,
-                            hour: student.reminderHour,
+                            hour: reminderHour,
                             language: student.language)
                     } else {
                         CollegeNotificationService.cancelReminder()
                     }
                 }
 
-            if student.reminderEnabled {
+            if reminderEnabled {
                 HStack {
                     Text("Heure du rappel")
                         .font(.system(size: 15)).foregroundColor(Color("textPrimary"))
                     Spacer()
-                    Picker("Heure", selection: $student.reminderHour) {
+                    Picker("Heure", selection: $reminderHour) {
                         ForEach(6..<22, id: \.self) { h in
                             Text("\(h):00").tag(h)
                         }
                     }
                     .pickerStyle(.menu)
                     .tint(Color("accentPurple"))
-                    .onChange(of: student.reminderHour) { _, hour in
+                    .onChange(of: reminderHour) { hour in
+                        saveChanges()
                         CollegeNotificationService.scheduleDailyReminder(
                             studentName: student.firstName, hour: hour,
                             language: student.language)
                     }
                 }
 
-                Text("Le rappel sera envoyé tous les jours à \(student.reminderHour):00.")
+                Text("Le rappel sera envoyé tous les jours à \(reminderHour):00.")
                     .font(.system(size: 12)).foregroundColor(Color("textSecondary"))
             }
         }
@@ -171,14 +277,20 @@ struct CollegeReminderSettingsCard: View {
             .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color("borderLight"), lineWidth: 0.5)))
         .padding(.horizontal, 20)
         .onAppear {
-            selectedHour = student.reminderHour
-            if student.reminderEnabled {
+            if reminderEnabled {
                 CollegeNotificationService.scheduleDailyReminder(
                     studentName: student.firstName,
-                    hour: student.reminderHour,
+                    hour: reminderHour,
                     language: student.language)
             }
         }
+    }
+
+    private func saveChanges() {
+        var updated = student
+        updated.reminderEnabled = reminderEnabled
+        updated.reminderHour = reminderHour
+        dataStore.updateStudent(updated)
     }
 }
 

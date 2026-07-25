@@ -1,8 +1,7 @@
 import SwiftUI
-import SwiftData
 
 struct CollegeOnboardingView: View {
-    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var dataStore: CollegeDataStore
     let onComplete: (CollegeProfile) -> Void
 
     @State private var firstName: String = ""
@@ -203,8 +202,7 @@ struct CollegeOnboardingView: View {
                             level: selectedLevel,
                             language: selectedLanguage
                         )
-                        modelContext.insert(profile)
-                        try? modelContext.save()
+                        dataStore.addStudent(profile)
                         onComplete(profile)
                     }
                 } label: {

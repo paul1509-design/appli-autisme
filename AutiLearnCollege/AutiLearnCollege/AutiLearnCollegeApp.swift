@@ -1,12 +1,15 @@
 import SwiftUI
-import SwiftData
 
 @main
 struct AutiLearnCollegeApp: App {
+    @StateObject private var dataStore = CollegeDataStore()
+    @StateObject private var sub = CollegeSubscriptionService()
+
     var body: some Scene {
         WindowGroup {
             CollegeRootView()
-                .modelContainer(for: [CollegeProfile.self, CollegeSession.self, CollegeExerciseProgress.self])
+                .environmentObject(dataStore)
+                .environmentObject(sub)
                 .onAppear { CollegeNotificationService.requestPermission() }
         }
     }
