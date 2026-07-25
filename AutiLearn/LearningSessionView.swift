@@ -31,7 +31,8 @@ struct LearningSessionView: View {
                     starsEarned: vm.starsEarned,
                     correctAnswers: vm.correctAnswers,
                     total: vm.totalAnswers,
-                    onContinue: { dismiss() }
+                    onContinue: { dismiss() },
+                    language: language
                 )
             } else if let exercise = vm.currentExercise {
                 VStack(spacing: 0) {
@@ -137,7 +138,8 @@ struct LearningSessionView: View {
                     LeoPrimaryBubble(leo: vm.leo).padding(.top, 12)
                     CharacterBubble(exercise: exercise,
                                     isSpeaking: vm.isSpeaking,
-                                    onReplay: { vm.speakCurrentExercise() })
+                                    onReplay: { vm.speakCurrentExercise() },
+                                    language: language)
                     MultipleChoiceView(vm: vm, exercise: exercise)
                     Spacer(minLength: 40)
                 }
@@ -149,21 +151,23 @@ struct LearningSessionView: View {
                     LeoPrimaryBubble(leo: vm.leo).padding(.top, 12)
                     CharacterBubble(exercise: exercise,
                                     isSpeaking: vm.isSpeaking,
-                                    onReplay: { vm.speakCurrentExercise() })
+                                    onReplay: { vm.speakCurrentExercise() },
+                                    language: language)
                         .padding(.top, 8)
 
                     if !vm.hasAnswered {
                         switch exercise.type {
                         case .repeatAfterMe:
-                            RepeatResponseView(vm: vm)
+                            RepeatResponseView(vm: vm, language: language)
                         default:
-                            WriteResponseView(vm: vm)
+                            WriteResponseView(vm: vm, language: language)
                         }
                     }
 
                     if vm.hasAnswered {
                         FeedbackCard(correct: vm.lastAnswerCorrect,
-                                     expected: exercise.expectedAnswer)
+                                     expected: exercise.expectedAnswer,
+                                     language: language)
                         nextButton
                     }
                     Spacer(minLength: 40)
@@ -184,7 +188,7 @@ struct LearningSessionView: View {
                 }
             } label: {
                 Text(vm.currentIndex + 1 >= vm.exercises.count
-                     ? "Voir mon résultat !" : "Exercice suivant →")
+                     ? language.ui.seeResult : language.ui.nextExercise)
                     .font(.system(size: 17, weight: .medium))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -232,6 +236,7 @@ struct CharacterBubble: View {
     let exercise: CurriculumExercise
     let isSpeaking: Bool
     let onReplay: () -> Void
+    var language: AppLanguage = .french
 
     var characterEmoji: String { exercise.useGirl ? "👧" : "🧒" }
     var characterName: String  { exercise.useGirl ? "Léa" : "Léo" }
@@ -243,7 +248,7 @@ struct CharacterBubble: View {
                     Text(characterName)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Color("accentPurple"))
-                    Text("dit :")
+                    Text(language.ui.says)
                         .font(.system(size: 13))
                         .foregroundColor(Color("textSecondary"))
                 }
@@ -293,7 +298,7 @@ struct CharacterBubble: View {
                         HStack(spacing: 6) {
                             Image(systemName: isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2")
                                 .font(.system(size: 14))
-                            Text(isSpeaking ? "En train de parler..." : "Réécouter")
+                            Text(isSpeaking ? language.ui.isSpeaking : language.ui.replay)
                                 .font(.system(size: 14))
                         }
                         .foregroundColor(Color("accentPurple"))
@@ -314,14 +319,15 @@ struct CharacterBubble: View {
 // MARK: - Mode répétition orale
 struct RepeatResponseView: View {
     @ObservedObject var vm: LearningSessionVM
+    var language: AppLanguage = .french
     @State private var hasPressed = false
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Répète à voix haute !")
+            Text(language.ui.repeatTitle)
                 .font(.system(size: 17, weight: .medium))
                 .foregroundColor(Color("textPrimary"))
-            Text("Écoute bien, puis dis la phrase.")
+            Text(language.ui.listenThenSay)
                 .font(.system(size: 14))
                 .foregroundColor(Color("textSecondary"))
                 .multilineTextAlignment(.center)
@@ -338,7 +344,7 @@ struct RepeatResponseView: View {
                 HStack(spacing: 12) {
                     Image(systemName: hasPressed ? "checkmark.circle.fill" : "mic.circle.fill")
                         .font(.system(size: 28))
-                    Text(hasPressed ? "Bien dit !" : "J'ai répété à voix haute ✓")
+                    Text(hasPressed ? language.ui.wellSaid : language.ui.repeatButton)
                         .font(.system(size: 17, weight: .medium))
                 }
                 .foregroundColor(.white)
@@ -366,7 +372,7 @@ struct RepeatResponseView: View {
                 }
             }
 
-            Text("Si tu n'y arrives pas, réécoute et réessaie !")
+            Text(language.ui.tryAgain)
                 .font(.system(size: 12))
                 .foregroundColor(Color("textSecondary"))
                 .multilineTextAlignment(.center)
@@ -378,6 +384,7 @@ struct RepeatResponseView: View {
 // MARK: - Mode réponse écrite
 struct WriteResponseView: View {
     @ObservedObject var vm: LearningSessionVM
+    var language: AppLanguage = .french
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -394,7 +401,7 @@ struct WriteResponseView: View {
                 }
             }
 
-            TextField("Écris ta réponse ici...", text: $vm.userInput, axis: .vertical)
+            TextField(language.ui.writeHere, text: $vm.userInput, axis: .vertical)
                 .font(.system(size: 17))
                 .padding(14)
                 .background(Color("cardBackground"))
@@ -431,7 +438,7 @@ struct WriteResponseView: View {
                 isFocused = false
                 vm.submitAnswer()
             } label: {
-                Text("Valider ma réponse")
+                Text(language.ui.validateButton)
                     .font(.system(size: 17, weight: .medium))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -477,16 +484,17 @@ struct HintBubble: View {
 struct FeedbackCard: View {
     let correct: Bool
     let expected: String
+    var language: AppLanguage = .french
 
     var body: some View {
         VStack(spacing: 12) {
-            Text(correct ? "🎉 Excellent !" : "💪 Presque !")
+            Text(correct ? language.ui.bravo : language.ui.almostTitle)
                 .font(.system(size: 22, weight: .medium))
                 .foregroundColor(correct ? Color("accentGreen") : Color("accentOrange"))
 
             if !correct {
                 VStack(spacing: 4) {
-                    Text("La bonne réponse :")
+                    Text(language.ui.correctAnswer)
                         .font(.system(size: 13))
                         .foregroundColor(Color("textSecondary"))
                     Text(expected)
@@ -532,6 +540,7 @@ struct SessionCompleteView: View {
     let correctAnswers: Int
     let total: Int
     let onContinue: () -> Void
+    var language: AppLanguage = .french
 
     var successRate: Int {
         guard total > 0 else { return 0 }
@@ -543,20 +552,20 @@ struct SessionCompleteView: View {
             Spacer()
             Text(successRate >= 75 ? "🎉" : "💪").font(.system(size: 80))
             VStack(spacing: 8) {
-                Text(successRate >= 75 ? "Bravo !" : "Continue comme ça !")
+                Text(successRate >= 75 ? language.ui.sessionBravo : language.ui.keepGoing)
                     .font(.system(size: 28, weight: .medium)).foregroundColor(Color("textPrimary"))
-                Text("Tu as gagné \(starsEarned) étoile\(starsEarned > 1 ? "s" : "") !")
+                Text(language.ui.starsEarned(starsEarned))
                     .font(.system(size: 18)).foregroundColor(Color("accentOrange"))
             }
             HStack(spacing: 16) {
-                ResultStat(value: "\(successRate)%", label: "Réussite", emoji: "🎯")
-                ResultStat(value: "\(starsEarned)", label: "Étoiles", emoji: "⭐️")
-                ResultStat(value: "\(correctAnswers)/\(total)", label: "Correct", emoji: "✅")
+                ResultStat(value: "\(successRate)%", label: language.ui.successRateLabel, emoji: "🎯")
+                ResultStat(value: "\(starsEarned)", label: language.ui.starsLabel, emoji: "⭐️")
+                ResultStat(value: "\(correctAnswers)/\(total)", label: "✓", emoji: "✅")
             }
             .padding(.horizontal, 20)
             Spacer()
             Button(action: onContinue) {
-                Text("Retour à l'accueil")
+                Text(language.ui.backToHome)
                     .font(.system(size: 17, weight: .medium)).foregroundColor(.white)
                     .frame(maxWidth: .infinity).padding(.vertical, 16)
                     .background(Color("accentPurple")).cornerRadius(16)

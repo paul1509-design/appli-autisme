@@ -23,7 +23,7 @@ struct CollegeSessionView: View {
             Color("backgroundSoft").ignoresSafeArea()
 
             if sessionComplete {
-                CollegeSessionCompleteView(vm: vm, onContinue: { dismiss() })
+                CollegeSessionCompleteView(vm: vm, student: student, onContinue: { dismiss() })
             } else if let exercise = vm.currentExercise {
                 VStack(spacing: 0) {
                     // Barre du haut
@@ -79,16 +79,16 @@ struct CollegeSessionView: View {
                                     case .multipleChoice, .trueFalse:
                                         MultipleChoiceView(exercise: exercise, vm: vm)
                                     case .fillBlank, .shortAnswer:
-                                        ShortAnswerView(vm: vm)
+                                        ShortAnswerView(vm: vm, student: student)
                                     case .oral:
-                                        OralResponseView(vm: vm)
+                                        OralResponseView(vm: vm, student: student)
                                     case .lesson:
                                         EmptyView()
                                     }
                                 }
 
                                 if vm.hasAnswered {
-                                    ExplanationCard(exercise: exercise, correct: vm.lastAnswerCorrect)
+                                    ExplanationCard(exercise: exercise, correct: vm.lastAnswerCorrect, student: student)
 
                                     Button {
                                         if vm.currentIndex + 1 >= vm.exercises.count {
@@ -99,7 +99,7 @@ struct CollegeSessionView: View {
                                         }
                                     } label: {
                                         Text(vm.currentIndex + 1 >= vm.exercises.count
-                                             ? "Voir mes résultats" : "Question suivante →")
+                                             ? student.language.ui.seeResults : student.language.ui.nextQuestion)
                                             .font(.system(size: 17, weight: .medium))
                                             .foregroundColor(.white)
                                             .frame(maxWidth: .infinity)
@@ -258,11 +258,12 @@ struct MultipleChoiceView: View {
 // MARK: - Réponse courte / compléter
 struct ShortAnswerView: View {
     @ObservedObject var vm: CollegeSessionVM
+    let student: CollegeProfile
     @FocusState private var focused: Bool
 
     var body: some View {
         VStack(spacing: 12) {
-            TextField("Ta réponse...", text: $vm.userInput, axis: .vertical)
+            TextField(student.language.ui.yourAnswer, text: $vm.userInput, axis: .vertical)
                 .font(.system(size: 16))
                 .padding(14)
                 .background(Color("cardBackground"))
@@ -292,7 +293,7 @@ struct ShortAnswerView: View {
                     focused = false
                     vm.submitShortAnswer()
                 } label: {
-                    Text("Valider")
+                    Text(student.language.ui.validate)
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.white)
                         .padding(.horizontal, 24).padding(.vertical, 12)
@@ -310,14 +311,15 @@ struct ShortAnswerView: View {
 // MARK: - Réponse orale
 struct OralResponseView: View {
     @ObservedObject var vm: CollegeSessionVM
+    let student: CollegeProfile
     @State private var hasSpoken = false
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Réponds à voix haute")
+            Text(student.language.ui.answerAloud)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(Color("textPrimary"))
-            Text("Prends le temps de formuler ta réponse en une ou deux phrases complètes.")
+            Text(student.language.ui.formAnswer)
                 .font(.system(size: 13))
                 .foregroundColor(Color("textSecondary"))
                 .multilineTextAlignment(.center)
@@ -331,7 +333,7 @@ struct OralResponseView: View {
                 HStack(spacing: 12) {
                     Image(systemName: hasSpoken ? "checkmark.circle.fill" : "mic.circle.fill")
                         .font(.system(size: 24))
-                    Text(hasSpoken ? "Réponse enregistrée ✓" : "J'ai répondu à voix haute")
+                    Text(hasSpoken ? student.language.ui.answerRecorded : student.language.ui.iAnsweredAloud)
                         .font(.system(size: 16, weight: .medium))
                 }
                 .foregroundColor(.white)
@@ -363,12 +365,13 @@ struct OralResponseView: View {
 struct ExplanationCard: View {
     let exercise: CollegeExercise
     let correct: Bool
+    let student: CollegeProfile
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Text(correct ? "✅" : "💡").font(.system(size: 22))
-                Text(correct ? "Bonne réponse !" : "La bonne réponse était :")
+                Text(correct ? student.language.ui.goodAnswer : student.language.ui.correctAnswerWas)
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(correct ? Color("accentGreen") : Color("accentOrange"))
             }
@@ -447,6 +450,7 @@ struct CollegeCountdownTimer: View {
 // MARK: - Fin de session
 struct CollegeSessionCompleteView: View {
     @ObservedObject var vm: CollegeSessionVM
+    let student: CollegeProfile
     let onContinue: () -> Void
 
     var successRate: Int {
@@ -459,20 +463,20 @@ struct CollegeSessionCompleteView: View {
             Spacer()
             Text(successRate >= 75 ? "🎉" : "💪").font(.system(size: 72))
             VStack(spacing: 8) {
-                Text(successRate >= 75 ? "Excellent travail !" : "Continue tes efforts !")
+                Text(successRate >= 75 ? student.language.ui.excellentWork : student.language.ui.keepTrying)
                     .font(.system(size: 26, weight: .medium)).foregroundColor(Color("textPrimary"))
-                Text("Tu as gagné \(vm.starsEarned) étoile\(vm.starsEarned > 1 ? "s" : "") !")
+                Text(student.language.ui.starsEarned(vm.starsEarned))
                     .font(.system(size: 17)).foregroundColor(Color("accentOrange"))
             }
             HStack(spacing: 16) {
-                CollegeResultStat(value: "\(successRate)%", label: "Réussite", emoji: "🎯")
-                CollegeResultStat(value: "\(vm.starsEarned)", label: "Étoiles", emoji: "⭐️")
-                CollegeResultStat(value: "\(vm.correctAnswers)/\(vm.totalAnswers)", label: "Correct", emoji: "✅")
+                CollegeResultStat(value: "\(successRate)%", label: student.language.ui.successLabel, emoji: "🎯")
+                CollegeResultStat(value: "\(vm.starsEarned)", label: student.language.ui.starsLabel, emoji: "⭐️")
+                CollegeResultStat(value: "\(vm.correctAnswers)/\(vm.totalAnswers)", label: student.language.ui.correctLabel, emoji: "✅")
             }
             .padding(.horizontal, 20)
             Spacer()
             Button(action: onContinue) {
-                Text("Retour aux matières")
+                Text(student.language.ui.backToSubjects)
                     .font(.system(size: 17, weight: .medium)).foregroundColor(.white)
                     .frame(maxWidth: .infinity).padding(.vertical, 16)
                     .background(Color("accentPurple")).cornerRadius(16)

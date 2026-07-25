@@ -41,7 +41,7 @@ struct CollegeHomeView: View {
                               onSettingsTap: { showQuickSettings = true })
                 statsRow
                 AdoPeerCard(student: student, starsUntilReward: starsUntilReward)
-                CollegeDailySchedule(completedSteps: completedSteps) { idx in
+                CollegeDailySchedule(student: student, completedSteps: completedSteps) { idx in
                     withAnimation(.spring(response: 0.3)) { _ = completedSteps.insert(idx) }
                 }
                 subjectGrid
@@ -57,15 +57,15 @@ struct CollegeHomeView: View {
 
     @ViewBuilder private var statsRow: some View {
         HStack(spacing: 12) {
-            CollegeStatCard(value: "\(student.currentStreak)", label: "jours streak", emoji: "🔥")
-            CollegeStatCard(value: "\(student.totalStars)", label: "étoiles", emoji: "⭐️")
-            CollegeStatCard(value: "\(Int(recentRate * 100))%", label: "réussite récente", emoji: "🎯")
+            CollegeStatCard(value: "\(student.currentStreak)", label: "streak 🔥", emoji: "🔥")
+            CollegeStatCard(value: "\(student.totalStars)", label: student.language.ui.starsLabel, emoji: "⭐️")
+            CollegeStatCard(value: "\(Int(recentRate * 100))%", label: student.language.ui.successRateLabel, emoji: "🎯")
         }
         .padding(.horizontal, 20)
     }
 
     @ViewBuilder private var subjectGrid: some View {
-        Text("Choisir une matière")
+        Text(student.language.ui.chooseSubject)
             .font(.system(size: 18, weight: .medium))
             .foregroundColor(Color("textPrimary"))
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -90,10 +90,10 @@ struct CollegeHomeView: View {
             HStack(spacing: 12) {
                 Text("🎮").font(.system(size: 22))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Jeux libres")
+                    Text(student.language.ui.freePlay)
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(Color("textPrimary"))
-                    Text("Explore les exercices sans pression, à ton rythme")
+                    Text(student.language.ui.freePlayDesc)
                         .font(.system(size: 12))
                         .foregroundColor(Color("textSecondary"))
                 }
@@ -146,9 +146,9 @@ struct CollegeHomeView: View {
             HStack(spacing: 12) {
                 Text("📊").font(.system(size: 22))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Espace Parents")
+                    Text(student.language.ui.parentSpace)
                         .font(.system(size: 15, weight: .medium)).foregroundColor(Color("textPrimary"))
-                    Text("Suivi des matières, progression, rapport ABA")
+                    Text(student.language.ui.parentSpaceDesc)
                         .font(.system(size: 12)).foregroundColor(Color("textSecondary"))
                 }
                 Spacer()
@@ -237,10 +237,11 @@ struct CollegeHeader: View {
 
     var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
+        let ui = student.language.ui
         switch hour {
-        case 6..<12:  return "Bonjour"
-        case 12..<18: return "Bon après-midi"
-        default:      return "Bonsoir"
+        case 6..<12:  return ui.goodMorning
+        case 12..<18: return ui.goodAfternoon
+        default:      return ui.goodEvening
         }
     }
 
@@ -340,11 +341,11 @@ struct CollegeQuickSettingsSheet: View {
                     }
                 }
             }
-            .navigationTitle("Réglages")
+            .navigationTitle(student.language.ui.settingsTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Fermer") { dismiss() }
+                    Button(student.language.ui.close) { dismiss() }
                         .foregroundColor(Color("accentPurple"))
                 }
             }
@@ -376,12 +377,12 @@ struct CollegeSubjectCard: View {
                         .fill(lastRate >= 0.8 ? Color("accentGreen")
                               : lastRate >= 0.6 ? Color("accentOrange") : .red)
                         .frame(width: 7, height: 7)
-                    Text(lastRate >= 0.8 ? "Maîtrisé" : lastRate >= 0.6 ? "En progrès" : "À travailler")
+                    Text(lastRate >= 0.8 ? student.language.ui.mastered : lastRate >= 0.6 ? student.language.ui.inProgress : student.language.ui.toWork)
                         .font(.system(size: 11))
                         .foregroundColor(Color("textSecondary"))
                 }
             } else {
-                Text("Pas encore commencé")
+                Text(student.language.ui.notStarted)
                     .font(.system(size: 11))
                     .foregroundColor(Color("textSecondary"))
             }
@@ -403,15 +404,7 @@ struct ABAMotivationCard: View {
     let rate: Double
 
     var message: String {
-        if student.sessions.isEmpty {
-            return "Commence ta première session ! Chaque étape compte."
-        } else if rate >= 0.8 {
-            return "Excellent ! Tu maîtrises bien les matières. Continue à ce rythme !"
-        } else if rate >= 0.6 {
-            return "Bien ! N'hésite pas à utiliser les indices pour progresser."
-        } else {
-            return "Chaque exercice t'aide à progresser. Reprends les matières difficiles."
-        }
+        student.language.ui.abaTipMessage(emptySessions: student.sessions.isEmpty, rate: rate)
     }
 
     var body: some View {
@@ -421,7 +414,7 @@ struct ABAMotivationCard: View {
                 Text("💪").font(.system(size: 26))
             }
             VStack(alignment: .leading, spacing: 3) {
-                Text("Conseil ABA").font(.system(size: 12, weight: .medium)).foregroundColor(Color("accentGreen"))
+                Text(student.language.ui.abaTip).font(.system(size: 12, weight: .medium)).foregroundColor(Color("accentGreen"))
                 Text(message).font(.system(size: 14)).foregroundColor(Color("textPrimary")).lineLimit(3).lineSpacing(3)
             }
             Spacer()
@@ -456,14 +449,10 @@ struct AdoPeerCard: View {
     let student: CollegeProfile
     let starsUntilReward: Int
 
-    private let messages = [
-        "On bosse ensemble aujourd'hui !",
-        "Chaque bonne réponse compte — allez !",
-        "Tu progresses, c'est ce qui compte.",
-        "Une matière à la fois. Tu gères.",
-        "Prêt(e) ? Moi aussi !"
-    ]
-    private var message: String { messages[abs(student.firstName.hashValue) % messages.count] }
+    private var message: String {
+        let messages = student.language.ui.encouragementMessages
+        return messages[abs(student.firstName.hashValue) % messages.count]
+    }
 
     var body: some View {
         HStack(spacing: 14) {
@@ -472,9 +461,9 @@ struct AdoPeerCard: View {
                 Text("🧑‍💻").font(.system(size: 26))
             }
             VStack(alignment: .leading, spacing: 3) {
-                Text("Léo, ton compagnon").font(.system(size: 12, weight: .medium)).foregroundColor(Color("accentBlue"))
+                Text(student.language.ui.leoCompanion).font(.system(size: 12, weight: .medium)).foregroundColor(Color("accentBlue"))
                 Text(message).font(.system(size: 14)).foregroundColor(Color("textPrimary")).lineLimit(2)
-                Text("Encore \(starsUntilReward) étoile\(starsUntilReward > 1 ? "s" : "") → pause mérité !")
+                Text(student.language.ui.starsUntilBreak(starsUntilReward))
                     .font(.system(size: 11)).foregroundColor(Color("textSecondary"))
             }
             Spacer()
@@ -488,21 +477,16 @@ struct AdoPeerCard: View {
 
 // MARK: - Planning visuel journalier ado
 struct CollegeDailySchedule: View {
+    let student: CollegeProfile
     let completedSteps: Set<Int>
     let onComplete: (Int) -> Void
 
-    private let steps: [(String, String, String)] = [
-        ("😊", "Comment tu te sens ?", "accentYellow"),
-        ("🗣️", "Communication sociale", "accentOrange"),
-        ("📝", "Français", "accentPurple"),
-        ("🔢", "Maths", "accentBlue"),
-        ("🎉", "Pause méritée !", "accentPink"),
-    ]
+    private var steps: [(String, String, String)] { student.language.ui.dailySteps }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("📅 Programme du jour")
+                Text(student.language.ui.dailySchedule)
                     .font(.system(size: 15, weight: .medium)).foregroundColor(Color("textPrimary"))
                 Spacer()
                 Text("\(completedSteps.count)/\(steps.count)")
@@ -560,12 +544,12 @@ struct CollegeRewardBreakView: View {
                 Spacer()
                 VStack(spacing: 12) {
                     Text("🎉").font(.system(size: 64))
-                    Text("Bien joué \(student.firstName) !").font(.system(size: 26, weight: .medium)).foregroundColor(Color("textPrimary"))
-                    Text("Tu as gagné ta pause de 5 minutes.\nChoisis ce que tu veux faire.")
+                    Text(student.language.ui.wellPlayed(student.firstName)).font(.system(size: 26, weight: .medium)).foregroundColor(Color("textPrimary"))
+                    Text(student.language.ui.breakEarnedDesc)
                         .font(.system(size: 15)).foregroundColor(Color("textSecondary")).multilineTextAlignment(.center).lineSpacing(4)
                 }
                 VStack(spacing: 12) {
-                    ForEach([("🎮", "Jeu libre — 5 minutes"), ("🎵", "Musique ou podcast"), ("🚶", "Bouger — 5 min de marche"), ("📱", "Pause écran choisie")], id: \.0) { emoji, label in
+                    ForEach(student.language.ui.breakActivities, id: \.0) { emoji, label in
                         Button { timerActive = true } label: {
                             HStack(spacing: 12) {
                                 Text(emoji).font(.system(size: 24))
@@ -582,7 +566,7 @@ struct CollegeRewardBreakView: View {
                 }
                 Spacer()
                 Button(action: onDismiss) {
-                    Text("Terminer la pause").font(.system(size: 16, weight: .medium)).foregroundColor(.white)
+                    Text(student.language.ui.breakOver).font(.system(size: 16, weight: .medium)).foregroundColor(.white)
                         .frame(maxWidth: .infinity).padding(.vertical, 16).background(Color("accentPurple")).cornerRadius(16)
                 }
                 .padding(.horizontal, 24).padding(.bottom, 32)

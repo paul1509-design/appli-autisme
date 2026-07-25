@@ -26,10 +26,11 @@ struct HomeView: View {
 
     var greeting: String {
         let hour = Calendar.current.component(.hour, from: currentTime)
+        let ui = appState.currentLanguage.ui
         switch hour {
-        case 6..<12:  return "Bonjour"
-        case 12..<18: return "Bon après-midi"
-        default:      return "Bonsoir"
+        case 6..<12:  return ui.goodMorning
+        case 12..<18: return ui.goodAfternoon
+        default:      return ui.goodEvening
         }
     }
 
@@ -86,7 +87,7 @@ struct HomeView: View {
                     Group {
                         SpacingReviewBanner(child: child)
 
-                        Text("Par où commencer ?")
+                        Text(appState.currentLanguage.ui.whereToStart)
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(Color("textPrimary"))
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -104,10 +105,10 @@ struct HomeView: View {
                         HStack(spacing: 12) {
                             Text("🎁").font(.system(size: 22))
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(ABAReviewService.isBonusUnlocked ? "Mot Mystère 🔤" : "Débloquer le jeu bonus 🎁")
+                                Text(ABAReviewService.isBonusUnlocked ? appState.currentLanguage.ui.mysteryWord : appState.currentLanguage.ui.unlockBonus)
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(Color("textPrimary"))
-                                Text(ABAReviewService.isBonusUnlocked ? "Jeu de lettres adapté TSA" : "Laisser un avis 5⭐ pour débloquer")
+                                Text(ABAReviewService.isBonusUnlocked ? appState.currentLanguage.ui.abaGame : appState.currentLanguage.ui.leaveReview)
                                     .font(.system(size: 12))
                                     .foregroundColor(Color("textSecondary"))
                             }
@@ -133,10 +134,10 @@ struct HomeView: View {
                         HStack(spacing: 12) {
                             Text("📊").font(.system(size: 22))
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Espace Parents")
+                                Text(appState.currentLanguage.ui.parentSpace)
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(Color("textPrimary"))
-                                Text("Suivi des progrès, compétences ABA, rapport")
+                                Text(appState.currentLanguage.ui.parentSpaceDesc)
                                     .font(.system(size: 12))
                                     .foregroundColor(Color("textSecondary"))
                             }
@@ -351,11 +352,11 @@ struct QuickSettingsSheet: View {
                     }
                 }
             }
-            .navigationTitle("Réglages")
+            .navigationTitle(appState.currentLanguage.ui.settingsTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Fermer") { dismiss() }
+                    Button(appState.currentLanguage.ui.close) { dismiss() }
                         .foregroundColor(Color("accentPurple"))
                 }
             }
@@ -368,11 +369,12 @@ struct LevelPickerSheet: View {
     let currentLevel: SchoolLevel
     let onSelect: (SchoolLevel) -> Void
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var appState: AppState
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                Text("Choisir le niveau")
+                Text(appState.currentLanguage.ui.chooseLevel)
                     .font(.system(size: 20, weight: .medium))
                     .foregroundColor(Color("textPrimary"))
                     .padding(.top, 8)
@@ -432,22 +434,15 @@ struct LevelPickerSheet: View {
 struct PeerCompanionCard: View {
     let child: ChildProfile
     let starsUntilReward: Int
-
-    private let messages = [
-        "On apprend ensemble aujourd'hui !",
-        "Tu vas y arriver, je suis là !",
-        "Chaque mot appris est une victoire !",
-        "Prêt(e) ? Moi j'y suis !",
-        "On forme une super équipe !"
-    ]
+    @EnvironmentObject private var appState: AppState
 
     private var message: String {
-        messages[abs(child.firstName.hashValue) % messages.count]
+        let msgs = appState.currentLanguage.ui.encouragementMessages
+        return msgs[abs(child.firstName.hashValue) % msgs.count]
     }
 
     var body: some View {
         HStack(spacing: 14) {
-            // Avatar compagnon
             ZStack {
                 Circle()
                     .fill(Color("accentGreen").opacity(0.15))
@@ -457,7 +452,7 @@ struct PeerCompanionCard: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Ton compagnon Léo")
+                Text(appState.currentLanguage.ui.leoCompanion)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(Color("accentGreen"))
                 Text(message)
@@ -465,11 +460,10 @@ struct PeerCompanionCard: View {
                     .foregroundColor(Color("textPrimary"))
                     .lineLimit(2)
 
-                // Barre de progression vers la récompense
                 HStack(spacing: 6) {
                     Text("⭐️")
                         .font(.system(size: 11))
-                    Text("Encore \(starsUntilReward) étoile\(starsUntilReward > 1 ? "s" : "") → pause jeu !")
+                    Text(appState.currentLanguage.ui.starsUntilBreak(starsUntilReward))
                         .font(.system(size: 11))
                         .foregroundColor(Color("textSecondary"))
                 }
@@ -491,10 +485,11 @@ struct PeerCompanionCard: View {
 struct EmotionCheckCard: View {
     let child: ChildProfile
     let onSelect: (EmotionState) -> Void
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Comment tu te sens \(child.firstName) ?")
+            Text(appState.currentLanguage.ui.howDoYouFeel(child.firstName))
                 .font(.system(size: 17, weight: .medium))
                 .foregroundColor(Color("textPrimary"))
 
@@ -549,16 +544,17 @@ struct EmotionButton: View {
 // MARK: - Bannière respiration
 struct BreathingBanner: View {
     let onTap: () -> Void
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 12) {
                 Text("🌬️").font(.system(size: 24))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Exercice de respiration")
+                    Text(appState.currentLanguage.ui.breathingExercise)
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(Color("accentBlue"))
-                    Text("3 minutes pour se calmer avant d'apprendre")
+                    Text(appState.currentLanguage.ui.breathingDesc)
                         .font(.system(size: 13))
                         .foregroundColor(Color("textSecondary"))
                 }
@@ -582,14 +578,15 @@ struct BreathingBanner: View {
 struct StatsRow: View {
     let child: ChildProfile
     let onRewardTap: () -> Void
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
         HStack(spacing: 12) {
             StatCard(value: "\(child.currentStreak)",
-                     label: "jours consécutifs", emoji: "🔥")
+                     label: appState.currentLanguage.ui.consecutiveDays, emoji: "🔥")
             Button(action: onRewardTap) {
                 StatCard(value: "\(child.totalStars)",
-                         label: "étoiles — voir récompenses", emoji: "⭐️")
+                         label: appState.currentLanguage.ui.starsRewards, emoji: "⭐️")
             }
         }
         .padding(.horizontal, 20)
@@ -627,8 +624,9 @@ struct StatCard: View {
 // MARK: - Bannière retest spacing
 struct SpacingReviewBanner: View {
     let child: ChildProfile
+    @EnvironmentObject private var appState: AppState
 
-    var wordsToReview: Int {
+    var wordsCount: Int {
         let today = Date()
         return child.wordProgresses.filter { wp in
             guard let nextReview = wp.nextReviewDate else { return false }
@@ -637,14 +635,14 @@ struct SpacingReviewBanner: View {
     }
 
     var body: some View {
-        if wordsToReview > 0 {
+        if wordsCount > 0 {
             HStack(spacing: 12) {
                 Text("🔄").font(.system(size: 22))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(wordsToReview) mots à réviser aujourd'hui")
+                    Text(appState.currentLanguage.ui.wordsToReview(wordsCount))
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(Color("accentOrange"))
-                    Text("Révision rapide — 3 minutes !")
+                    Text(appState.currentLanguage.ui.quickReview)
                         .font(.system(size: 13))
                         .foregroundColor(Color("textSecondary"))
                 }
@@ -668,14 +666,17 @@ struct ModuleGrid: View {
     let child: ChildProfile
     @EnvironmentObject private var appState: AppState
 
-    let modules: [(String, String, String, ModuleType)] = [
-        ("🗣️", "Parole",      "accentOrange", .diction),
-        ("🎵", "Chanson",     "accentPink",   .karaoke),
-        ("📖", "Histoire",    "accentPurple", .story),
-        ("🔤", "Vocabulaire", "accentBlue",   .vocabulary),
-        ("🔢", "Chiffres",    "accentGreen",  .numbers),
-        ("✏️", "Dessin",      "accentYellow", .drawing)
-    ]
+    var modules: [(String, String, String, ModuleType)] {
+        let ui = appState.currentLanguage.ui
+        return [
+            ("🗣️", ui.moduleSpeech,  "accentOrange", .diction),
+            ("🎵", ui.moduleSong,    "accentPink",   .karaoke),
+            ("📖", ui.moduleStory,   "accentPurple", .story),
+            ("🔤", ui.moduleVocab,   "accentBlue",   .vocabulary),
+            ("🔢", ui.moduleNumbers, "accentGreen",  .numbers),
+            ("✏️", ui.moduleDrawing, "accentYellow", .drawing)
+        ]
+    }
 
     var body: some View {
         LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 2),
@@ -687,7 +688,8 @@ struct ModuleGrid: View {
                                         language: appState.currentLanguage)
                 } label: {
                     ModuleCard(emoji: emoji, title: title, colorName: color,
-                               isPrimary: index == 0)
+                               isPrimary: index == 0,
+                               startHereLabel: appState.currentLanguage.ui.startHere)
                 }
             }
         }
@@ -700,6 +702,7 @@ struct ModuleCard: View {
     let title: String
     let colorName: String
     var isPrimary: Bool = false
+    var startHereLabel: String = "Commence ici !"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -708,7 +711,7 @@ struct ModuleCard: View {
                 .font(.system(size: isPrimary ? 18 : 16, weight: .medium))
                 .foregroundColor(Color("textPrimary"))
             if isPrimary {
-                Text("Commence ici !")
+                Text(startHereLabel)
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(Color(colorName))
                     .padding(.horizontal, 8).padding(.vertical, 3)
@@ -731,10 +734,11 @@ struct ModuleCard: View {
 // MARK: - Teaser histoire du jour
 struct DailyStoryTeaser: View {
     let child: ChildProfile
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("📚 Histoire du jour")
+            Text(appState.currentLanguage.ui.storyOfDay)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(Color("textPrimary"))
             Text("Aujourd'hui, \(child.firstName) part à l'aventure dans la forêt magique des mots...")
@@ -759,6 +763,7 @@ struct DailyScheduleCard: View {
     let child: ChildProfile
     let completedSteps: Set<Int>
     let onComplete: (Int) -> Void
+    @EnvironmentObject private var appState: AppState
 
     struct ScheduleStep {
         let emoji: String
@@ -789,10 +794,10 @@ struct DailyScheduleCard: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("📅 Programme du jour")
+                    Text(appState.currentLanguage.ui.dailySchedule)
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(Color("textPrimary"))
-                    Text("\(doneCount) / \(totalCount) étapes terminées")
+                    Text(appState.currentLanguage.ui.stepsCompleted(doneCount, totalCount))
                         .font(.system(size: 12))
                         .foregroundColor(Color("textSecondary"))
                 }
@@ -896,6 +901,7 @@ struct ScheduleStepCard: View {
 struct RewardBreakView: View {
     let child: ChildProfile
     let onDismiss: () -> Void
+    @EnvironmentObject private var appState: AppState
 
     @State private var selectedActivity: RewardActivity?
     @State private var timeRemaining = 300 // 5 minutes
@@ -941,10 +947,10 @@ struct RewardBreakView: View {
                 VStack(spacing: 12) {
                     Text("🎉")
                         .font(.system(size: 72))
-                    Text("Bravo \(child.firstName) !")
+                    Text(appState.currentLanguage.ui.bravoFull(child.firstName))
                         .font(.system(size: 28, weight: .medium))
                         .foregroundColor(Color("textPrimary"))
-                    Text("Tu as gagné \(rewardStarThreshold) étoiles !\nC'est ta pause de 5 minutes !")
+                    Text(appState.currentLanguage.ui.breakEarned(rewardStarThreshold))
                         .font(.system(size: 16))
                         .foregroundColor(Color("textSecondary"))
                         .multilineTextAlignment(.center)
@@ -967,7 +973,7 @@ struct RewardBreakView: View {
                             .font(.system(size: 48, weight: .light, design: .rounded))
                             .foregroundColor(Color("accentOrange"))
 
-                        Text("Il reste ce temps pour ta pause")
+                        Text(appState.currentLanguage.ui.timeRemainingBreak)
                             .font(.system(size: 13))
                             .foregroundColor(Color("textSecondary"))
                     }
@@ -981,7 +987,7 @@ struct RewardBreakView: View {
                 } else {
                     // Choix de l'activité
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Choisis ton activité :")
+                        Text(appState.currentLanguage.ui.chooseActivity)
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(Color("textPrimary"))
                             .padding(.horizontal, 4)
