@@ -248,22 +248,43 @@ class SpeechRecognizer: ObservableObject {
 
     init() {
         recognizer = SFSpeechRecognizer(locale: Locale(identifier: "fr-FR"))
-        SFSpeechRecognizer.requestAuthorization { _ in }
     }
 
     func start() {
         guard !isRecording else { return }
         transcript = ""
 
+        SFSpeechRecognizer.requestAuthorization { [weak self] authStatus in
+            guard authStatus == .authorized else { return }
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                guard granted else { return }
+                Task { @MainActor in self?.beginRecording() }
+            }
+        }
+    }
+
+    private func beginRecording() {
+        guard !isRecording else { return }
+
         let audioSession = AVAudioSession.sharedInstance()
-        try? audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-        try? audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        do {
+            try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        } catch {
+            return
+        }
+
+        let inputNode = audioEngine.inputNode
+        let fmt = inputNode.outputFormat(forBus: 0)
+        // Sur certains appareils (iPad), le format du micro n'est pas encore prêt juste
+        // après l'activation de la session : un format à 0 canal/0 Hz fait planter le tap
+        // (AVAudioBuffer mDataByteSize should be non-zero). On refuse de démarrer dans ce cas.
+        guard fmt.sampleRate > 0, fmt.channelCount > 0 else { return }
 
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
         guard let req = recognitionRequest else { return }
         req.shouldReportPartialResults = true
 
-        let inputNode = audioEngine.inputNode
         recognitionTask = recognizer?.recognitionTask(with: req) { [weak self] result, error in
             guard let self else { return }
             if let result {
@@ -276,14 +297,20 @@ class SpeechRecognizer: ObservableObject {
             }
         }
 
-        let fmt = inputNode.outputFormat(forBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: fmt) { [weak self] buf, _ in
             self?.recognitionRequest?.append(buf)
         }
 
         audioEngine.prepare()
-        try? audioEngine.start()
-        isRecording = true
+        do {
+            try audioEngine.start()
+            isRecording = true
+        } catch {
+            inputNode.removeTap(onBus: 0)
+            recognitionRequest = nil
+            recognitionTask?.cancel()
+            recognitionTask = nil
+        }
     }
 
     func stop() {
