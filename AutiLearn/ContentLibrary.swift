@@ -87,6 +87,7 @@ struct ContentLibrary {
         case .german:     return german(level, .reading)
         case .arabic:     return arabic(level, .reading)
         case .dutch:      return dutch(level, .reading)
+        case .ukrainian, .polish: return english(level, .reading)
         }
     }
 
@@ -168,6 +169,7 @@ struct ContentLibrary {
         case .german:     return deLessons(level)
         case .arabic:     return arLessons(level)
         case .dutch:      return nlLessons(level)
+        case .ukrainian, .polish: return enLessons(level)
         }
     }
 

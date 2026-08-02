@@ -195,7 +195,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "\(subject) avec \(firstName) aujourd'hui — parfait !",
             "Coucou \(firstName) ! Je t'attendais ! Cap sur \(subject) !"
         ]
-        case .english: return [
+        case .english, .ukrainian, .polish: return [
             "Hey \(firstName)! Let's do \(subject) together. I'm right here!",
             "Ready \(firstName)? \(subject) time! You did great last time!",
             "\(firstName), let's go! \(subject) is going to be fun today!",
@@ -252,7 +252,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "Très bien raisonné ! Je suis fière de toi !",
             "Brillante ! Quelle logique impeccable !"
         ]
-        case .english: return [
+        case .english, .ukrainian, .polish: return [
             "Correct! Well done!",
             "Yes! I knew you could do it!",
             "Perfect! Keep going!",
@@ -319,7 +319,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "INCROYABLE ! \(streak) bonnes réponses ! Continue !",
             "\(streak) ! C'est ta meilleure série — je suis bluffée !"
         ]
-        case .english: return [
+        case .english, .ukrainian, .polish: return [
             "\(streak) in a row! You're on fire!",
             "Incredible! \(streak) streak! I'm impressed!",
             "Wow \(streak)! You're crushing it today!"
@@ -366,7 +366,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "Hmm, presque ! Réfléchis encore un peu.",
             "Ne t'inquiète pas — je suis là avec toi."
         ]
-        case .english: return [
+        case .english, .ukrainian, .polish: return [
             "No worries! Let's try again together.",
             "This one's tricky! Take your time.",
             "Everyone gets it wrong sometimes. You've got this!",
@@ -426,7 +426,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "Rappelle-toi ce qu'on a fait avant — tu le sais !",
             "Respire et relis. La réponse est là !"
         ]
-        case .english: return [
+        case .english, .ukrainian, .polish: return [
             "Try reading the question slowly again.",
             "I can help — ask for a hint!",
             "Remember what we did before — you know this!",
@@ -479,7 +479,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "C'est courageux de demander de l'aide !",
             "Ensemble c'est plus facile. Regarde..."
         ]
-        case .english: return [
+        case .english, .ukrainian, .polish: return [
             "Of course! Here's a hint for you.",
             "No problem! I'll help you.",
             "It's brave to ask for help!",
@@ -540,7 +540,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
                 "Bravo pour l'effort \(firstName) ! La prochaine fois sera meilleure.",
                 "Tu as essayé et c'est le plus important \(firstName). Félicitations !"
             ]}
-        case .english:
+        case .english, .ukrainian, .polish:
             if rate >= 80 { return [
                 "\(correct) out of \(total)! \(firstName), you're incredible!",
                 "Amazing session! \(rate)% — I'm really proud of you!",
@@ -628,7 +628,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "Salut \(firstName) ! Prête pour une super session ?",
             "Hey \(firstName) ! Nouvelle journée, nouvelles victoires !"
         ]
-        case .english: return [
+        case .english, .ukrainian, .polish: return [
             "Good morning \(firstName)! Happy to see you today!",
             "Hey \(firstName)! Ready for a great session?",
             "Hi \(firstName)! New day, new victories!"
@@ -674,7 +674,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     private func lateOneDay() -> String {
         switch language {
         case .french:     return "Tu m'as manqué hier ! Content que tu sois là !"
-        case .english:    return "I missed you yesterday! Glad you're here!"
+        case .english, .ukrainian, .polish:    return "I missed you yesterday! Glad you're here!"
         case .spanish:    return "¡Te eché de menos ayer! ¡Me alegra que estés aquí!"
         case .portuguese: return "Fiz saudades de ti ontem! Fico feliz que estejas aqui!"
         case .italian:    return "Mi sei mancato ieri! Contento che tu sia qui!"
@@ -687,7 +687,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     private func lateManyDays(days: Int) -> String {
         switch language {
         case .french:     return "Cela fait \(days) jours ! Bienvenue de retour — j'avais hâte de travailler avec toi !"
-        case .english:    return "It's been \(days) days! Welcome back — I was looking forward to working with you!"
+        case .english, .ukrainian, .polish:    return "It's been \(days) days! Welcome back — I was looking forward to working with you!"
         case .spanish:    return "¡Han pasado \(days) días! ¡Bienvenido de vuelta — tenía ganas de trabajar contigo!"
         case .portuguese: return "Já passaram \(days) dias! Bem-vindo de volta — estava ansioso para trabalhar contigo!"
         case .italian:    return "Sono passati \(days) giorni! Bentornato — non vedevo l'ora di lavorare con te!"
@@ -704,7 +704,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "Incroyable ! \(days) jours sans t'arrêter. Je suis fan !",
             "\(days) jours de série ! On est invincibles ensemble !"
         ]
-        case .english: return [
+        case .english, .ukrainian, .polish: return [
             "\(days) days in a row! You're a machine\(days == 7 ? " — a full week!" : "!")  ",
             "Incredible! \(days) days without stopping. I'm your biggest fan!",
             "\(days)-day streak! We're unstoppable together!"
@@ -749,7 +749,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "\(firstName), je crois en toi.",
             "Pas de pression \(firstName). On avance à ton rythme."
         ]
-        case .english: return [
+        case .english, .ukrainian, .polish: return [
             "Come on \(firstName), we can do this!",
             "\(firstName), I believe in you.",
             "No pressure \(firstName). We go at your pace."
@@ -794,7 +794,7 @@ class LeoCompanion: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
             "Quelle partie de \(subject) tu préfères ?",
             "Est-ce qu'il y a quelque chose en \(subject) qui te semble difficile ?"
         ]
-        case .english: return [
+        case .english, .ukrainian, .polish: return [
             "Do you remember what we covered in \(subject) last time?",
             "Which part of \(subject) do you like best?",
             "Is there anything in \(subject) that feels difficult for you?"

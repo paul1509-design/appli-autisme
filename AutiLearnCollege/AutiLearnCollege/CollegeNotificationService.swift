@@ -45,6 +45,8 @@ struct CollegeNotificationService {
         case .german:     return "Zeit für \(name)s Lerneinheit! 🎓"
         case .arabic:     return "!حان وقت جلسة \(name) 🎓"
         case .dutch:      return "Het is tijd voor de sessie van \(name)! 🎓"
+        case .ukrainian:  return "Час для заняття \(name)! 🎓"
+        case .polish:     return "Czas na sesję \(name)! 🎓"
         }
     }
 
@@ -58,6 +60,8 @@ struct CollegeNotificationService {
         case .german:     return "15 Minuten täglich erhalten den Fortschritt. Viel Erfolg! 💪"
         case .arabic:     return "15 دقيقة يومياً تحافظ على التقدم. جلسة موفقة! 💪"
         case .dutch:      return "15 minuten per dag houden de voortgang gaande. Goede sessie! 💪"
+        case .ukrainian:  return "15 хвилин на день підтримують прогрес. Гарного заняття! 💪"
+        case .polish:     return "15 minut dziennie utrzymuje postępy. Udanej sesji! 💪"
         }
     }
 }

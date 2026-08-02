@@ -13,6 +13,7 @@ struct CollegeNativeLangLibrary {
         case .german:     return german(level)
         case .arabic:     return arabic(level)
         case .dutch:      return dutch(level)
+        case .ukrainian, .polish: return english(level)
         }
     }
 
