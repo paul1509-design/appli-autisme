@@ -42,7 +42,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
-            ScrollView(.vertical, showsIndicators: false) {
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
                     Group {
                         // Bandeau trial si < 7 jours restants
