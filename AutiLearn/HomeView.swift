@@ -224,18 +224,19 @@ struct HomeView: View {
 struct TrialBanner: View {
     let daysLeft: Int
     let onUpgrade: () -> Void
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
         Button(action: onUpgrade) {
             HStack(spacing: 10) {
                 Text(daysLeft <= 2 ? "🔴" : "🟡")
                 Text(daysLeft == 0
-                     ? "Votre essai expire aujourd'hui !"
-                     : "Essai gratuit : encore \(daysLeft) jour\(daysLeft > 1 ? "s" : "")")
+                     ? appState.currentLanguage.ui.trialExpiresToday
+                     : appState.currentLanguage.ui.trialDaysLeft(daysLeft))
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white)
                 Spacer()
-                Text("Débloquer")
+                Text(appState.currentLanguage.ui.unlock)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.white)
                     .padding(.horizontal, 10).padding(.vertical, 4)
@@ -422,7 +423,7 @@ struct LevelPickerSheet: View {
             .background(Color("backgroundSoft").ignoresSafeArea())
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Fermer") { dismiss() }
+                    Button(appState.currentLanguage.ui.close) { dismiss() }
                         .foregroundColor(Color("accentPurple"))
                 }
             }
@@ -741,7 +742,7 @@ struct DailyStoryTeaser: View {
             Text(appState.currentLanguage.ui.storyOfDay)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(Color("textPrimary"))
-            Text("Aujourd'hui, \(child.firstName) part à l'aventure dans la forêt magique des mots...")
+            Text(appState.currentLanguage.ui.dailyStoryDesc(child.firstName))
                 .font(.system(size: 14))
                 .foregroundColor(Color("textSecondary"))
                 .lineSpacing(4)
@@ -774,15 +775,11 @@ struct DailyScheduleCard: View {
 
     private var steps: [ScheduleStep] {
         let hour = Calendar.current.component(.hour, from: Date())
-        var list: [ScheduleStep] = [
-            ScheduleStep(emoji: "😊", title: "Comment tu te sens ?",   subtitle: "Émotion du matin", color: "accentYellow"),
-            ScheduleStep(emoji: "🗣️", title: "Exercice de parole",     subtitle: "5 min – 8 exercices", color: "accentOrange"),
-            ScheduleStep(emoji: "🔤", title: "Vocabulaire",             subtitle: "Nouveaux mots", color: "accentBlue"),
-            ScheduleStep(emoji: "🧮", title: "Chiffres & maths",        subtitle: "Compter et calculer", color: "accentGreen"),
-            ScheduleStep(emoji: "🎉", title: "Récompense !",            subtitle: "Pause de 5 minutes", color: "accentPink"),
-        ]
+        let raw = appState.currentLanguage.ui.dailySteps
+        var list = raw.map { ScheduleStep(emoji: $0.emoji, title: $0.title, subtitle: $0.subtitle, color: $0.color) }
         if hour >= 14 {
-            list[1] = ScheduleStep(emoji: "📖", title: "Histoire", subtitle: "Lecture du jour", color: "accentPurple")
+            let a = appState.currentLanguage.ui.afternoonStep
+            list[1] = ScheduleStep(emoji: a.emoji, title: a.title, subtitle: a.subtitle, color: a.color)
         }
         return list
     }
@@ -903,33 +900,13 @@ struct RewardBreakView: View {
     let onDismiss: () -> Void
     @EnvironmentObject private var appState: AppState
 
-    @State private var selectedActivity: RewardActivity?
-    @State private var timeRemaining = 300 // 5 minutes
+    @State private var selectedIndex: Int? = nil
+    @State private var timeRemaining = 300
     @State private var timerActive = false
     let countdown = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    enum RewardActivity: String, CaseIterable {
-        case game1   = "Jeu des bulles"
-        case game2   = "Jeu des couleurs"
-        case video1  = "Les animaux du monde"
-        case video2  = "Comment poussent les plantes ?"
-        case video3  = "L'espace et les étoiles"
-
-        var emoji: String {
-            switch self {
-            case .game1:  return "🫧"
-            case .game2:  return "🎨"
-            case .video1: return "🐘"
-            case .video2: return "🌱"
-            case .video3: return "🚀"
-            }
-        }
-        var isVideo: Bool {
-            switch self {
-            case .video1, .video2, .video3: return true
-            default: return false
-            }
-        }
+    var activities: [(emoji: String, name: String, isVideo: Bool)] {
+        appState.currentLanguage.ui.rewardActivities
     }
 
     var timeLabel: String {
@@ -943,10 +920,8 @@ struct RewardBreakView: View {
             Color("accentYellow").opacity(0.15).ignoresSafeArea()
 
             VStack(spacing: 28) {
-                // Célébration
                 VStack(spacing: 12) {
-                    Text("🎉")
-                        .font(.system(size: 72))
+                    Text("🎉").font(.system(size: 72))
                     Text(appState.currentLanguage.ui.bravoFull(child.firstName))
                         .font(.system(size: 28, weight: .medium))
                         .foregroundColor(Color("textPrimary"))
@@ -957,53 +932,49 @@ struct RewardBreakView: View {
                         .lineSpacing(4)
                 }
 
-                if let activity = selectedActivity {
-                    // Activité en cours
+                if let idx = selectedIndex, idx < activities.count {
+                    let activity = activities[idx]
                     VStack(spacing: 16) {
                         Text(activity.emoji).font(.system(size: 56))
-                        Text(activity.rawValue)
+                        Text(activity.name)
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(Color("textPrimary"))
-                        Text(activity.isVideo ? "🎬 Mini-film éducatif" : "🎮 Jeu")
+                        Text(activity.isVideo
+                             ? appState.currentLanguage.ui.miniFilm
+                             : appState.currentLanguage.ui.interactiveGame)
                             .font(.system(size: 14))
                             .foregroundColor(Color("textSecondary"))
-
-                        // Compte à rebours
                         Text(timeLabel)
                             .font(.system(size: 48, weight: .light, design: .rounded))
                             .foregroundColor(Color("accentOrange"))
-
                         Text(appState.currentLanguage.ui.timeRemainingBreak)
                             .font(.system(size: 13))
                             .foregroundColor(Color("textSecondary"))
                     }
                     .padding(24)
-                    .background(
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(Color("cardBackground"))
-                    )
+                    .background(RoundedRectangle(cornerRadius: 24).fill(Color("cardBackground")))
                     .padding(.horizontal, 24)
-
                 } else {
-                    // Choix de l'activité
                     VStack(alignment: .leading, spacing: 12) {
                         Text(appState.currentLanguage.ui.chooseActivity)
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(Color("textPrimary"))
                             .padding(.horizontal, 4)
 
-                        ForEach(RewardBreakView.RewardActivity.allCases, id: \.self) { activity in
+                        ForEach(Array(activities.enumerated()), id: \.offset) { idx, activity in
                             Button {
-                                selectedActivity = activity
+                                selectedIndex = idx
                                 timerActive = true
                             } label: {
                                 HStack(spacing: 14) {
                                     Text(activity.emoji).font(.system(size: 28))
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text(activity.rawValue)
+                                        Text(activity.name)
                                             .font(.system(size: 15, weight: .medium))
                                             .foregroundColor(Color("textPrimary"))
-                                        Text(activity.isVideo ? "Mini-film éducatif" : "Jeu interactif")
+                                        Text(activity.isVideo
+                                             ? appState.currentLanguage.ui.miniFilmShort
+                                             : appState.currentLanguage.ui.interactiveGameShort)
                                             .font(.system(size: 12))
                                             .foregroundColor(Color("textSecondary"))
                                     }
@@ -1013,10 +984,7 @@ struct RewardBreakView: View {
                                         .font(.system(size: 22))
                                 }
                                 .padding(14)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(Color("cardBackground"))
-                                )
+                                .background(RoundedRectangle(cornerRadius: 14).fill(Color("cardBackground")))
                             }
                         }
                     }
@@ -1025,10 +993,10 @@ struct RewardBreakView: View {
 
                 Spacer()
 
-                Button {
-                    onDismiss()
-                } label: {
-                    Text(selectedActivity == nil ? "Pas maintenant" : "Terminer la pause")
+                Button { onDismiss() } label: {
+                    Text(selectedIndex == nil
+                         ? appState.currentLanguage.ui.notNow
+                         : appState.currentLanguage.ui.endBreak)
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)

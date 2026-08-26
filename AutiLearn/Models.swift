@@ -1189,5 +1189,194 @@ enum AppLanguage: String, Codable, CaseIterable {
         }
         func howDoYouFeel(_ name: String) -> String { "\(howDoYouFeelPrefix) \(name) ?" }
         func bravoFull(_ name: String) -> String { "\(sessionBravo.replacingOccurrences(of: "!", with: "")) \(name) !" }
+
+        var trialExpiresToday: String {
+            switch language {
+            case .french:     return "Votre essai expire aujourd'hui !"
+            case .english:    return "Your trial expires today!"
+            case .spanish:    return "¡Tu prueba vence hoy!"
+            case .portuguese: return "Seu teste expira hoje!"
+            case .italian:    return "Il tuo periodo di prova scade oggi!"
+            case .german:     return "Ihr Test läuft heute ab!"
+            case .arabic:     return "تنتهي تجربتك اليوم!"
+            case .dutch:      return "Uw proefperiode verloopt vandaag!"
+            case .ukrainian:  return "Ваш пробний період закінчується сьогодні!"
+            case .polish:     return "Twój okres próbny wygasa dziś!"
+            }
+        }
+        func trialDaysLeft(_ n: Int) -> String {
+            switch language {
+            case .french:     return "Essai gratuit : encore \(n) jour\(n > 1 ? "s" : "")"
+            case .english:    return "Free trial: \(n) day\(n > 1 ? "s" : "") left"
+            case .spanish:    return "Prueba: quedan \(n) día\(n > 1 ? "s" : "")"
+            case .portuguese: return "Teste: \(n) dia\(n > 1 ? "s" : "") restante\(n > 1 ? "s" : "")"
+            case .italian:    return "Prova: ancora \(n) giorno\(n > 1 ? "i" : "")"
+            case .german:     return "Test: noch \(n) Tag\(n > 1 ? "e" : "")"
+            case .arabic:     return "تجربة مجانية: \(n) يوم متبقية"
+            case .dutch:      return "Proef: nog \(n) dag\(n > 1 ? "en" : "")"
+            case .ukrainian:  return "Пробний: ще \(n) день(ів)"
+            case .polish:     return "Próbny: jeszcze \(n) dzień(dni)"
+            }
+        }
+        var notNow: String {
+            switch language {
+            case .french:     return "Pas maintenant"
+            case .english:    return "Not now"
+            case .spanish:    return "Ahora no"
+            case .portuguese: return "Agora não"
+            case .italian:    return "Non adesso"
+            case .german:     return "Nicht jetzt"
+            case .arabic:     return "ليس الآن"
+            case .dutch:      return "Niet nu"
+            case .ukrainian:  return "Не зараз"
+            case .polish:     return "Nie teraz"
+            }
+        }
+        var endBreak: String {
+            switch language {
+            case .french:     return "Terminer la pause"
+            case .english:    return "End break"
+            case .spanish:    return "Terminar el descanso"
+            case .portuguese: return "Terminar a pausa"
+            case .italian:    return "Fine pausa"
+            case .german:     return "Pause beenden"
+            case .arabic:     return "إنهاء الاستراحة"
+            case .dutch:      return "Pauze beëindigen"
+            case .ukrainian:  return "Завершити перерву"
+            case .polish:     return "Zakończ przerwę"
+            }
+        }
+        var miniFilm: String {
+            switch language {
+            case .french:     return "🎬 Mini-film éducatif"
+            case .english:    return "🎬 Educational mini-film"
+            case .spanish:    return "🎬 Mini-película educativa"
+            case .portuguese: return "🎬 Mini-filme educativo"
+            case .italian:    return "🎬 Mini-film educativo"
+            case .german:     return "🎬 Lehr-Kurzfilm"
+            case .arabic:     return "🎬 فيلم تعليمي قصير"
+            case .dutch:      return "🎬 Educatieve korte film"
+            case .ukrainian:  return "🎬 Навчальний міні-фільм"
+            case .polish:     return "🎬 Mini-film edukacyjny"
+            }
+        }
+        var miniFilmShort: String {
+            switch language {
+            case .french:     return "Mini-film éducatif"
+            case .english:    return "Educational mini-film"
+            case .spanish:    return "Mini-película educativa"
+            case .portuguese: return "Mini-filme educativo"
+            case .italian:    return "Mini-film educativo"
+            case .german:     return "Lehr-Kurzfilm"
+            case .arabic:     return "فيلم تعليمي قصير"
+            case .dutch:      return "Educatieve korte film"
+            case .ukrainian:  return "Навчальний міні-фільм"
+            case .polish:     return "Mini-film edukacyjny"
+            }
+        }
+        var interactiveGame: String {
+            switch language {
+            case .french:     return "🎮 Jeu"
+            case .english:    return "🎮 Game"
+            case .spanish:    return "🎮 Juego"
+            case .portuguese: return "🎮 Jogo"
+            case .italian:    return "🎮 Gioco"
+            case .german:     return "🎮 Spiel"
+            case .arabic:     return "🎮 لعبة"
+            case .dutch:      return "🎮 Spel"
+            case .ukrainian:  return "🎮 Гра"
+            case .polish:     return "🎮 Gra"
+            }
+        }
+        var interactiveGameShort: String {
+            switch language {
+            case .french:     return "Jeu interactif"
+            case .english:    return "Interactive game"
+            case .spanish:    return "Juego interactivo"
+            case .portuguese: return "Jogo interativo"
+            case .italian:    return "Gioco interattivo"
+            case .german:     return "Interaktives Spiel"
+            case .arabic:     return "لعبة تفاعلية"
+            case .dutch:      return "Interactief spel"
+            case .ukrainian:  return "Інтерактивна гра"
+            case .polish:     return "Gra interaktywna"
+            }
+        }
+        var rewardActivities: [(emoji: String, name: String, isVideo: Bool)] {
+            switch language {
+            case .french:
+                return [("🫧","Jeu des bulles",false),("🎨","Jeu des couleurs",false),("🐘","Les animaux du monde",true),("🌱","Comment poussent les plantes ?",true),("🚀","L'espace et les étoiles",true)]
+            case .english:
+                return [("🫧","Bubble game",false),("🎨","Color game",false),("🐘","Animals of the world",true),("🌱","How plants grow",true),("🚀","Space and stars",true)]
+            case .spanish:
+                return [("🫧","Juego de burbujas",false),("🎨","Juego de colores",false),("🐘","Animales del mundo",true),("🌱","Cómo crecen las plantas",true),("🚀","El espacio y las estrellas",true)]
+            case .portuguese:
+                return [("🫧","Jogo das bolhas",false),("🎨","Jogo das cores",false),("🐘","Animais do mundo",true),("🌱","Como as plantas crescem",true),("🚀","O espaço e as estrelas",true)]
+            case .italian:
+                return [("🫧","Gioco delle bolle",false),("🎨","Gioco dei colori",false),("🐘","Animali del mondo",true),("🌱","Come crescono le piante",true),("🚀","Lo spazio e le stelle",true)]
+            case .german:
+                return [("🫧","Blasenspiel",false),("🎨","Farbenspiel",false),("🐘","Tiere der Welt",true),("🌱","Wie Pflanzen wachsen",true),("🚀","Der Weltraum und die Sterne",true)]
+            case .arabic:
+                return [("🫧","لعبة الفقاعات",false),("🎨","لعبة الألوان",false),("🐘","حيوانات العالم",true),("🌱","كيف تنمو النباتات",true),("🚀","الفضاء والنجوم",true)]
+            case .dutch:
+                return [("🫧","Bellenspel",false),("🎨","Kleurenspel",false),("🐘","Dieren van de wereld",true),("🌱","Hoe planten groeien",true),("🚀","De ruimte en de sterren",true)]
+            case .ukrainian:
+                return [("🫧","Гра з бульбашками",false),("🎨","Гра з кольорами",false),("🐘","Тварини світу",true),("🌱","Як ростуть рослини",true),("🚀","Космос і зірки",true)]
+            case .polish:
+                return [("🫧","Gra w bąbelki",false),("🎨","Gra w kolory",false),("🐘","Zwierzęta świata",true),("🌱","Jak rosną rośliny",true),("🚀","Kosmos i gwiazdy",true)]
+            }
+        }
+        func dailyStoryDesc(_ name: String) -> String {
+            switch language {
+            case .french:     return "Aujourd'hui, \(name) part à l'aventure dans la forêt magique des mots..."
+            case .english:    return "Today, \(name) sets off on an adventure in the magical forest of words..."
+            case .spanish:    return "Hoy, \(name) parte a la aventura en el bosque mágico de las palabras..."
+            case .portuguese: return "Hoje, \(name) parte para a aventura na floresta mágica das palavras..."
+            case .italian:    return "Oggi, \(name) parte per l'avventura nella foresta magica delle parole..."
+            case .german:     return "Heute bricht \(name) auf ins magische Wäldchen der Wörter..."
+            case .arabic:     return "اليوم، \(name) ينطلق في مغامرة في غابة الكلمات السحرية..."
+            case .dutch:      return "Vandaag gaat \(name) op avontuur in het magische woud van woorden..."
+            case .ukrainian:  return "Сьогодні \(name) вирушає в пригоду у чарівний ліс слів..."
+            case .polish:     return "Dziś \(name) wyrusza na przygodę do magicznego lasu słów..."
+            }
+        }
+        var dailySteps: [(emoji: String, title: String, subtitle: String, color: String)] {
+            switch language {
+            case .french:
+                return [("😊","Comment tu te sens ?","Émotion du matin","accentYellow"),("🗣️","Exercice de parole","5 min – 8 exercices","accentOrange"),("🔤","Vocabulaire","Nouveaux mots","accentBlue"),("🧮","Chiffres & maths","Compter et calculer","accentGreen"),("🎉","Récompense !","Pause de 5 minutes","accentPink")]
+            case .english:
+                return [("😊","How do you feel?","Morning emotion","accentYellow"),("🗣️","Speech exercise","5 min – 8 exercises","accentOrange"),("🔤","Vocabulary","New words","accentBlue"),("🧮","Numbers & maths","Count and calculate","accentGreen"),("🎉","Reward!","5-minute break","accentPink")]
+            case .spanish:
+                return [("😊","¿Cómo te sientes?","Emoción de la mañana","accentYellow"),("🗣️","Ejercicio de habla","5 min – 8 ejercicios","accentOrange"),("🔤","Vocabulario","Palabras nuevas","accentBlue"),("🧮","Números y mates","Contar y calcular","accentGreen"),("🎉","¡Recompensa!","Pausa de 5 minutos","accentPink")]
+            case .portuguese:
+                return [("😊","Como você se sente?","Emoção da manhã","accentYellow"),("🗣️","Exercício de fala","5 min – 8 exercícios","accentOrange"),("🔤","Vocabulário","Palavras novas","accentBlue"),("🧮","Números e maths","Contar e calcular","accentGreen"),("🎉","Recompensa!","Pausa de 5 minutos","accentPink")]
+            case .italian:
+                return [("😊","Come ti senti?","Emozione mattutina","accentYellow"),("🗣️","Esercizio di parlato","5 min – 8 esercizi","accentOrange"),("🔤","Vocabolario","Parole nuove","accentBlue"),("🧮","Numeri e maths","Contare e calcolare","accentGreen"),("🎉","Ricompensa!","Pausa di 5 minuti","accentPink")]
+            case .german:
+                return [("😊","Wie fühlst du dich?","Morgen-Emotion","accentYellow"),("🗣️","Sprechübung","5 Min – 8 Übungen","accentOrange"),("🔤","Wortschatz","Neue Wörter","accentBlue"),("🧮","Zahlen & Mathe","Zählen und rechnen","accentGreen"),("🎉","Belohnung!","5-Minuten-Pause","accentPink")]
+            case .arabic:
+                return [("😊","كيف حالك؟","مشاعر الصباح","accentYellow"),("🗣️","تمرين النطق","5 دقائق – 8 تمارين","accentOrange"),("🔤","المفردات","كلمات جديدة","accentBlue"),("🧮","الأرقام والرياضيات","العد والحساب","accentGreen"),("🎉","مكافأة!","استراحة 5 دقائق","accentPink")]
+            case .dutch:
+                return [("😊","Hoe voel je je?","Ochtend-emotie","accentYellow"),("🗣️","Spreekoefening","5 min – 8 oefeningen","accentOrange"),("🔤","Woordenschat","Nieuwe woorden","accentBlue"),("🧮","Getallen & maths","Tellen en rekenen","accentGreen"),("🎉","Beloning!","5-minutenpauze","accentPink")]
+            case .ukrainian:
+                return [("😊","Як ти себе почуваєш?","Ранковий настрій","accentYellow"),("🗣️","Мовна вправа","5 хв – 8 вправ","accentOrange"),("🔤","Словник","Нові слова","accentBlue"),("🧮","Числа та математика","Рахувати і обчислювати","accentGreen"),("🎉","Нагорода!","5-хвилинна перерва","accentPink")]
+            case .polish:
+                return [("😊","Jak się czujesz?","Poranny nastrój","accentYellow"),("🗣️","Ćwiczenie mowy","5 min – 8 ćwiczeń","accentOrange"),("🔤","Słownictwo","Nowe słowa","accentBlue"),("🧮","Liczby i matematyka","Liczyć i obliczać","accentGreen"),("🎉","Nagroda!","5-minutowa przerwa","accentPink")]
+            }
+        }
+        var afternoonStep: (emoji: String, title: String, subtitle: String, color: String) {
+            switch language {
+            case .french:     return ("📖","Histoire","Lecture du jour","accentPurple")
+            case .english:    return ("📖","Story","Reading of the day","accentPurple")
+            case .spanish:    return ("📖","Historia","Lectura del día","accentPurple")
+            case .portuguese: return ("📖","História","Leitura do dia","accentPurple")
+            case .italian:    return ("📖","Storia","Lettura del giorno","accentPurple")
+            case .german:     return ("📖","Geschichte","Lektüre des Tages","accentPurple")
+            case .arabic:     return ("📖","قصة","قراءة اليوم","accentPurple")
+            case .dutch:      return ("📖","Verhaal","Lezing van de dag","accentPurple")
+            case .ukrainian:  return ("📖","Казка","Читання дня","accentPurple")
+            case .polish:     return ("📖","Opowiadanie","Lektura dnia","accentPurple")
+            }
+        }
     }
 }
